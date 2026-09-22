@@ -38,10 +38,19 @@ task → branch → AI record → implement and test → human review
 
 ## Before starting
 
-Read `AGENTS.md`; it is the canonical policy for Codex, Claude Code, GitHub
-Copilot, Cursor, Gemini, and other compatible agents. `CLAUDE.md` and
-`.github/copilot-instructions.md` defer to it. Inspect the assigned task,
-affected component, existing tests, and related documentation. Clarify ambiguous
+Read `AGENTS.md`; it is the canonical policy for Codex, Claude Code, Grok
+Build, GitHub Copilot, Cursor, Gemini, and other compatible agents. `CLAUDE.md`
+and `GROK.md` defer to it. Architecture and protocol documents are
+implementation constraints, not optional background reading.
+
+Before coding, identify the affected components and read the required
+architecture documents: always read the roadmap and the applicable component
+design/member-task file; additionally read `04 - Shared Cross-Component
+Protocol Specification.md` for every cross-component, API, security, session,
+retry, status-code, configuration, storage, Docker, metrics, or E2E change.
+Determine the current phase, prerequisites, acceptance gate, frozen contracts,
+and required tests; inspect related implementation and tests. Existing code
+describes state, not authority to override the frozen design. Clarify ambiguous
 requirements before changing architecture or security behavior.
 
 Before significant AI-assisted work, run:
@@ -52,6 +61,19 @@ uv run ai-history status
 
 Do not begin a new task if another task is awaiting human review, revision, or
 final verification. Resolve it or obtain explicit direction first.
+
+Follow the roadmap's dependency order. Do not implement later-phase work just
+because it appears in a design document: baseline Gateway-to-Cloud must work
+before ML-KEM, and ML-KEM/session primitives must work before secure E2E. Keep
+the course-sized baseline; do not add infrastructure such as Kubernetes, Kafka,
+Redis, service mesh, distributed databases, or other expanded platform scope
+without an explicit request and an approved architecture change.
+
+If a task would change a frozen endpoint, field/schema, status code,
+cryptographic/KDF/nonce/AAD parameter, retry/session/fallback behavior, or
+storage mapping, stop and treat it as an architecture change. Update the shared
+protocol specification, component designs, roadmap, member tasks, tests, and
+only then implementation. Never silently adjust a protocol to match code.
 
 ## Choose, update, and branch
 

@@ -1,8 +1,12 @@
 # Grok Build Instructions
 
-Before making any repository change, read and follow
-[AGENTS.md](AGENTS.md). It is the canonical AI-agent policy for this project;
-if these instructions conflict with it, `AGENTS.md` wins.
+Before making any repository change, read and follow [AGENTS.md](AGENTS.md).
+It is the canonical AI-agent policy for this project; if these instructions
+conflict with it, `AGENTS.md` wins. Read the architecture, protocol, roadmap,
+and member-task documents that AGENTS.md requires, identify frozen contracts
+and the current phase, and inspect related code/tests before coding.
+Architecture and protocol documents are implementation constraints, not
+optional background reading.
 
 ## Required operating rules
 
@@ -20,6 +24,12 @@ if these instructions conflict with it, `AGENTS.md` wins.
 - Never put secrets, credentials, tokens, private keys, shared secrets, or
   `.env` contents in prompts, AI-history records, logs, commits, or reviews.
 - Never write a student's personal reflection, experiences, or feelings.
+- Do not change a frozen endpoint, schema, status code, crypto/KDF/AAD/nonce,
+  retry/session/fallback rule, or storage mapping because current code differs.
+  Report the mismatch and use AGENTS.md's required architecture-change order.
+- Preserve the frozen protocol, exact Legacy `400`/`422` mapping, same-envelope
+  ordinary retry, fail-closed secure mode, and no-counter/no-replay-window v1
+  constraints summarized in AGENTS.md.
 
 ## Mandatory review gate
 

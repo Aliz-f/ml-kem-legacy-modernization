@@ -3,7 +3,9 @@ name = "edge-gateway"
 version = "0.1.0"
 description = "Edge gateway component."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "cryptography>=48",
+]
 
 [build-system]
 requires = ["hatchling"]

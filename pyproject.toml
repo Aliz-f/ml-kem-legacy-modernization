@@ -11,6 +11,7 @@ ai-history = "ai_history.cli:main"
 
 [dependency-groups]
 dev = [
+    "edge-gateway",
     "pytest>=8.0",
     "ruff>=0.8",
 ]
@@ -32,3 +33,6 @@ members = [
     "edge_gateway",
     "cloud_service",
 ]
+
+[tool.uv.sources]
+edge-gateway = { workspace = true }

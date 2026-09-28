@@ -65,7 +65,12 @@ def load_config(environ: Mapping[str, str] | None = None) -> Config:
 
     device_id = _required_text(environment, "DEVICE_ID")
     gateway_url = _required_text(environment, "GATEWAY_URL")
-    parsed_url = urlparse(gateway_url)
+    try:
+        parsed_url = urlparse(gateway_url)
+    except ValueError as error:
+        raise ConfigurationError(
+            "GATEWAY_URL must be a valid HTTP or HTTPS URL"
+        ) from error
     if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
         raise ConfigurationError("GATEWAY_URL must be a valid HTTP or HTTPS URL")
 

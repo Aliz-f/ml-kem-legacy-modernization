@@ -99,6 +99,11 @@ def test_invalid_gateway_url() -> None:
         load_config({"GATEWAY_URL": "gateway:8000"})
 
 
+def test_malformed_gateway_url_is_translated_to_configuration_error() -> None:
+    with pytest.raises(ConfigurationError, match="GATEWAY_URL"):
+        load_config({"GATEWAY_URL": "http://[bad"})
+
+
 def test_unknown_failure_mode() -> None:
     with pytest.raises(ConfigurationError, match="FAILURE_MODE"):
         load_config({"FAILURE_MODE": "unrecognized"})

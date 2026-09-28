@@ -192,6 +192,7 @@ source = { editable = "." }
 [package.dev-dependencies]
 dev = [
     { name = "edge-gateway" },
+    { name = "legacy-system" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -201,6 +202,7 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "edge-gateway", editable = "edge_gateway" },
+    { name = "legacy-system", editable = "legacy_system" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "ruff", specifier = ">=0.8" },
 ]

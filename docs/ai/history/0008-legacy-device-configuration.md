@@ -1,4 +1,4 @@
-# AI Task 0006 — Legacy Device configuration
+# AI Task 0008 — Legacy Device configuration
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Implemented Legacy Device M1-01 configuration with centralized injectable enviro
 
 ## Files Created
 
-- docs/ai/history/0006-legacy-device-configuration.md
+- docs/ai/history/0008-legacy-device-configuration.md
 - legacy_system/src/legacy_system/config.py
 - legacy_system/tests/test_config.py
 
@@ -82,7 +82,7 @@ Added explicit configuration tests for negative SEND_INTERVAL_SECONDS and REQUES
 
 ## Files Created
 
-- docs/ai/history/0006-legacy-device-configuration.md
+- docs/ai/history/0008-legacy-device-configuration.md
 - legacy_system/src/legacy_system/config.py
 - legacy_system/tests/test_config.py
 

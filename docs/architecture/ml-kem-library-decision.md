@@ -16,7 +16,7 @@ Checked on 2026-09-22 against PyPI release 50.0.1:
 
 `edge_gateway` depends on `cryptography>=48`. `uv.lock` pins the installed release. Do not add `requirements.txt`. Member 4 should use this same package for decapsulation and the same HKDF call.
 
-`salt=None` in `cryptography.hazmat.primitives.kdf.hkdf.HKDF` follows RFC 5869: the salt is HashLen zero bytes. Both sides must use that call. An empty salt from another library is not the same input.
+`salt=None` in `cryptography.hazmat.primitives.kdf.hkdf.HKDF` follows RFC 5869: the salt is HashLen zero bytes. The protocol requires both sides to use that exact call. An implementation using another library must verify its RFC 5869 salt handling against this contract rather than substituting a salt value without validation.
 
 The project protocol is not HPKE. Do not replace the frozen HKDF info string with an HPKE suite.
 

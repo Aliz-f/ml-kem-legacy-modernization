@@ -1,4 +1,4 @@
-# AI Task 0013 — Gateway AES-GCM nonce and AAD
+# AI Task 0017 — Gateway AES-GCM nonce and AAD
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Added AES-256-GCM encrypt and decrypt, a 12-byte nonce from the operating-system
 
 ## Files Created
 
-- docs/ai/history/0013-gateway-aes-gcm-nonce-and-aad.md
+- docs/ai/history/0017-gateway-aes-gcm-nonce-and-aad.md
 - edge_gateway/src/edge_gateway/crypto/aad.py
 - edge_gateway/src/edge_gateway/crypto/plaintext.py
 - edge_gateway/src/edge_gateway/crypto/symmetric.py
@@ -63,7 +63,7 @@ Added AES-256-GCM encrypt and decrypt, a 12-byte nonce from the operating-system
 
 ## AI Notes
 
-This branch starts from feat/gateway-session-establishment so the history id follows task 0012. Public-key and session commits are not on develop yet. Decrypt is in the Gateway wrapper so tests can prove authentication failure; Member 4 still owns the Cloud implementation. The interoperability check uses a separate JSON encoder in the test, not cloud_service. generate_nonce uses secrets.token_bytes. Repeating encrypt with the same nonce and plaintext is only a determinism check; an ordinary retry must resend the stored ciphertext once SecureEnvelope exists. Timestamp strings are validated as explicit UTC and copied unchanged.
+This branch starts from feat/gateway-session-establishment so the history id follows task 0016. Public-key and session commits are not on develop yet. Decrypt is in the Gateway wrapper so tests can prove authentication failure; Member 4 still owns the Cloud implementation. The interoperability check uses a separate JSON encoder in the test, not cloud_service. generate_nonce uses secrets.token_bytes. Repeating encrypt with the same nonce and plaintext is only a determinism check; an ordinary retry must resend the stored ciphertext once SecureEnvelope exists. Timestamp strings are validated as explicit UTC and copied unchanged.
 
 ---
 

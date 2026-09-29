@@ -319,6 +319,7 @@ source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "cloud-service", extra = ["test"] },
     { name = "edge-gateway" },
     { name = "legacy-system" },
     { name = "pytest" },
@@ -329,6 +330,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "cloud-service", extras = ["test"], editable = "cloud_service" },
     { name = "edge-gateway", editable = "edge_gateway" },
     { name = "legacy-system", editable = "legacy_system" },
     { name = "pytest", specifier = ">=8.0" },

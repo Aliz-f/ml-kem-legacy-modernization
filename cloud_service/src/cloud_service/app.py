@@ -1,4 +1,4 @@
-"""Cloud storage and ephemeral ML-KEM key service; sessions follow later."""
+"""Cloud storage, ephemeral keys and sessions; secure ingestion follows later."""
 
 from contextlib import asynccontextmanager
 import logging
@@ -8,9 +8,11 @@ from fastapi.responses import JSONResponse, Response
 
 from cloud_service.config import Config, ConfigurationError, SecurityMode, load_config
 from cloud_service.crypto.keys import KeyService
+from cloud_service.crypto.session import SessionAccessError, SessionManager
 from cloud_service.gateway.crypto import router as crypto_router
 from cloud_service.gateway.routes import router as gateway_router
 from cloud_service.gateway.queries import router as query_router
+from cloud_service.gateway.sessions import router as session_router, session_access_error_handler
 from cloud_service.storage.database import Database, StorageError
 from cloud_service.storage.repository import MeasurementRepository
 
@@ -44,6 +46,7 @@ def create_app(config: Config | None = None) -> FastAPI:
             if settings.security_mode == SecurityMode.MLKEM:
                 try:
                     app.state.keys = KeyService()
+                    app.state.sessions = SessionManager(settings.session_ttl_seconds)
                 except Exception:
                     logger.error("cloud_startup_failed: key initialization failed")
                     raise StartupError("Cloud key initialization failed") from None
@@ -51,6 +54,9 @@ def create_app(config: Config | None = None) -> FastAPI:
             yield
         finally:
             app.state.running = False
+            if app.state.sessions is not None:
+                app.state.sessions.close()
+                app.state.sessions = None
             if app.state.keys is not None:
                 app.state.keys.close()
                 app.state.keys = None
@@ -70,9 +76,12 @@ def create_app(config: Config | None = None) -> FastAPI:
     app.state.database = None
     app.state.repository = None
     app.state.keys = None
+    app.state.sessions = None
     app.include_router(gateway_router)
     app.include_router(query_router)
     app.include_router(crypto_router)
+    app.include_router(session_router)
+    app.add_exception_handler(SessionAccessError, session_access_error_handler)
 
     @app.get("/health")
     async def health():

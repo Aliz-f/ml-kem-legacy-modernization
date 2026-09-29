@@ -48,7 +48,7 @@ def test_public_key_contract_gateway_interop_and_secret_boundary(tmp_path, caplo
             assert client.get("/health").status_code == 200
             assert client.get("/ready").status_code == 503
             assert client.post("/api/v1/baseline/measurements", json={}).status_code == 503
-            assert client.post("/api/v1/crypto/sessions", json={}).status_code == 404
+            assert client.post("/api/v1/crypto/sessions", json={}).status_code == 400
             assert client.post("/api/v1/secure/measurements", json={}).status_code == 404
             assert app.state.repository.list() == []
             with app.state.database.transaction() as connection:

@@ -49,7 +49,6 @@ def test_metrics_exposes_only_bounded_service_information():
 
 @pytest.mark.parametrize(("method", "path"), [
     ("POST", "/api/v1/secure/measurements"),
-    ("POST", "/api/v1/crypto/sessions"),
 ])
 def test_future_routes_do_not_claim_success(method, path):
     with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:

@@ -1,4 +1,4 @@
-# AI Task 0010 — Implement Legacy measurement model
+# AI Task 0011 — Implement Legacy measurement model
 
 **Status:** Complete
 

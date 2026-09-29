@@ -14,8 +14,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
 
-from edge_gateway.crypto.kdf import derive_session_key
-from edge_gateway.crypto.mlkem import encapsulate
+from edge_gateway.crypto.kdf import KdfError, derive_session_key
+from edge_gateway.crypto.mlkem import MlKemError, encapsulate
 from edge_gateway.crypto.public_key import PublicKeyRejected
 from edge_gateway.crypto.public_key_client import (
     PublicKeyTransportError,
@@ -48,6 +48,22 @@ class SessionEstablishmentError(Exception):
     def __init__(self, message: str, *, retryable: bool) -> None:
         super().__init__(message)
         self.retryable = retryable
+
+
+@dataclass(slots=True)
+class SessionMetrics:
+    """In-memory counters for Gateway session establishment.
+
+    Exporting these counters is owned by the later Gateway observability work.
+    Keeping the counter here ensures every failed handshake is recorded without
+    attaching request or session identifiers as metric labels.
+    """
+
+    mlkem_handshake_failures_total: int = 0
+
+    def record_establishment_failure(self) -> None:
+        """Record one failed ML-KEM session-establishment attempt."""
+        self.mlkem_handshake_failures_total += 1
 
 
 @dataclass(slots=True)
@@ -91,6 +107,7 @@ class SessionManager:
         timeout_seconds: float,
         *,
         clock: Clock | None = None,
+        metrics: SessionMetrics | None = None,
     ) -> None:
         if not isinstance(gateway_id, str) or gateway_id == "" or gateway_id != gateway_id.strip():
             raise ValueError("gateway_id must be a non-empty string.")
@@ -98,6 +115,7 @@ class SessionManager:
         self._cloud_url = cloud_url
         self._timeout_seconds = timeout_seconds
         self._clock = clock or (lambda: datetime.now(timezone.utc))
+        self._metrics = metrics or SessionMetrics()
         self._lock = asyncio.Lock()
         self._session: SecureSession | None = None
 
@@ -126,6 +144,11 @@ class SessionManager:
         if self._session is not None:
             self._session.clear(SessionState.CLOSED)
             self._session = None
+
+    @property
+    def metrics(self) -> SessionMetrics:
+        """Expose aggregate, secret-free session-establishment metrics."""
+        return self._metrics
 
     def _usable_session(self) -> SecureSession | None:
         session = self._session
@@ -169,22 +192,50 @@ class SessionManager:
                 now=self._clock(),
             )
         except (PublicKeyTransportError, SessionTransportError) as exc:
-            provisional.clear(SessionState.FAILED)
-            self._session = None
-            logger.warning("session establishment failed")
-            raise SessionEstablishmentError(str(exc), retryable=exc.retryable) from exc
+            self._fail_establishment(
+                provisional,
+                "session establishment failed",
+                retryable=exc.retryable,
+                cause=exc,
+            )
         except (PublicKeyRejected, SessionRejected) as exc:
-            provisional.clear(SessionState.FAILED)
-            self._session = None
-            logger.warning("session establishment rejected")
-            raise SessionEstablishmentError(str(exc), retryable=False) from exc
-        except Exception:
-            provisional.clear(SessionState.FAILED)
-            self._session = None
-            logger.warning("session establishment failed")
-            raise
+            self._fail_establishment(
+                provisional,
+                "session establishment rejected",
+                retryable=False,
+                cause=exc,
+            )
+        except (MlKemError, KdfError) as exc:
+            self._fail_establishment(
+                provisional,
+                "ML-KEM session establishment failed",
+                retryable=False,
+                cause=exc,
+            )
+        except Exception as exc:
+            self._fail_establishment(
+                provisional,
+                "unexpected session establishment failure",
+                retryable=False,
+                cause=exc,
+            )
         provisional.session_id = response.session_id
         provisional.created_at = self._clock()
         provisional.expires_at = response.expires_at
         provisional.state = SessionState.ACTIVE
         return provisional
+
+    def _fail_establishment(
+        self,
+        provisional: SecureSession,
+        message: str,
+        *,
+        retryable: bool,
+        cause: Exception,
+    ) -> None:
+        """Clear provisional key material and raise a classified failure."""
+        provisional.clear(SessionState.FAILED)
+        self._session = None
+        self._metrics.record_establishment_failure()
+        logger.warning(message)
+        raise SessionEstablishmentError(message, retryable=retryable) from cause

@@ -17,6 +17,7 @@ from edge_gateway.crypto.mlkem import CIPHERTEXT_LENGTH
 from edge_gateway.crypto.session import (
     SessionEstablishmentError,
     SessionManager,
+    SessionMetrics,
     SessionState,
 )
 from edge_gateway.crypto.session_client import SessionRejected, parse_session_response
@@ -254,6 +255,39 @@ def test_unavailable_cloud_is_retryable_and_leaves_no_session(cloud_url):
     caught = asyncio.run(recover())
     assert caught.value.retryable is True
     assert cloud.posts == 2
+
+
+@pytest.mark.parametrize("failure", ["mlkem", "kdf"])
+def test_crypto_failure_is_classified_and_recorded(
+    cloud_url,
+    monkeypatch: pytest.MonkeyPatch,
+    failure: str,
+):
+    url, cloud, clock = cloud_url
+    metrics = SessionMetrics()
+    manager = SessionManager("gateway-001", url, timeout_seconds=3, clock=clock, metrics=metrics)
+
+    if failure == "mlkem":
+        from edge_gateway.crypto.mlkem import MlKemError
+
+        def fail_encapsulation(_public_key: bytes) -> tuple[bytes, bytes]:
+            raise MlKemError("injected ML-KEM failure")
+
+        monkeypatch.setattr("edge_gateway.crypto.session.encapsulate", fail_encapsulation)
+    else:
+        from edge_gateway.crypto.kdf import KdfError
+
+        def fail_derivation(_shared_secret: bytes) -> bytes:
+            raise KdfError("injected KDF failure")
+
+        monkeypatch.setattr("edge_gateway.crypto.session.derive_session_key", fail_derivation)
+
+    with pytest.raises(SessionEstablishmentError) as caught:
+        asyncio.run(manager.get_or_establish())
+
+    assert caught.value.retryable is False
+    assert metrics.mlkem_handshake_failures_total == 1
+    assert cloud.posts == 0
 
 
 def test_close_wipes_the_session_key(cloud_url):

@@ -1,4 +1,4 @@
 """Gateway cryptographic wrappers.
 
-Library-specific ML-KEM, HKDF, and AES-GCM calls stay in this package.
+Library-specific ML-KEM, HKDF, AES-GCM, and SecureEnvelope calls stay in this package.
 """

@@ -43,24 +43,29 @@ configuration values. Logging includes no configuration dump or request body.
 |---|---|
 | `GET /health` | `200 {"status":"ok"}` while the lifespan is running |
 | `GET /ready` | `503` with structured `SERVICE_UNAVAILABLE` error |
+| `GET /metrics` | Prometheus text exposition containing only bounded `cloud_service_info`; request, storage, session, and crypto metrics require their later features |
 
-Readiness intentionally stays unavailable: storage, validation, and persistence
-have not been implemented. Liveness is not a claim that Cloud can accept a
-measurement. There is no active-session requirement for readiness.
+Readiness intentionally stays unavailable until measurement ingestion is
+implemented. M4-05 through M4-07 now initialize SQLite and expose a repository
+on app state, but no measurement route exists. Liveness is not a claim that
+Cloud can accept a measurement. There is no active-session requirement for readiness.
 
 `SECURITY_MODE=mlkem` fails startup because the secure subsystems do not yet
 exist; it never switches to classical mode. No crypto is initialized in baseline
 mode. Failure-injection settings are parsed configuration only at this stage.
 
-Measurement, query, crypto, session, and metrics routes are not registered yet
-and return the framework's `404`. No stub returns `202` or pretends to persist
-data. M4-02's eventual endpoint list is a target, not evidence those features
-already exist. Storage initialization and cleanup will be added with M4-06/07;
-baseline acceptance follows M4-03 through M4-11; query, crypto, sessions, metrics,
-and complete readiness remain their designated later tasks. The app contains
+Measurement, query, crypto, and session routes are not registered yet and return
+the framework's `404`. No stub returns `202` or pretends to persist data. M4-02's
+eventual endpoint list is a target, not evidence those features already exist.
+Storage initialization and cleanup are implemented by M4-06/07; baseline
+acceptance still requires M4-08 through M4-11. Request, storage, session, and
+crypto metrics remain their designated later work. The app contains
 no SQL or crypto internals and does not alter any frozen wire contract.
 
 M4-00 and M4-01 are complete prerequisites. This skeleton does not complete
-the roadmap baseline Cloud gate or baseline E2E gate. Future lifecycle changes
-must initialize required subsystems before reporting readiness, close resources
-on shutdown/failure, and preserve lookup → ownership → expiry session validation.
+the roadmap baseline Cloud gate or baseline E2E gate. SQLite initializes before
+the app becomes live; initialization failure aborts startup with a safe error.
+Shutdown closes storage and clears the database/repository references even when
+the lifespan exits through an exception. The configured database's parent
+directory must already exist. Future secure work must preserve
+lookup → ownership → expiry session validation.

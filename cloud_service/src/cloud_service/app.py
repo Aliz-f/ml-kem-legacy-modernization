@@ -1,12 +1,14 @@
-"""Cloud HTTP shell; persistence and secure processing arrive in later tasks."""
+"""Cloud HTTP shell with storage lifecycle; ingestion and crypto follow later."""
 
 from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from cloud_service.config import Config, ConfigurationError, SecurityMode, load_config
+from cloud_service.storage.database import Database, StorageError
+from cloud_service.storage.repository import MeasurementRepository
 
 logger = logging.getLogger("cloud_service")
 
@@ -30,12 +32,24 @@ def create_app(config: Config | None = None) -> FastAPI:
             logger.error("cloud_startup_failed: secure subsystems unavailable")
             raise StartupError("Modernized Mode is not implemented yet")
         logger.info("cloud_starting security_mode=%s", settings.security_mode.value)
+        try:
+            database = Database(settings.database_url)
+        except StorageError:
+            logger.error("cloud_startup_failed: storage unavailable")
+            raise StartupError("Cloud storage initialization failed") from None
+        app.state.database = database
+        app.state.repository = MeasurementRepository(database)
         app.state.running = True
         try:
             yield
         finally:
             app.state.running = False
-            logger.info("cloud_shutting_down")
+            try:
+                database.close()
+            finally:
+                app.state.database = None
+                app.state.repository = None
+                logger.info("cloud_shutting_down")
 
     app = FastAPI(
         title="Cloud Service", lifespan=lifespan,
@@ -43,6 +57,8 @@ def create_app(config: Config | None = None) -> FastAPI:
     )
     app.state.config = settings
     app.state.running = False
+    app.state.database = None
+    app.state.repository = None
 
     @app.get("/health")
     async def health():
@@ -52,8 +68,20 @@ def create_app(config: Config | None = None) -> FastAPI:
 
     @app.get("/ready")
     async def ready():
-        # No storage exists at M4-02. Never claim readiness to persist data.
+        # Ingestion is not implemented yet; complete readiness is a later task.
         return _unavailable()
+
+    @app.get("/metrics")
+    async def metrics() -> Response:
+        """Expose the bounded service-info metric available before storage exists."""
+        return Response(
+            content=(
+                "# HELP cloud_service_info Cloud Service process information.\n"
+                "# TYPE cloud_service_info gauge\n"
+                f'cloud_service_info{{security_mode="{settings.security_mode.value}"}} 1\n'
+            ),
+            media_type="text/plain; version=0.0.4; charset=utf-8",
+        )
 
     return app
 

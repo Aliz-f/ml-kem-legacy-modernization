@@ -1,4 +1,4 @@
-"""Cloud HTTP shell with storage lifecycle; ingestion and crypto follow later."""
+"""Cloud baseline application with storage lifecycle; crypto follows later."""
 
 from contextlib import asynccontextmanager
 import logging
@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse, Response
 
 from cloud_service.config import Config, ConfigurationError, SecurityMode, load_config
+from cloud_service.gateway.routes import router as gateway_router
 from cloud_service.storage.database import Database, StorageError
 from cloud_service.storage.repository import MeasurementRepository
 
@@ -59,6 +60,7 @@ def create_app(config: Config | None = None) -> FastAPI:
     app.state.running = False
     app.state.database = None
     app.state.repository = None
+    app.include_router(gateway_router)
 
     @app.get("/health")
     async def health():
@@ -68,7 +70,7 @@ def create_app(config: Config | None = None) -> FastAPI:
 
     @app.get("/ready")
     async def ready():
-        # Ingestion is not implemented yet; complete readiness is a later task.
+        # Complete readiness checks remain a later task.
         return _unavailable()
 
     @app.get("/metrics")

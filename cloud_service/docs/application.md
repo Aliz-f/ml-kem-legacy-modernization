@@ -13,7 +13,7 @@ uv run --frozen --package cloud-service cloud-service
 
 Defaults bind to `0.0.0.0:9000`. Set `HOST=127.0.0.1` for local-only access.
 Stop with Ctrl+C. `python -m cloud_service.app` is also supported inside the
-installed environment. No measurement can be persisted at this stage.
+installed environment. The baseline endpoint now persists canonical measurements.
 
 For the full workspace test suite:
 
@@ -43,22 +43,22 @@ configuration values. Logging includes no configuration dump or request body.
 |---|---|
 | `GET /health` | `200 {"status":"ok"}` while the lifespan is running |
 | `GET /ready` | `503` with structured `SERVICE_UNAVAILABLE` error |
+| `POST /api/v1/baseline/measurements` | `202 accepted` or `202 already_accepted` after committed persistence |
 | `GET /metrics` | Prometheus text exposition containing only bounded `cloud_service_info`; request, storage, session, and crypto metrics require their later features |
 
-Readiness intentionally stays unavailable until measurement ingestion is
-implemented. M4-05 through M4-07 now initialize SQLite and expose a repository
-on app state, but no measurement route exists. Liveness is not a claim that
-Cloud can accept a measurement. There is no active-session requirement for readiness.
+Full readiness checks remain later work; this PR leaves `/ready` unchanged.
+M4-05 through M4-07 initialize SQLite and expose a repository on app state;
+M4-08 through M4-11 add baseline ingestion. There is no active-session
+requirement for readiness.
 
 `SECURITY_MODE=mlkem` fails startup because the secure subsystems do not yet
 exist; it never switches to classical mode. No crypto is initialized in baseline
 mode. Failure-injection settings are parsed configuration only at this stage.
 
-Measurement, query, crypto, and session routes are not registered yet and return
-the framework's `404`. No stub returns `202` or pretends to persist data. M4-02's
-eventual endpoint list is a target, not evidence those features already exist.
-Storage initialization and cleanup are implemented by M4-06/07; baseline
-acceptance still requires M4-08 through M4-11. Request, storage, session, and
+Query, secure measurement, crypto, and session routes are not registered yet
+and return the framework's `404`. Baseline ingestion returns `202` only after
+the storage transaction commits. See [baseline ingestion](baseline.md).
+Storage initialization and cleanup are implemented by M4-06/07. Request, storage, session, and
 crypto metrics remain their designated later work. The app contains
 no SQL or crypto internals and does not alter any frozen wire contract.
 

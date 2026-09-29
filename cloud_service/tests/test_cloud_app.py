@@ -35,7 +35,7 @@ def test_lifecycle_liveness_and_unready_storage(tmp_path, monkeypatch, caplog):
 
 
 def test_metrics_exposes_only_bounded_service_information():
-    with TestClient(create_app(load_config({}))) as client:
+    with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:
         response = client.get("/metrics")
 
     assert response.status_code == 200
@@ -58,7 +58,6 @@ def test_unsupported_secure_mode_fails_startup(caplog):
 
 
 @pytest.mark.parametrize(("method", "path"), [
-    ("POST", "/api/v1/baseline/measurements"),
     ("POST", "/api/v1/secure/measurements"),
     ("POST", "/api/v1/crypto/sessions"),
     ("GET", "/api/v1/crypto/public-key"),

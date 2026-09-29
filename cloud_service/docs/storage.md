@@ -23,6 +23,8 @@ a safe storage failure rather than truncation or a protocol-validation change.
 `MeasurementRepository` provides:
 
 - `save(canonical)` validates and commits a new record before returning it.
+- `save_idempotent(canonical)` returns `SaveResult(measurement, created)` after
+  commit; duplicates return the original row with `created=False`.
 - `get(record_id)` returns a stored model or `None`.
 - `find_by_device_sequence(device_id, sequence_number)` returns a model or `None`.
 - `list(limit=100, device_id=None)` returns at most the requested positive
@@ -42,11 +44,17 @@ internal exceptions, not new HTTP status contracts. Schema evolution/migrations
 and external modifications of the database are not supported by this initial
 table initializer.
 
-The uniqueness constraint is present, but duplicate insertion currently raises
-a conflict. M4-08 will supply idempotent `already_accepted` behavior; it has not
-been started. No ingestion/query HTTP endpoint, replay policy, metrics, or
-failure-injection feature is implemented here. `/ready` remains unavailable
-because ingestion is still absent. PR 2 alone does not satisfy baseline E2E.
+M4-08 adds idempotent insertion with a conflict clause targeted only at
+`(device_id, sequence_number)`. Insert and lookup run in the same transaction,
+including across separate connections; the returned result is released after
+commit. The first valid accepted data and Cloud metadata are preserved even if
+a repeated logical identity carries different valid values. Unrelated record-ID
+collisions still raise a storage conflict. The original `save` remains a strict
+insert API; baseline ingestion uses `save_idempotent`.
+
+This is business idempotency, not cryptographic replay protection. M4-10 adds
+the baseline ingestion route; query routes and complete readiness remain later
+tasks. PR 2 storage alone does not satisfy baseline E2E.
 
 Run `uv run --frozen --all-packages --all-extras pytest cloud_service/tests`.
 Tests use temporary files or private in-memory databases and cover schema,

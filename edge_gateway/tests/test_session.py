@@ -163,6 +163,16 @@ def test_session_response_must_be_in_the_future_and_explicitly_zoned():
                 "protocol_version": "1",
                 "session_id": "sess-001",
                 "status": "established",
+                "expires_at": "2026-09-21T15:05:00+02:00",
+            },
+            now=now,
+        )
+    with pytest.raises(SessionRejected):
+        parse_session_response(
+            {
+                "protocol_version": "1",
+                "session_id": "sess-001",
+                "status": "established",
                 "expires_at": _stamp(now - timedelta(seconds=1)),
             },
             now=now,

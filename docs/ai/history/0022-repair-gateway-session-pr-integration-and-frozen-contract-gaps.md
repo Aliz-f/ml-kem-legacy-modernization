@@ -1,4 +1,4 @@
-# AI Task 0021 — Repair Gateway session PR integration and frozen-contract gaps
+# AI Task 0022 — Repair Gateway session PR integration and frozen-contract gaps
 
 **Status:** Complete
 

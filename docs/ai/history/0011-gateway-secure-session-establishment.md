@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:docs/ai/history/0011-gateway-secure-session-establishment.md
 # AI Task 0011 — Gateway secure session establishment
+========
+# AI Task 0020 — Gateway secure session establishment
+>>>>>>>> origin/pr-9:docs/ai/history/0020-gateway-secure-session-establishment.md
 
 **Status:** Complete
 
@@ -30,7 +34,7 @@ Added an in-memory Gateway secure session and the establishment handshake. get_o
 
 ## Files Created
 
-- docs/ai/history/0016-gateway-secure-session-establishment.md
+- docs/ai/history/0020-gateway-secure-session-establishment.md
 - edge_gateway/src/edge_gateway/crypto/session.py
 - edge_gateway/src/edge_gateway/crypto/session_client.py
 - edge_gateway/tests/test_session.py

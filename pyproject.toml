@@ -28,6 +28,9 @@ packages = ["src/ai_history"]
 select = ["E", "F"]
 ignore = ["E501"]
 
+[tool.pytest.ini_options]
+pythonpath = ["edge_gateway/src"]
+
 [tool.uv.workspace]
 members = [
     "legacy_system",

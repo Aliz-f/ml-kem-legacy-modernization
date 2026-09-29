@@ -79,23 +79,36 @@ def slugify(text: str) -> str:
 
 def parse_task(path: Path) -> Task:
     text = path.read_text(encoding="utf-8")
-    heading = re.search(r"^# AI Task (\d{4}) — (.+)$", text, re.MULTILINE)
-    status = re.search(r"^\*\*Status:\*\* (.+)$", text, re.MULTILINE)
-    created = re.search(r"^\*\*Created:\*\* (.+)$", text, re.MULTILINE)
-    updated = re.search(r"^\*\*Updated:\*\* (.+)$", text, re.MULTILINE)
-    if not all((heading, status, created, updated)):
+    if any(marker in text for marker in ("<<<<<<<", "=======", ">>>>>>>")):
+        raise HistoryError(f"{path}: unresolved Git conflict marker.")
+    metadata_text = re.sub(
+        r"\n---\n\n# Final Outcome\n\n\*\*Status:\*\* Complete\s*$",
+        "",
+        text,
+    )
+    headings = re.findall(r"^# AI Task (\d{4}) — (.+)$", text, re.MULTILINE)
+    statuses = re.findall(r"^\*\*Status:\*\* (.+)$", metadata_text, re.MULTILINE)
+    created_values = re.findall(r"^\*\*Created:\*\* (.+)$", text, re.MULTILINE)
+    updated_values = re.findall(r"^\*\*Updated:\*\* (.+)$", text, re.MULTILINE)
+    if not all((headings, statuses, created_values, updated_values)):
         raise HistoryError(f"{path}: missing required metadata.")
+    if any(len(values) != 1 for values in (headings, statuses, created_values, updated_values)):
+        raise HistoryError(f"{path}: duplicate task metadata.")
+    heading_id, heading_title = headings[0]
+    status_value = statuses[0]
+    created_value = created_values[0]
+    updated_value = updated_values[0]
     try:
-        parsed_status = Status(status.group(1).strip())
+        parsed_status = Status(status_value.strip())
     except ValueError as exc:
-        raise HistoryError(f"{path}: invalid status {status.group(1)!r}.") from exc
+        raise HistoryError(f"{path}: invalid status {status_value!r}.") from exc
     return Task(
-        heading.group(1),
-        heading.group(2),
+        heading_id,
+        heading_title,
         parsed_status,
         path,
-        created.group(1),
-        updated.group(1),
+        created_value,
+        updated_value,
     )
 
 
@@ -209,6 +222,8 @@ def validate(root: Path) -> list[str]:
         text = task.path.read_text(encoding="utf-8")
         if not re.fullmatch(r"\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.md", task.path.name):
             errors.append(f"Task {task.task_id}: invalid filename.")
+        if not task.path.name.startswith(f"{task.task_id}-"):
+            errors.append(f"Task {task.task_id}: filename task ID does not match metadata.")
         for value, label in ((task.created, "Created"), (task.updated, "Updated")):
             try:
                 datetime.fromisoformat(value)

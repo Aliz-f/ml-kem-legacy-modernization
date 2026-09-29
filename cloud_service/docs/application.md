@@ -43,6 +43,7 @@ configuration values. Logging includes no configuration dump or request body.
 |---|---|
 | `GET /health` | `200 {"status":"ok"}` while the lifespan is running |
 | `GET /ready` | `503` with structured `SERVICE_UNAVAILABLE` error |
+| `GET /metrics` | Prometheus text exposition containing only bounded `cloud_service_info`; request, storage, session, and crypto metrics require their later features |
 
 Readiness intentionally stays unavailable: storage, validation, and persistence
 have not been implemented. Liveness is not a claim that Cloud can accept a
@@ -52,9 +53,9 @@ measurement. There is no active-session requirement for readiness.
 exist; it never switches to classical mode. No crypto is initialized in baseline
 mode. Failure-injection settings are parsed configuration only at this stage.
 
-Measurement, query, crypto, session, and metrics routes are not registered yet
-and return the framework's `404`. No stub returns `202` or pretends to persist
-data. M4-02's eventual endpoint list is a target, not evidence those features
+Measurement, query, crypto, and session routes are not registered yet and return
+the framework's `404`. No stub returns `202` or pretends to persist data. M4-02's
+eventual endpoint list is a target, not evidence those features
 already exist. Storage initialization and cleanup will be added with M4-06/07;
 baseline acceptance follows M4-03 through M4-11; query, crypto, sessions, metrics,
 and complete readiness remain their designated later tasks. The app contains

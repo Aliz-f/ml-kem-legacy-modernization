@@ -18,13 +18,22 @@ class MlKemError(Exception):
     """The Gateway could not encapsulate to the supplied public key."""
 
 
+def validate_public_key(public_key: bytes) -> None:
+    """Accept only a raw ML-KEM-768 public key. Does not encapsulate or log it."""
+    if not isinstance(public_key, bytes) or len(public_key) != PUBLIC_KEY_LENGTH:
+        raise MlKemError("ML-KEM-768 public key must be 1184 bytes.")
+    try:
+        MLKEM768PublicKey.from_public_bytes(public_key)
+    except (ValueError, UnsupportedAlgorithm) as exc:
+        raise MlKemError("ML-KEM-768 public key was rejected.") from exc
+
+
 def encapsulate(public_key: bytes) -> tuple[bytes, bytes]:
     """Return `(ciphertext, shared_secret)` for an ML-KEM-768 public key.
 
     The shared secret stays with the caller. This function does not log it.
     """
-    if not isinstance(public_key, bytes) or len(public_key) != PUBLIC_KEY_LENGTH:
-        raise MlKemError("ML-KEM-768 public key must be 1184 bytes.")
+    validate_public_key(public_key)
     try:
         key = MLKEM768PublicKey.from_public_bytes(public_key)
         shared_secret, ciphertext = key.encapsulate()

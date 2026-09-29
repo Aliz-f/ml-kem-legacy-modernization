@@ -1,4 +1,4 @@
-# AI Task 0024 — Implement Legacy Device sensor simulator
+# AI Task 0027 — Implement Legacy Device sensor simulator
 
 **Status:** Complete
 

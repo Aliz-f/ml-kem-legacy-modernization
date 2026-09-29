@@ -1,4 +1,4 @@
-# AI Task 0019 — Repair PR 6 integration history and metrics
+# AI Task 0020 — Repair PR 6 integration history and metrics
 
 **Status:** Complete
 

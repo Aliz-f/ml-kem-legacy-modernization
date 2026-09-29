@@ -149,3 +149,27 @@ def test_cannot_start_while_active_or_corrupt_state(tmp_path, monkeypatch):
         '{"active_task":"9999","status":"in_progress"}'
     )
     assert run(tmp_path, monkeypatch, "check") == 1
+
+
+def test_validation_rejects_unresolved_conflict_markers(tmp_path, monkeypatch):
+    start(tmp_path, monkeypatch)
+    path = tmp_path / "docs/ai/history/0001-safe-title.md"
+    path.write_text("<<<<<<< HEAD\n" + path.read_text() + "=======\n>>>>>>> branch\n")
+
+    errors = validate(tmp_path)
+
+    assert errors == [f"{path}: unresolved Git conflict marker."]
+
+
+def test_validation_rejects_duplicate_metadata_and_mismatched_filename(tmp_path, monkeypatch):
+    start(tmp_path, monkeypatch)
+    path = tmp_path / "docs/ai/history/0001-safe-title.md"
+    path.write_text(path.read_text() + "\n# AI Task 0001 — Duplicate\n")
+
+    assert validate(tmp_path) == [f"{path}: duplicate task metadata."]
+
+    path.write_text(path.read_text().replace("# AI Task 0001 — Duplicate\n", ""))
+    renamed = path.with_name("0002-safe-title.md")
+    path.rename(renamed)
+
+    assert validate(tmp_path) == ["Task 0001: filename task ID does not match metadata."]

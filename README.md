@@ -3,9 +3,11 @@
 Course project repository containing three components: a simulated legacy system,
 an edge gateway, and a cloud service.
 
-The project will later focus on legacy modernization, ML-KEM integration,
-LLM-assisted development and evaluation, testing, deployment, and operations.
-No service functionality has been implemented yet.
+Implemented foundations include Legacy Device configuration and measurement
+serialization, Cloud configuration/application lifecycle/canonical storage, and
+Gateway ML-KEM, HKDF, session-establishment, AES-256-GCM, and AAD primitives.
+The end-to-end Legacy, Gateway, and Cloud delivery paths remain intentionally
+in progress according to the frozen implementation roadmap.
 
 ## AI-assisted work
 

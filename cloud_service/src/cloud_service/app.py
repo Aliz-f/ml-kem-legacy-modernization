@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse, Response
 
 from cloud_service.config import Config, ConfigurationError, SecurityMode, load_config
 from cloud_service.gateway.routes import router as gateway_router
+from cloud_service.gateway.queries import router as query_router
 from cloud_service.storage.database import Database, StorageError
 from cloud_service.storage.repository import MeasurementRepository
 
@@ -61,6 +62,7 @@ def create_app(config: Config | None = None) -> FastAPI:
     app.state.database = None
     app.state.repository = None
     app.include_router(gateway_router)
+    app.include_router(query_router)
 
     @app.get("/health")
     async def health():

@@ -61,8 +61,6 @@ def test_unsupported_secure_mode_fails_startup(caplog):
     ("POST", "/api/v1/secure/measurements"),
     ("POST", "/api/v1/crypto/sessions"),
     ("GET", "/api/v1/crypto/public-key"),
-    ("GET", "/api/v1/measurements"),
-    ("GET", "/api/v1/measurements/record-1"),
 ])
 def test_future_routes_do_not_claim_success(method, path):
     with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:

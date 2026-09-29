@@ -44,6 +44,8 @@ configuration values. Logging includes no configuration dump or request body.
 | `GET /health` | `200 {"status":"ok"}` while the lifespan is running |
 | `GET /ready` | `503` with structured `SERVICE_UNAVAILABLE` error |
 | `POST /api/v1/baseline/measurements` | `202 accepted` or `202 already_accepted` after committed persistence |
+| `GET /api/v1/measurements` | Bounded `200 {"items": [...]}` with optional device filter |
+| `GET /api/v1/measurements/{record_id}` | Stored record with `200`, or structured `404` |
 | `GET /metrics` | Prometheus text exposition containing only bounded `cloud_service_info`; request, storage, session, and crypto metrics require their later features |
 
 Full readiness checks remain later work; this PR leaves `/ready` unchanged.
@@ -55,7 +57,7 @@ requirement for readiness.
 exist; it never switches to classical mode. No crypto is initialized in baseline
 mode. Failure-injection settings are parsed configuration only at this stage.
 
-Query, secure measurement, crypto, and session routes are not registered yet
+Secure measurement, crypto, and session routes are not registered yet
 and return the framework's `404`. Baseline ingestion returns `202` only after
 the storage transaction commits. See [baseline ingestion](baseline.md).
 Storage initialization and cleanup are implemented by M4-06/07. Request, storage, session, and
@@ -69,3 +71,7 @@ Shutdown closes storage and clears the database/repository references even when
 the lifespan exits through an exception. The configured database's parent
 directory must already exist. Future secure work must preserve
 lookup → ownership → expiry session validation.
+
+M4-12/M4-13 add the [measurement query API](queries.md), using the existing
+repository with bounded list results. Gateway-to-Cloud integration remains
+M4-14 and is not implemented by these query tasks.

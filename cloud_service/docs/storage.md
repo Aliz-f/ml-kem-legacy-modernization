@@ -53,8 +53,8 @@ collisions still raise a storage conflict. The original `save` remains a strict
 insert API; baseline ingestion uses `save_idempotent`.
 
 This is business idempotency, not cryptographic replay protection. M4-10 adds
-the baseline ingestion route; query routes and complete readiness remain later
-tasks. PR 2 storage alone does not satisfy baseline E2E.
+the baseline ingestion route; M4-12/M4-13 add bounded read-only query routes.
+Complete readiness remains later work. Storage alone does not satisfy baseline E2E.
 
 Run `uv run --frozen --all-packages --all-extras pytest cloud_service/tests`.
 Tests use temporary files or private in-memory databases and cover schema,

@@ -34,6 +34,19 @@ def test_lifecycle_liveness_and_unready_storage(tmp_path, monkeypatch, caplog):
     assert (tmp_path / "cloud.db").is_file()
 
 
+def test_metrics_exposes_only_bounded_service_information():
+    with TestClient(create_app(load_config({}))) as client:
+        response = client.get("/metrics")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/plain; version=0.0.4")
+    assert response.text == (
+        "# HELP cloud_service_info Cloud Service process information.\n"
+        "# TYPE cloud_service_info gauge\n"
+        'cloud_service_info{security_mode="classical"} 1\n'
+    )
+
+
 def test_unsupported_secure_mode_fails_startup(caplog):
     app = create_app(load_config({"SECURITY_MODE": "mlkem"}))
     with pytest.raises(StartupError, match="Modernized Mode"):
@@ -51,7 +64,6 @@ def test_unsupported_secure_mode_fails_startup(caplog):
     ("GET", "/api/v1/crypto/public-key"),
     ("GET", "/api/v1/measurements"),
     ("GET", "/api/v1/measurements/record-1"),
-    ("GET", "/metrics"),
 ])
 def test_future_routes_do_not_claim_success(method, path):
     with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:

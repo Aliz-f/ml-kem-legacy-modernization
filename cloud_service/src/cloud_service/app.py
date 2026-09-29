@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from cloud_service.config import Config, ConfigurationError, SecurityMode, load_config
 from cloud_service.storage.database import Database, StorageError
@@ -70,6 +70,18 @@ def create_app(config: Config | None = None) -> FastAPI:
     async def ready():
         # Ingestion is not implemented yet; complete readiness is a later task.
         return _unavailable()
+
+    @app.get("/metrics")
+    async def metrics() -> Response:
+        """Expose the bounded service-info metric available before storage exists."""
+        return Response(
+            content=(
+                "# HELP cloud_service_info Cloud Service process information.\n"
+                "# TYPE cloud_service_info gauge\n"
+                f'cloud_service_info{{security_mode="{settings.security_mode.value}"}} 1\n'
+            ),
+            media_type="text/plain; version=0.0.4; charset=utf-8",
+        )
 
     return app
 

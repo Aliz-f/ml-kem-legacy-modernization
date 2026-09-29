@@ -1,4 +1,4 @@
-# AI Task 0014 — M4-04 Cloud canonical validation
+# AI Task 0016 — M4-04 Cloud canonical validation
 
 **Status:** Complete
 

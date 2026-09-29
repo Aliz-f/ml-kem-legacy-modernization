@@ -1,4 +1,4 @@
-# AI Task 0024 — M4-08 through M4-11 baseline ingestion
+# AI Task 0026 — M4-08 through M4-11 baseline ingestion
 
 **Status:** Complete
 

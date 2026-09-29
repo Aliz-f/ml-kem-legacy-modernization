@@ -10,7 +10,7 @@ import json
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin, urlparse
 
 from edge_gateway.crypto.encoding import encode_binary
@@ -111,8 +111,8 @@ def _parse_expires_at(value: object) -> datetime:
         parsed = datetime.fromisoformat(candidate)
     except ValueError as exc:
         raise SessionRejected("expires_at must be an explicit UTC timestamp.") from exc
-    if parsed.tzinfo is None:
-        raise SessionRejected("expires_at must include a timezone.")
+    if parsed.tzinfo is None or parsed.utcoffset() != timedelta(0):
+        raise SessionRejected("expires_at must be an explicit UTC timestamp.")
     return parsed.astimezone(timezone.utc)
 
 

@@ -1,4 +1,4 @@
-"""Cloud baseline application with storage lifecycle; crypto follows later."""
+"""Cloud storage and ephemeral ML-KEM key service; sessions follow later."""
 
 from contextlib import asynccontextmanager
 import logging
@@ -7,6 +7,8 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse, Response
 
 from cloud_service.config import Config, ConfigurationError, SecurityMode, load_config
+from cloud_service.crypto.keys import KeyService
+from cloud_service.gateway.crypto import router as crypto_router
 from cloud_service.gateway.routes import router as gateway_router
 from cloud_service.gateway.queries import router as query_router
 from cloud_service.storage.database import Database, StorageError
@@ -30,9 +32,6 @@ def create_app(config: Config | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         logger.setLevel(settings.log_level)
-        if settings.security_mode != SecurityMode.CLASSICAL:
-            logger.error("cloud_startup_failed: secure subsystems unavailable")
-            raise StartupError("Modernized Mode is not implemented yet")
         logger.info("cloud_starting security_mode=%s", settings.security_mode.value)
         try:
             database = Database(settings.database_url)
@@ -41,11 +40,20 @@ def create_app(config: Config | None = None) -> FastAPI:
             raise StartupError("Cloud storage initialization failed") from None
         app.state.database = database
         app.state.repository = MeasurementRepository(database)
-        app.state.running = True
         try:
+            if settings.security_mode == SecurityMode.MLKEM:
+                try:
+                    app.state.keys = KeyService()
+                except Exception:
+                    logger.error("cloud_startup_failed: key initialization failed")
+                    raise StartupError("Cloud key initialization failed") from None
+            app.state.running = True
             yield
         finally:
             app.state.running = False
+            if app.state.keys is not None:
+                app.state.keys.close()
+                app.state.keys = None
             try:
                 database.close()
             finally:
@@ -61,8 +69,10 @@ def create_app(config: Config | None = None) -> FastAPI:
     app.state.running = False
     app.state.database = None
     app.state.repository = None
+    app.state.keys = None
     app.include_router(gateway_router)
     app.include_router(query_router)
+    app.include_router(crypto_router)
 
     @app.get("/health")
     async def health():

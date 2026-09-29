@@ -149,6 +149,7 @@ name = "cloud-service"
 version = "0.1.0"
 source = { editable = "cloud_service" }
 dependencies = [
+    { name = "cryptography" },
     { name = "fastapi" },
     { name = "uvicorn" },
 ]
@@ -160,6 +161,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cryptography", specifier = ">=48" },
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'test'", specifier = ">=0.28,<1" },
     { name = "uvicorn", specifier = ">=0.30,<1" },

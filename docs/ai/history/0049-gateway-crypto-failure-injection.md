@@ -1,4 +1,4 @@
-# AI Task 0040 — Gateway crypto failure injection
+# AI Task 0049 — Gateway crypto failure injection
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Added CryptoFailureInjector for mlkem_handshake_failure, corrupt_ciphertext, ses
 
 ## Files Created
 
-- docs/ai/history/0040-gateway-crypto-failure-injection.md
+- docs/ai/history/0049-gateway-crypto-failure-injection.md
 - edge_gateway/src/edge_gateway/crypto/failure.py
 - edge_gateway/tests/test_failure_injection.py
 
@@ -60,7 +60,7 @@ Added CryptoFailureInjector for mlkem_handshake_failure, corrupt_ciphertext, ses
 
 ## AI Notes
 
-Develop was merged into this branch again. Gateway secure transport is history 0038 and fail-closed dispatch is history 0039. This history id is 0040. encryption_failure, the crypto logging catalog, metrics export, and the Cloud service are outside this slice. The injector seed is not used as cryptographic randomness.
+Develop was merged into this branch again. Gateway secure transport is history 0047 and fail-closed dispatch is history 0048. This history id is 0049. encryption_failure, the crypto logging catalog, metrics export, and the Cloud service are outside this slice. The injector seed is not used as cryptographic randomness.
 
 ---
 

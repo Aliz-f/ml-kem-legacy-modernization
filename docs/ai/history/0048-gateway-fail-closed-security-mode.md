@@ -1,4 +1,4 @@
-# AI Task 0039 — Gateway fail-closed security mode
+# AI Task 0048 — Gateway fail-closed security mode
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Added CloudDispatch. SECURITY_MODE=classical forwards a measurement to the injec
 
 ## Files Created
 
-- docs/ai/history/0039-gateway-fail-closed-security-mode.md
+- docs/ai/history/0048-gateway-fail-closed-security-mode.md
 - edge_gateway/src/edge_gateway/dispatch.py
 - edge_gateway/tests/test_dispatch.py
 
@@ -58,7 +58,7 @@ Added CloudDispatch. SECURITY_MODE=classical forwards a measurement to the injec
 
 ## AI Notes
 
-The branch starts from feat/gateway-secure-transport because that commit is not on develop yet. This history id is 0039. PQC_FAILURE_POLICY other than fail_closed is rejected. SecureTransport does not construct or call a baseline client. Member 2 still owns POST /api/v1/baseline/measurements and the Legacy HTTP route.
+The branch starts from feat/gateway-secure-transport because that commit is not on develop yet. This history id is 0048. PQC_FAILURE_POLICY other than fail_closed is rejected. SecureTransport does not construct or call a baseline client. Member 2 still owns POST /api/v1/baseline/measurements and the Legacy HTTP route.
 
 ---
 

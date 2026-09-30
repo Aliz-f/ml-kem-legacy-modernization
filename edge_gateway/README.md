@@ -161,6 +161,29 @@ measurements until Cloud delivery is implemented.
 uv run pytest edge_gateway/tests/test_gateway_normalization.py
 ```
 
+## Request/correlation IDs (M2-09)
+
+`edge_gateway.correlation.create_request_id()` creates a fresh `req-<UUID4>`
+and logs it through the Gateway logger, both in the message and as a structured
+`request_id` attribute. It takes no measurement data or incoming header value.
+Call once after validation and sequence-policy acceptance, then keep the same ID
+for delivery retries and session recovery. IDs are public tracing context, not
+secrets, key material, or metrics labels.
+
+`baseline_headers(request_id)` returns `{"X-Request-ID": request_id}` for the
+baseline Cloud request. Pass the same ID separately to the existing secure
+envelope builder, which authenticates it through AAD. Canonical measurement
+serialization remains unchanged and contains no request ID.
+
+These helpers are ready for M2-12 route orchestration and M2-13 Cloud forwarding;
+the current placeholder route does not yet accept measurements or create IDs.
+Tests construct baseline HTTP requests without sending them and exercise the
+existing secure envelope to verify context propagation and authentication.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_correlation.py
+```
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

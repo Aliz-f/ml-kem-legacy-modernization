@@ -1,4 +1,4 @@
-# AI Task 0034 — Gateway secure measurement transport
+# AI Task 0038 — Gateway secure measurement transport
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Added a Gateway secure measurement transport. It reuses the in-memory session, s
 
 ## Files Created
 
-- docs/ai/history/0034-gateway-secure-measurement-transport.md
+- docs/ai/history/0038-gateway-secure-measurement-transport.md
 - edge_gateway/src/edge_gateway/crypto/secure_transport.py
 - edge_gateway/tests/test_secure_transport.py
 
@@ -59,7 +59,7 @@ Added a Gateway secure measurement transport. It reuses the in-memory session, s
 
 ## AI Notes
 
-The branch starts from current develop, so this history id is 0034. The branch does not track origin/develop. Acceptance requires HTTP 202 with status accepted or already_accepted and a non-empty record_id. A recovery POST is a single attempt. Session establishment failure is classified from the establishment error and does not send an envelope. Member 2 route integration and SECURITY_MODE switching are not in this task.
+The branch starts from current develop, so this history id is 0038. The branch does not track origin/develop. Acceptance requires HTTP 202 with status accepted or already_accepted and a non-empty record_id. A recovery POST is a single attempt. Session establishment failure is classified from the establishment error and does not send an envelope. Member 2 route integration and SECURITY_MODE switching are not in this task.
 
 ---
 

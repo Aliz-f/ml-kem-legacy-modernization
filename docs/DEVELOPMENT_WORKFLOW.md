@@ -88,6 +88,12 @@ Synchronize the one shared environment from the root:
 uv sync
 ```
 
+The root development environment includes Graphify, a code-only local
+repository-navigation tool. Its shared artifacts under `graphify-out/` are
+maintained by CI for graph-relevant pull-request changes; contributors do not
+install Graphify hooks or edit generated graph artifacts. See
+`docs/development/graphify.md` for safe query examples and boundaries.
+
 ### Team branch model
 
 The shared branches have distinct purposes:

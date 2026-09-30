@@ -184,6 +184,16 @@ existing secure envelope to verify context propagation and authentication.
 uv run pytest edge_gateway/tests/test_gateway_correlation.py
 ```
 
+## Transport trust (M3-54)
+
+Docker and the course test environment may use HTTP for Gateway-to-Cloud
+communication. Modernized mode demonstrates application-layer ML-KEM-768 key
+establishment and AES-256-GCM payload protection. That is a documented
+trust-model limitation: ML-KEM does not authenticate the Cloud, and production
+TLS, mTLS, PKI, public-key pinning, and signed key distribution are outside
+this implementation. Details are in
+[docs/transport-trust.md](docs/transport-trust.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

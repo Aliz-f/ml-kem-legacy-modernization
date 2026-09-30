@@ -30,7 +30,7 @@ Implemented M1-03 sensor simulator with valid normal measurements, UTC creation 
 
 ## Files Created
 
-- docs/ai/history/0024-implement-legacy-device-sensor-simulator.md
+- docs/ai/history/0027-implement-legacy-device-sensor-simulator.md
 
 ## Files Modified
 
@@ -82,7 +82,7 @@ Revised Sensor dependency handling to preserve supplied falsey random sources an
 
 ## Files Created
 
-- docs/ai/history/0024-implement-legacy-device-sensor-simulator.md
+- docs/ai/history/0027-implement-legacy-device-sensor-simulator.md
 
 ## Files Modified
 

@@ -17,9 +17,9 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from edge_gateway.config import GatewayConfig
+from edge_gateway.crypto.metrics import PqcMetrics
 from edge_gateway.crypto.secure_transport import SecureAcceptance, SecureTransport, SecureTransportError
-
-logger = logging.getLogger(__name__)
+from edge_gateway.crypto.security_log import log_security
 
 
 class BaselineTransport(Protocol):
@@ -60,6 +60,7 @@ class CloudDispatch:
         baseline: BaselineTransport,
         secure: SecureTransport | None = None,
         metrics: DispatchMetrics | None = None,
+        pqc_metrics: PqcMetrics | None = None,
     ) -> None:
         if config.pqc_failure_policy != "fail_closed":
             raise ValueError("PQC_FAILURE_POLICY must be fail_closed.")
@@ -72,10 +73,16 @@ class CloudDispatch:
         self._baseline = baseline
         self._secure = secure
         self._metrics = metrics or DispatchMetrics()
+        self._pqc_metrics = pqc_metrics or PqcMetrics()
 
     @property
     def metrics(self) -> DispatchMetrics:
         return self._metrics
+
+    @property
+    def pqc_metrics(self) -> PqcMetrics:
+        """PQC counters. Fail-closed delivery does not increment the fallback counter."""
+        return self._pqc_metrics
 
     async def send(
         self,
@@ -136,5 +143,11 @@ class CloudDispatch:
             )
         except SecureTransportError:
             self._metrics.secure_failures_total += 1
-            logger.warning("secure measurement failed closed")
+            log_security(
+                "pqc_fail_closed",
+                logging.WARNING,
+                request_id=request_id,
+                gateway_id=self._gateway_id,
+                reason="secure_failure",
+            )
             raise

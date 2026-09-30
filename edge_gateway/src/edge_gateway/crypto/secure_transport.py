@@ -12,6 +12,7 @@ import asyncio
 import json
 import logging
 import math
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, replace
@@ -22,7 +23,9 @@ from edge_gateway.crypto.aad import AadError
 from edge_gateway.crypto.encoding import EncodingError, decode_binary, encode_binary
 from edge_gateway.crypto.envelope import SecureEnvelope, build_secure_envelope
 from edge_gateway.crypto.failure import CryptoFailureInjector, corrupt_ciphertext_copy
+from edge_gateway.crypto.metrics import PqcMetrics
 from edge_gateway.crypto.plaintext import PlaintextError
+from edge_gateway.crypto.security_log import log_security
 from edge_gateway.crypto.session import SecureSession, SessionEstablishmentError
 from edge_gateway.crypto.symmetric import AeadError
 
@@ -60,6 +63,7 @@ class _RejectRedirect(urllib.request.HTTPRedirectHandler):
     """The configured Cloud URL is the only accepted measurement endpoint."""
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
+        log_security("secure_delivery_rejected", logging.WARNING, reason="redirect")
         raise SecureTransportError(
             "Cloud secure measurement endpoint redirected.",
             retryable=False,
@@ -103,6 +107,7 @@ class SecureTransport:
         timeout_seconds: float,
         max_retries: int,
         injector: CryptoFailureInjector | None = None,
+        metrics: PqcMetrics | None = None,
     ) -> None:
         if isinstance(max_retries, bool) or not isinstance(max_retries, int) or max_retries < 0:
             raise ValueError("max_retries must be a non-negative integer.")
@@ -118,6 +123,7 @@ class SecureTransport:
         self._timeout_seconds = float(timeout_seconds)
         self._max_retries = max_retries
         self._injector = injector or CryptoFailureInjector.disabled()
+        self._metrics = metrics or PqcMetrics()
         self._opener = urllib.request.build_opener(_RejectRedirect)
 
     async def send(
@@ -140,18 +146,39 @@ class SecureTransport:
             sequence_number=sequence_number,
             received_at=received_at,
         )
-        session = await self._open_session()
+        phase = "steady" if self._session_is_active() else "first"
+        started = time.perf_counter()
+        session = await self._open_session(request_id)
+        log_security(
+            "secure_delivery_started",
+            request_id=request_id,
+            gateway_id=session.gateway_id,
+            session_id=session.session_id,
+        )
         envelope = self._seal(session, request_id, measurement)
         try:
-            return await asyncio.to_thread(self._deliver, envelope)
+            acceptance = await asyncio.to_thread(self._deliver, envelope)
         except _SessionRecovery as recovery:
-            return await self._recover(measurement, request_id, recovery.code)
+            acceptance = await self._recover(measurement, request_id, recovery.code)
+        self._metrics.record_secure_message(phase, time.perf_counter() - started)
+        return acceptance
 
-    async def _open_session(self) -> SecureSession:
+    def _session_is_active(self) -> bool:
+        for metrics in (self._metrics, getattr(self._sessions, "metrics", None)):
+            if getattr(metrics, "active_session", 0):
+                return True
+        return False
+
+    async def _open_session(self, request_id: str) -> SecureSession:
         try:
             return await self._sessions.get_or_establish()
         except SessionEstablishmentError as exc:
-            logger.warning("secure measurement session establishment failed")
+            log_security(
+                "secure_delivery_rejected",
+                logging.WARNING,
+                request_id=request_id,
+                reason="session_unavailable",
+            )
             raise SecureTransportError(
                 "Cloud secure session is unavailable.",
                 retryable=exc.retryable,
@@ -163,28 +190,67 @@ class SecureTransport:
         request_id: str,
         code: str,
     ) -> SecureAcceptance:
+        log_security(
+            "session_reestablishment_started",
+            logging.WARNING,
+            request_id=request_id,
+            reason=code,
+        )
         self._sessions.invalidate()
         try:
             session = await self._sessions.get_or_establish()
         except SessionEstablishmentError as exc:
-            logger.warning("secure measurement session recovery failed")
+            self._metrics.record_reestablishment("failure")
+            log_security(
+                "session_reestablishment_failed",
+                logging.WARNING,
+                request_id=request_id,
+                reason="session_unavailable",
+            )
             raise SecureTransportError(
                 "Cloud secure session recovery failed.",
                 retryable=exc.retryable,
                 code=code,
             ) from exc
+        self._metrics.record_reestablishment("success")
+        log_security(
+            "session_reestablishment_succeeded",
+            request_id=request_id,
+            gateway_id=session.gateway_id,
+            session_id=session.session_id,
+            result="success",
+        )
         envelope = self._seal(session, request_id, measurement)
         try:
-            return await asyncio.to_thread(self._post, _dump(envelope), envelope.request_id)
+            return await asyncio.to_thread(
+                self._post,
+                _dump(envelope),
+                envelope.request_id,
+                envelope.session_id,
+            )
         except _SessionRecovery as exc:
-            logger.warning("secure measurement session recovery was rejected")
+            log_security(
+                "secure_delivery_rejected",
+                logging.WARNING,
+                request_id=request_id,
+                session_id=envelope.session_id,
+                gateway_id=envelope.gateway_id,
+                reason="session_rejected",
+            )
             raise SecureTransportError(
                 "Cloud secure session was rejected.",
                 retryable=False,
                 code=exc.code,
             ) from exc
         except _RetryableTransport as exc:
-            logger.warning("secure measurement transport failed")
+            log_security(
+                "secure_delivery_rejected",
+                logging.WARNING,
+                request_id=request_id,
+                session_id=envelope.session_id,
+                gateway_id=envelope.gateway_id,
+                reason="transport",
+            )
             raise SecureTransportError(
                 "Cloud secure measurement request failed.",
                 retryable=True,
@@ -210,13 +276,29 @@ class SecureTransport:
                 sequence_number=measurement.sequence_number,
                 received_at=measurement.received_at,
             )
+            log_security(
+                "encryption_succeeded",
+                request_id=request_id,
+                gateway_id=session.gateway_id,
+                session_id=session.session_id,
+                result="success",
+            )
             if self._injector.corrupt_ciphertext():
+                self._metrics.record_injected("corrupt_ciphertext")
                 logger.warning("event=corrupt_ciphertext_injected")
                 mutated = corrupt_ciphertext_copy(decode_binary(envelope.ciphertext))
                 envelope = replace(envelope, ciphertext=encode_binary(mutated))
             return envelope
         except (AadError, PlaintextError, AeadError, EncodingError) as exc:
-            logger.warning("secure measurement could not be sealed")
+            self._metrics.record_encryption_failure()
+            log_security(
+                "encryption_failed",
+                logging.WARNING,
+                request_id=request_id,
+                gateway_id=session.gateway_id,
+                session_id=session.session_id,
+                reason="seal",
+            )
             raise SecureTransportError(
                 "Cloud secure measurement could not be sealed.",
                 retryable=False,
@@ -227,16 +309,23 @@ class SecureTransport:
         failure: _RetryableTransport | None = None
         for _ in range(self._max_retries + 1):
             try:
-                return self._post(body, envelope.request_id)
+                return self._post(body, envelope.request_id, envelope.session_id)
             except _RetryableTransport as exc:
                 failure = exc
-        logger.warning("secure measurement transport failed")
+        log_security(
+            "secure_delivery_rejected",
+            logging.WARNING,
+            request_id=envelope.request_id,
+            gateway_id=envelope.gateway_id,
+            session_id=envelope.session_id,
+            reason="transport",
+        )
         raise SecureTransportError(
             "Cloud secure measurement request failed.",
             retryable=True,
         ) from failure
 
-    def _post(self, body: bytes, request_id: str) -> SecureAcceptance:
+    def _post(self, body: bytes, request_id: str, session_id: str) -> SecureAcceptance:
         request = urllib.request.Request(
             self._endpoint,
             data=body,
@@ -255,24 +344,37 @@ class SecureTransport:
         except TimeoutError as exc:
             raise _RetryableTransport("timeout") from exc
         except urllib.error.HTTPError as exc:
-            return self._raise_http(exc)
+            return self._raise_http(exc, request_id, session_id)
         except urllib.error.URLError as exc:
             raise _RetryableTransport("connection") from exc
         if status != 202:
+            log_security(
+                "secure_delivery_rejected",
+                logging.WARNING,
+                request_id=request_id,
+                session_id=session_id,
+                reason="rejected",
+            )
             raise SecureTransportError(
                 "Cloud secure measurement was not accepted.",
                 retryable=False,
             )
         return _parse_acceptance(payload)
 
-    def _raise_http(self, exc: urllib.error.HTTPError) -> SecureAcceptance:
+    def _raise_http(self, exc: urllib.error.HTTPError, request_id: str, session_id: str) -> SecureAcceptance:
         raw = exc.read(_MAX_BODY_BYTES + 1)
         code = _error_code(raw)
         if exc.code in _RETRYABLE_STATUS:
             raise _RetryableTransport(f"HTTP {exc.code}") from exc
         if exc.code == 409 and code in _SESSION_CODES:
             raise _SessionRecovery(code) from exc
-        logger.warning("secure measurement was rejected")
+        log_security(
+            "secure_delivery_rejected",
+            logging.WARNING,
+            request_id=request_id,
+            session_id=session_id,
+            reason="rejected",
+        )
         raise SecureTransportError(
             "Cloud secure measurement was rejected.",
             retryable=False,

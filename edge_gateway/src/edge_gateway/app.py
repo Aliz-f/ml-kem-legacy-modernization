@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
 from edge_gateway.config import ConfigurationError, GatewayConfig, load_config
+from edge_gateway.crypto.metrics import PqcMetrics
 
 logger = logging.getLogger("edge_gateway")
 
@@ -17,7 +18,7 @@ def get_config(request: Request) -> GatewayConfig:
     return request.app.state.config
 
 
-def create_app(config: GatewayConfig | None = None) -> FastAPI:
+def create_app(config: GatewayConfig | None = None, *, pqc_metrics: PqcMetrics | None = None) -> FastAPI:
     """Build an isolated app; importing this module has no startup side effects.
 
     Tests can inject settings from load_config(mapping) and override dependencies
@@ -25,6 +26,7 @@ def create_app(config: GatewayConfig | None = None) -> FastAPI:
     """
     settings = load_config() if config is None else config
     level = _logging_level(settings)
+    registry = pqc_metrics or PqcMetrics()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -43,6 +45,7 @@ def create_app(config: GatewayConfig | None = None) -> FastAPI:
         docs_url=None, redoc_url=None, openapi_url=None,
     )
     app.state.config = settings
+    app.state.pqc_metrics = registry
     app.state.running = False
 
     @app.get("/health")
@@ -68,6 +71,7 @@ def create_app(config: GatewayConfig | None = None) -> FastAPI:
                 "# HELP gateway_service_info Gateway process information.\n"
                 "# TYPE gateway_service_info gauge\n"
                 f'gateway_service_info{{security_mode="{config.security_mode}"}} 1\n'
+                f"{registry.render()}"
             ),
             media_type="text/plain; version=0.0.4; charset=utf-8",
         )

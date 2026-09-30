@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -16,19 +17,19 @@ from enum import StrEnum
 
 from edge_gateway.crypto.failure import CryptoFailureInjector
 from edge_gateway.crypto.kdf import KdfError, derive_session_key
+from edge_gateway.crypto.metrics import PqcMetrics as SessionMetrics
 from edge_gateway.crypto.mlkem import MlKemError, encapsulate
 from edge_gateway.crypto.public_key import PublicKeyRejected
 from edge_gateway.crypto.public_key_client import (
     PublicKeyTransportError,
     fetch_public_key,
 )
+from edge_gateway.crypto.security_log import log_security
 from edge_gateway.crypto.session_client import (
     SessionRejected,
     SessionTransportError,
     post_session,
 )
-
-logger = logging.getLogger(__name__)
 
 Clock = Callable[[], datetime]
 
@@ -49,22 +50,6 @@ class SessionEstablishmentError(Exception):
     def __init__(self, message: str, *, retryable: bool) -> None:
         super().__init__(message)
         self.retryable = retryable
-
-
-@dataclass(slots=True)
-class SessionMetrics:
-    """In-memory counters for Gateway session establishment.
-
-    Exporting these counters is owned by the later Gateway observability work.
-    Keeping the counter here ensures every failed handshake is recorded without
-    attaching request or session identifiers as metric labels.
-    """
-
-    mlkem_handshake_failures_total: int = 0
-
-    def record_establishment_failure(self) -> None:
-        """Record one failed ML-KEM session-establishment attempt."""
-        self.mlkem_handshake_failures_total += 1
 
 
 @dataclass(slots=True)
@@ -128,6 +113,12 @@ class SessionManager:
             self._apply_session_fault()
             current = self._usable_session()
             if current is not None:
+                log_security(
+                    "session_reused",
+                    session_id=current.session_id,
+                    gateway_id=current.gateway_id,
+                    result="reused",
+                )
                 return current
             try:
                 session = await asyncio.to_thread(self._establish)
@@ -135,19 +126,38 @@ class SessionManager:
                 self._fail_current()
                 raise
             self._session = session
+            self._metrics.set_active_session(True)
             return session
 
     def invalidate(self) -> None:
         """Drop the current session and wipe its key."""
-        if self._session is not None:
-            self._session.clear(SessionState.EXPIRED)
+        session = self._session
+        if session is not None:
+            log_security(
+                "session_invalidated",
+                session_id=session.session_id,
+                gateway_id=session.gateway_id,
+                reason="invalidated",
+                level=logging.WARNING,
+            )
+            session.clear(SessionState.EXPIRED)
             self._session = None
+            self._metrics.set_active_session(False)
 
     def close(self) -> None:
         """Drop the current session and wipe its key."""
-        if self._session is not None:
-            self._session.clear(SessionState.CLOSED)
+        session = self._session
+        if session is not None:
+            log_security(
+                "session_invalidated",
+                session_id=session.session_id,
+                gateway_id=session.gateway_id,
+                reason="closed",
+                level=logging.WARNING,
+            )
+            session.clear(SessionState.CLOSED)
             self._session = None
+            self._metrics.set_active_session(False)
 
     @property
     def metrics(self) -> SessionMetrics:
@@ -159,8 +169,16 @@ class SessionManager:
         if session is None or session.state is not SessionState.ACTIVE:
             return None
         if session.expires_at <= self._clock():
+            log_security(
+                "session_expired",
+                session_id=session.session_id,
+                gateway_id=session.gateway_id,
+                reason="expired",
+                level=logging.WARNING,
+            )
             session.clear(SessionState.EXPIRED)
             self._session = None
+            self._metrics.set_active_session(False)
             return None
         return session
 
@@ -174,20 +192,46 @@ class SessionManager:
         if session is None or session.state is not SessionState.ACTIVE:
             return
         if self._injector.session_missing():
-            logger.warning("event=session_missing_injected")
+            self._metrics.record_injected("session_missing")
+            log_security(
+                "session_invalidated",
+                session_id=session.session_id,
+                gateway_id=session.gateway_id,
+                reason="missing",
+                level=logging.WARNING,
+            )
             session.clear(SessionState.FAILED)
             self._session = None
+            self._metrics.set_active_session(False)
             return
         if self._injector.session_expired():
-            logger.warning("event=session_expired_injected")
+            self._metrics.record_injected("session_expired")
+            log_security(
+                "session_expired",
+                session_id=session.session_id,
+                gateway_id=session.gateway_id,
+                reason="injected",
+                level=logging.WARNING,
+            )
             session.clear(SessionState.EXPIRED)
             self._session = None
+            self._metrics.set_active_session(False)
 
     def _establish(self) -> SecureSession:
         """Run the handshake. The caller holds the establishment lock."""
+        started = time.perf_counter()
+        log_security("mlkem_handshake_started", gateway_id=self._gateway_id)
         if self._injector.handshake_failure():
-            logger.warning("event=mlkem_handshake_failed reason=injected")
-            self._metrics.record_establishment_failure()
+            duration = time.perf_counter() - started
+            self._metrics.record_injected("mlkem_handshake_failure")
+            self._metrics.record_handshake_failure("injected", duration)
+            log_security(
+                "mlkem_handshake_failed",
+                logging.WARNING,
+                gateway_id=self._gateway_id,
+                reason="injected",
+                duration=duration,
+            )
             raise SessionEstablishmentError("ML-KEM handshake failed.", retryable=False)
         provisional = SecureSession(
             session_id="",
@@ -199,9 +243,20 @@ class SessionManager:
             state=SessionState.ESTABLISHING,
         )
         self._session = provisional
+        public_key_seconds: float | None = None
+        encapsulation_seconds: float | None = None
         try:
+            fetched = time.perf_counter()
             cloud_key = fetch_public_key(self._cloud_url, self._timeout_seconds)
+            public_key_seconds = time.perf_counter() - fetched
+            log_security(
+                "mlkem_public_key_received",
+                gateway_id=self._gateway_id,
+                key_id=cloud_key.key_id,
+            )
+            encapsulated = time.perf_counter()
             ciphertext, shared_secret = encapsulate(cloud_key.public_key)
+            encapsulation_seconds = time.perf_counter() - encapsulated
             session_key = bytearray(derive_session_key(shared_secret))
             provisional.session_key = session_key
             provisional.cloud_key_id = cloud_key.key_id
@@ -219,6 +274,10 @@ class SessionManager:
                 "session establishment failed",
                 retryable=exc.retryable,
                 cause=exc,
+                reason="transport",
+                started=started,
+                public_key_seconds=public_key_seconds,
+                encapsulation_seconds=encapsulation_seconds,
             )
         except (PublicKeyRejected, SessionRejected) as exc:
             self._fail_establishment(
@@ -226,6 +285,10 @@ class SessionManager:
                 "session establishment rejected",
                 retryable=False,
                 cause=exc,
+                reason="rejected",
+                started=started,
+                public_key_seconds=public_key_seconds,
+                encapsulation_seconds=encapsulation_seconds,
             )
         except (MlKemError, KdfError) as exc:
             self._fail_establishment(
@@ -233,6 +296,10 @@ class SessionManager:
                 "ML-KEM session establishment failed",
                 retryable=False,
                 cause=exc,
+                reason="cryptographic",
+                started=started,
+                public_key_seconds=public_key_seconds,
+                encapsulation_seconds=encapsulation_seconds,
             )
         except Exception as exc:
             self._fail_establishment(
@@ -240,11 +307,32 @@ class SessionManager:
                 "unexpected session establishment failure",
                 retryable=False,
                 cause=exc,
+                reason="unexpected",
+                started=started,
+                public_key_seconds=public_key_seconds,
+                encapsulation_seconds=encapsulation_seconds,
             )
+        duration = time.perf_counter() - started
+        self._metrics.record_handshake_success(duration, public_key_seconds or 0.0, encapsulation_seconds or 0.0)
         provisional.session_id = response.session_id
         provisional.created_at = self._clock()
         provisional.expires_at = response.expires_at
         provisional.state = SessionState.ACTIVE
+        log_security(
+            "mlkem_handshake_succeeded",
+            gateway_id=self._gateway_id,
+            session_id=response.session_id,
+            key_id=provisional.cloud_key_id,
+            result="success",
+            duration=duration,
+        )
+        log_security(
+            "session_created",
+            gateway_id=self._gateway_id,
+            session_id=response.session_id,
+            key_id=provisional.cloud_key_id,
+            result="created",
+        )
         return provisional
 
     def _fail_establishment(
@@ -254,10 +342,26 @@ class SessionManager:
         *,
         retryable: bool,
         cause: Exception,
+        reason: str,
+        started: float,
+        public_key_seconds: float | None,
+        encapsulation_seconds: float | None,
     ) -> None:
         """Clear provisional key material and raise a classified failure."""
         provisional.clear(SessionState.FAILED)
         self._session = None
-        self._metrics.record_establishment_failure()
-        logger.warning(message)
+        duration = time.perf_counter() - started
+        self._metrics.record_handshake_failure(
+            reason,
+            duration,
+            public_key_seconds,
+            encapsulation_seconds,
+        )
+        log_security(
+            "mlkem_handshake_failed",
+            logging.WARNING,
+            gateway_id=self._gateway_id,
+            reason=reason,
+            duration=duration,
+        )
         raise SessionEstablishmentError(message, retryable=retryable) from cause

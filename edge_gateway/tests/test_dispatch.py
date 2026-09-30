@@ -207,5 +207,8 @@ def test_failure_log_omits_the_measurement(caplog: pytest.LogCaptureFixture):
         with pytest.raises(SecureTransportError):
             asyncio.run(dispatch.send(**_measurement()))  # type: ignore[arg-type]
     assert "sensor-plaintext-marker" not in caplog.text
-    assert "req-8fb2" not in caplog.text
+    assert "21.7" not in caplog.text
+    assert "event=pqc_fail_closed" in caplog.text
+    assert "request_id=req-8fb2" in caplog.text
     assert dispatch.metrics.secure_failures_total == 1
+    assert dispatch.pqc_metrics.pqc_fallback_total == 0

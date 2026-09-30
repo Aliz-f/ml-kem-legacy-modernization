@@ -16,6 +16,7 @@ import asyncio
 import inspect
 import json
 import logging
+import random
 import re
 import threading
 import time
@@ -42,6 +43,9 @@ from cloud_service.crypto.symmetric import decrypt as cloud_decrypt
 from cloud_service.storage.models import StoredMeasurement
 from cloud_service.validation import MeasurementValidationError, validate_measurement
 from edge_gateway.config import load_config as load_gateway_config
+from edge_gateway.normalization import normalize
+from edge_gateway.validation import parse_legacy_measurement, validate_legacy_measurement
+from legacy_system.sensor import Sensor
 from edge_gateway.crypto.aad import build_aad as gateway_build_aad
 from edge_gateway.crypto.encoding import EncodingError, decode_binary, encode_binary
 from edge_gateway.crypto.envelope import build_secure_envelope
@@ -793,3 +797,79 @@ def test_duplicate_sequence_is_stored_once(cloud: CloudHarness) -> None:
     assert len(cloud.rows()) == 1
     assert cloud.policy.handshakes == 1
     assert "REPLAY" not in {code for _status, code in cloud.policy.results}
+
+
+def test_legacy_values_survive_secure_delivery(cloud: CloudHarness) -> None:
+    """Legacy temperature, humidity, and sequence survive secure delivery.
+
+    The production measurements route still stops before delivery. This test
+    starts from Legacy serialization, then uses Gateway validation,
+    normalization, and secure dispatch. Cloud storage is the test receiver.
+    """
+    fixture = json.loads(
+        (Path(__file__).parents[1] / "fixtures" / "valid_legacy_measurement.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    sensor = Sensor(
+        "sensor-001",
+        random.Random(7),
+        clock=lambda: datetime(2026, 9, 21, 12, 5, tzinfo=timezone.utc),
+    )
+    payloads = (fixture, sensor.read().to_payload())
+    received_at = datetime(2026, 9, 21, 12, 0, 2, tzinfo=timezone.utc)
+    prepared = []
+    for payload in payloads:
+        legacy = validate_legacy_measurement(parse_legacy_measurement(json.dumps(payload).encode()))
+        same_temperature = legacy.temperature_c == payload["temperature_c"]
+        same_humidity = legacy.humidity_pct == payload["humidity_pct"]
+        same_sequence = legacy.sequence_number == payload["sequence_number"]
+        assert same_temperature and same_humidity and same_sequence
+        prepared.append(
+            normalize(legacy, gateway_id="gateway-001", received_at=received_at)
+        )
+    sessions = cloud.gateway_sessions()
+    transport = cloud.transport(sessions)
+    baseline = BaselineSpy()
+    dispatch = CloudDispatch(
+        load_gateway_config({"SECURITY_MODE": "mlkem", "CLOUD_URL": cloud.base_url}),
+        baseline=baseline,
+        secure=transport,
+    )
+
+    async def deliver_all():
+        accepted = []
+        for number, canonical in enumerate(prepared, start=1):
+            wire = canonical.to_dict()
+            accepted.append(
+                await dispatch.send(
+                    request_id=f"req-legacy-{number}",
+                    device_id=str(wire["device_id"]),
+                    temperature_c=wire["temperature_c"],  # type: ignore[arg-type]
+                    humidity_pct=wire["humidity_pct"],  # type: ignore[arg-type]
+                    measured_at=str(wire["measured_at"]),
+                    sequence_number=wire["sequence_number"],  # type: ignore[arg-type]
+                    received_at=str(wire["received_at"]),
+                )
+            )
+        return accepted
+
+    accepted = asyncio.run(deliver_all())
+    assert [item.status for item in accepted] == ["accepted", "accepted"]
+    assert baseline.calls == 0
+    assert cloud.policy.baseline_posts == 0
+    assert cloud.policy.handshakes == 1
+    for payload, canonical in zip(payloads, prepared, strict=True):
+        stored = cloud.app.state.repository.find_by_device_sequence(
+            str(payload["device_id"]),
+            int(payload["sequence_number"]),
+        )
+        assert stored is not None
+        assert stored.temperature_c == payload["temperature_c"]
+        assert stored.humidity_pct == payload["humidity_pct"]
+        assert stored.sequence_number == payload["sequence_number"]
+        assert stored.temperature_c == canonical.temperature_c
+        assert stored.humidity_pct == canonical.humidity_pct
+        assert stored.sequence_number == canonical.sequence_number
+        assert stored.device_id == payload["device_id"]
+    assert len(cloud.rows()) == 2

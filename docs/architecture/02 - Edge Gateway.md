@@ -494,6 +494,10 @@ classDiagram
 
 # 11. Validation responsibilities
 
+Legacy request objects contain exactly `device_id`, `temperature_c`,
+`humidity_pct`, `timestamp`, and `sequence_number`. Reject additional fields as
+schema errors (`422` for parsed JSON), following the shared protocol.
+
 The gateway is the first modern validation boundary.
 
 It should validate at least:

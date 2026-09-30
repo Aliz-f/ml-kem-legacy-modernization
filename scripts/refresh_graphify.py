@@ -3,27 +3,47 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
+import shutil
 import subprocess
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 GRAPH_OUTPUT = REPOSITORY_ROOT / "graphify-out"
+_SHARED_ARTIFACTS = frozenset({"graph.json", "GRAPH_REPORT.md"})
 
 
 def refresh_graph(root: Path) -> None:
     """Build the local code-only graph and its report."""
+    clear_incremental_state(root / "graphify-out")
+    environment = {**os.environ, "PYTHONHASHSEED": "0"}
     subprocess.run(
         ["uv", "run", "graphify", "extract", ".", "--code-only", "--no-viz"],
         cwd=root,
         check=True,
+        env=environment,
     )
     subprocess.run(
         ["uv", "run", "graphify", "cluster-only", ".", "--no-viz"],
         cwd=root,
         check=True,
+        env=environment,
     )
     normalize_artifacts(root / "graphify-out")
+
+
+def clear_incremental_state(output_directory: Path) -> None:
+    """Remove ignored Graphify state so refresh matches a clean CI checkout."""
+    if not output_directory.exists():
+        return
+    for path in output_directory.iterdir():
+        if path.name in _SHARED_ARTIFACTS:
+            continue
+        if path.is_dir() and not path.is_symlink():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
 
 
 def normalize_artifacts(output_directory: Path) -> None:

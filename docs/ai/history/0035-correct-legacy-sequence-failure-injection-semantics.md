@@ -1,4 +1,4 @@
-# AI Task 0033 — Correct Legacy sequence failure injection semantics
+# AI Task 0035 — Correct Legacy sequence failure injection semantics
 
 **Status:** Complete
 

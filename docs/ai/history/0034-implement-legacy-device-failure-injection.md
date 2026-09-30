@@ -1,4 +1,4 @@
-# AI Task 0032 — Implement Legacy Device failure injection
+# AI Task 0034 — Implement Legacy Device failure injection
 
 **Status:** Complete
 

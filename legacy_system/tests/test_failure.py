@@ -67,13 +67,14 @@ def test_invalid_timestamp_is_malformed_and_varies_by_seed() -> None:
 
     assert first_timestamps != second_timestamps
     assert all(
-        isinstance(timestamp, str)
-        and timestamp.startswith("not-a-valid-timestamp-")
+        isinstance(timestamp, str) and timestamp.startswith("not-a-valid-timestamp-")
         for timestamp in first_timestamps + second_timestamps
     )
 
 
-@pytest.mark.parametrize("mode", [FailureMode.INVALID_TEMPERATURE, FailureMode.INVALID_HUMIDITY])
+@pytest.mark.parametrize(
+    "mode", [FailureMode.INVALID_TEMPERATURE, FailureMode.INVALID_HUMIDITY]
+)
 def test_value_mutations_vary_by_seed(mode: FailureMode) -> None:
     first_injector = FailureInjector(mode, 1.0, failure_seed=1)
     second_injector = FailureInjector(mode, 1.0, failure_seed=2)
@@ -102,8 +103,7 @@ def test_duplicate_sequence_uses_previous_sequence_without_rewinding_input() -> 
     first = make_payload(40)
     second = make_payload(41)
 
-    with pytest.raises(ValueError, match="requires previously observed"):
-        injector.apply(first)
+    assert injector.apply(first) == first
     outgoing = injector.apply(second)
 
     assert outgoing["sequence_number"] == 40
@@ -111,12 +111,16 @@ def test_duplicate_sequence_uses_previous_sequence_without_rewinding_input() -> 
     assert second["sequence_number"] == 41
 
 
-def test_duplicate_sequence_requires_sequence_history() -> None:
-    with pytest.raises(
-        ValueError,
-        match="duplicate_sequence requires previously observed sequence history",
-    ):
-        FailureInjector(FailureMode.DUPLICATE_SEQUENCE, 1.0).apply(make_payload(40))
+def test_first_duplicate_sequence_leaves_payload_unchanged_without_failure_log(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    payload = make_payload(0)
+
+    with caplog.at_level(logging.WARNING):
+        outgoing = FailureInjector(FailureMode.DUPLICATE_SEQUENCE, 1.0).apply(payload)
+
+    assert outgoing == payload
+    assert "event=simulated_failure_injected" not in caplog.text
 
 
 def test_duplicate_sequence_selection_varies_by_seed() -> None:
@@ -124,14 +128,8 @@ def test_duplicate_sequence_selection_varies_by_seed() -> None:
     second = FailureInjector(FailureMode.DUPLICATE_SEQUENCE, 1.0, failure_seed=2)
     for sequence in (10, 20, 30):
         payload = make_payload(sequence)
-        if sequence == 10:
-            with pytest.raises(ValueError, match="requires previously observed"):
-                first.apply(payload)
-            with pytest.raises(ValueError, match="requires previously observed"):
-                second.apply(payload)
-        else:
-            first.apply(payload)
-            second.apply(payload)
+        first.apply(payload)
+        second.apply(payload)
 
     first_output = first.apply(make_payload(40))
     second_output = second.apply(make_payload(40))
@@ -141,16 +139,19 @@ def test_duplicate_sequence_selection_varies_by_seed() -> None:
     assert first_output != second_output
 
 
-def test_out_of_order_sequence_is_lower_than_previous_sequence() -> None:
+def test_out_of_order_sequence_is_schema_valid_and_lower_than_current_sequence() -> (
+    None
+):
     injector = FailureInjector(FailureMode.OUT_OF_ORDER_SEQUENCE, 1.0)
-    injector.apply(make_payload(40))
-    second = make_payload(41)
+    first = make_payload(0)
+    second = make_payload(1)
 
+    assert injector.apply(first) == first
     outgoing = injector.apply(second)
 
     assert isinstance(outgoing["sequence_number"], int)
-    assert outgoing["sequence_number"] < 41
-    assert second["sequence_number"] == 41
+    assert 0 <= outgoing["sequence_number"] < 1
+    assert second["sequence_number"] == 1
 
 
 def test_out_of_order_mutation_varies_by_seed() -> None:
@@ -158,10 +159,10 @@ def test_out_of_order_mutation_varies_by_seed() -> None:
     second = FailureInjector(FailureMode.OUT_OF_ORDER_SEQUENCE, 1.0, failure_seed=2)
 
     first_outputs = [
-        first.apply(make_payload(sequence)) for sequence in range(100, 103)
+        first.apply(make_payload(sequence)) for sequence in range(100, 104)
     ]
     second_outputs = [
-        second.apply(make_payload(sequence)) for sequence in range(100, 103)
+        second.apply(make_payload(sequence)) for sequence in range(100, 104)
     ]
 
     assert first_outputs != second_outputs
@@ -186,11 +187,10 @@ def test_failure_rate_one_always_injects() -> None:
 
 def test_random_mode_uses_only_supported_faults() -> None:
     injector = FailureInjector(FailureMode.RANDOM, 1.0, failure_seed=42)
-    injector.apply(make_payload(1))
 
-    outputs = [injector.apply(make_payload(sequence)) for sequence in range(10, 30)]
+    outputs = [injector.apply(make_payload(sequence)) for sequence in range(20)]
 
-    for sequence, output in zip(range(10, 30), outputs):
+    for sequence, output in enumerate(outputs):
         original = make_payload(sequence)
         changed_fields = {
             field
@@ -209,9 +209,8 @@ def test_random_mode_uses_only_supported_faults() -> None:
         if "humidity_pct" in changed_fields:
             assert not 0.0 <= output["humidity_pct"] <= 100.0
         if "timestamp" in changed_fields:
-            assert (
-                "timestamp" not in output
-                or str(output["timestamp"]).startswith("not-a-valid-timestamp-")
+            assert "timestamp" not in output or str(output["timestamp"]).startswith(
+                "not-a-valid-timestamp-"
             )
         if "sequence_number" in changed_fields:
             assert output["sequence_number"] != sequence
@@ -232,12 +231,16 @@ def test_seeded_random_behavior_is_reproducible() -> None:
     second = FailureInjector(FailureMode.RANDOM, 0.5, failure_seed=42)
 
     first_outputs = [first.apply(make_payload(sequence)) for sequence in range(10, 30)]
-    second_outputs = [second.apply(make_payload(sequence)) for sequence in range(10, 30)]
+    second_outputs = [
+        second.apply(make_payload(sequence)) for sequence in range(10, 30)
+    ]
 
     assert first_outputs == second_outputs
 
 
-def test_injection_logs_local_event_without_wire_marker(caplog: pytest.LogCaptureFixture) -> None:
+def test_injection_logs_local_event_without_wire_marker(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.WARNING):
         outgoing = FailureInjector(FailureMode.INVALID_HUMIDITY, 1.0).apply(
             make_payload()
@@ -247,7 +250,9 @@ def test_injection_logs_local_event_without_wire_marker(caplog: pytest.LogCaptur
     assert "simulated_failure" not in outgoing
 
 
-def test_skipped_injection_does_not_log_failure(caplog: pytest.LogCaptureFixture) -> None:
+def test_skipped_injection_does_not_log_failure(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     with caplog.at_level(logging.WARNING):
         FailureInjector(FailureMode.NONE, 1.0).apply(make_payload())
         FailureInjector(FailureMode.INVALID_HUMIDITY, 0.0).apply(make_payload())
@@ -273,7 +278,7 @@ def test_sequence_mutations_do_not_change_measurements() -> None:
     first_outgoing = injector.apply(first.to_payload())
     second_outgoing = injector.apply(second.to_payload())
 
-    assert first_outgoing["sequence_number"] < first.sequence_number
+    assert first_outgoing["sequence_number"] == first.sequence_number
     assert second_outgoing["sequence_number"] < second.sequence_number
     assert first.sequence_number == 40
     assert second.sequence_number == 41

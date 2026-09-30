@@ -42,17 +42,15 @@ class FailureInjector:
         previous_sequences = tuple(self._seen_sequences)
         self._seen_sequences.append(current_sequence)
 
-        if self._mode is FailureMode.NONE or self._random.random() >= self._failure_rate:
+        if (
+            self._mode is FailureMode.NONE
+            or self._random.random() >= self._failure_rate
+        ):
             return outgoing
 
-        selected_mode = self._mode
-        if selected_mode is FailureMode.RANDOM:
-            selected_mode = self._random.choice(_RANDOM_MODES)
-
-        if selected_mode is FailureMode.DUPLICATE_SEQUENCE and not previous_sequences:
-            raise ValueError(
-                "duplicate_sequence requires previously observed sequence history"
-            )
+        selected_mode = self._selected_mode(current_sequence, previous_sequences)
+        if selected_mode is None:
+            return outgoing
 
         self._mutate(outgoing, selected_mode, current_sequence, previous_sequences)
         self._logger.warning(
@@ -61,6 +59,34 @@ class FailureInjector:
             current_sequence,
         )
         return outgoing
+
+    def _selected_mode(
+        self, current_sequence: int, previous_sequences: tuple[int, ...]
+    ) -> FailureMode | None:
+        if self._mode is not FailureMode.RANDOM:
+            return (
+                self._mode
+                if self._can_mutate(self._mode, current_sequence, previous_sequences)
+                else None
+            )
+        candidates = tuple(
+            mode
+            for mode in _RANDOM_MODES
+            if self._can_mutate(mode, current_sequence, previous_sequences)
+        )
+        return self._random.choice(candidates)
+
+    @staticmethod
+    def _can_mutate(
+        mode: FailureMode,
+        current_sequence: int,
+        previous_sequences: tuple[int, ...],
+    ) -> bool:
+        if mode is FailureMode.DUPLICATE_SEQUENCE:
+            return bool(previous_sequences)
+        if mode is FailureMode.OUT_OF_ORDER_SEQUENCE:
+            return any(sequence < current_sequence for sequence in previous_sequences)
+        return True
 
     def _mutate(
         self,
@@ -82,8 +108,12 @@ class FailureInjector:
         elif mode is FailureMode.DUPLICATE_SEQUENCE:
             payload["sequence_number"] = self._random.choice(previous_sequences)
         elif mode is FailureMode.OUT_OF_ORDER_SEQUENCE:
-            offset = self._random.randint(1, max(1, current_sequence))
-            payload["sequence_number"] = current_sequence - offset
+            lower_sequences = tuple(
+                sequence
+                for sequence in previous_sequences
+                if sequence < current_sequence
+            )
+            payload["sequence_number"] = self._random.choice(lower_sequences)
         else:
             raise ValueError(f"Unsupported failure mode: {mode}")
 

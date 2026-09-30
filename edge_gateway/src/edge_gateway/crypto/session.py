@@ -2,7 +2,8 @@
 
 The session key stays in process memory. Establishment uses the public-key
 client, ML-KEM encapsulation, and HKDF, then POST /api/v1/crypto/sessions.
-This module does not send measurements or perform AES-GCM.
+This module does not send measurements or perform AES-GCM. Python does not
+guarantee secure memory zeroization.
 """
 
 from __future__ import annotations
@@ -217,9 +218,26 @@ class SessionManager:
             self._session = None
             self._metrics.set_active_session(False)
 
+    def _clear_replaced_session(self) -> None:
+        """Wipe a session that is still held when a new handshake starts."""
+        session = self._session
+        if session is None:
+            return
+        log_security(
+            "session_invalidated",
+            session_id=session.session_id,
+            gateway_id=session.gateway_id,
+            reason="replaced",
+            level=logging.WARNING,
+        )
+        session.clear(SessionState.FAILED)
+        self._session = None
+        self._metrics.set_active_session(False)
+
     def _establish(self) -> SecureSession:
         """Run the handshake. The caller holds the establishment lock."""
         started = time.perf_counter()
+        self._clear_replaced_session()
         log_security("mlkem_handshake_started", gateway_id=self._gateway_id)
         if self._injector.handshake_failure():
             duration = time.perf_counter() - started

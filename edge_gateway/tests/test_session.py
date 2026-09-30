@@ -15,6 +15,7 @@ from edge_gateway.crypto.encoding import decode_binary, encode_binary
 from edge_gateway.crypto.kdf import derive_session_key
 from edge_gateway.crypto.mlkem import CIPHERTEXT_LENGTH
 from edge_gateway.crypto.session import (
+    SecureSession,
     SessionEstablishmentError,
     SessionManager,
     SessionMetrics,
@@ -212,6 +213,30 @@ def test_concurrent_callers_share_one_handshake(cloud_url):
     first, second = asyncio.run(both())
     assert first.session_id == second.session_id
     assert cloud.posts == 1
+
+
+def test_replacement_clears_a_held_session_before_the_new_handshake(cloud_url):
+    url, cloud, clock = cloud_url
+    manager = _manager(url, clock)
+    stale = SecureSession(
+        session_id="sess-stale",
+        gateway_id="gateway-001",
+        cloud_key_id="cloud-key-001",
+        created_at=clock.now,
+        expires_at=clock.now + timedelta(minutes=5),
+        session_key=bytearray(b"\x11" * 32),
+        state=SessionState.FAILED,
+    )
+    manager._session = stale
+
+    replacement = asyncio.run(manager.get_or_establish())
+
+    assert cloud.posts == 1
+    assert replacement is not stale
+    assert replacement.state is SessionState.ACTIVE
+    assert stale.state is SessionState.FAILED
+    assert bytes(stale.session_key) == b"\x00" * 32
+    assert manager._session is replacement
 
 
 def test_expired_session_is_replaced(cloud_url):

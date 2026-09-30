@@ -1,4 +1,4 @@
-# AI Task 0039 — Implement Legacy Gateway retry policy
+# AI Task 0048 — Implement Legacy Gateway retry policy
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Implemented bounded Legacy Gateway retry and backoff behavior for M1-06. The cli
 
 ## Files Created
 
-- docs/ai/history/0039-implement-legacy-gateway-retry-policy.md
+- docs/ai/history/0048-implement-legacy-gateway-retry-policy.md
 
 ## Files Modified
 
@@ -84,7 +84,7 @@ Added direct coverage for the default two-retry configuration, retryable-to-non-
 
 ## Files Created
 
-- docs/ai/history/0039-implement-legacy-gateway-retry-policy.md
+- docs/ai/history/0048-implement-legacy-gateway-retry-policy.md
 
 ## Files Modified
 

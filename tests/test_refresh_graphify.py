@@ -29,7 +29,7 @@ def test_normalize_artifacts_removes_checkout_specific_metadata(tmp_path: Path) 
     assert report_path.read_text(encoding="utf-8") == "# Report\n\n## Nodes\nNone.\n"
 
 
-def test_clear_incremental_state_preserves_only_shared_artifacts(
+def test_clear_incremental_state_removes_all_prior_graphify_output(
     tmp_path: Path,
 ) -> None:
     graph_path = tmp_path / "graph.json"
@@ -46,12 +46,9 @@ def test_clear_incremental_state_preserves_only_shared_artifacts(
 
     refresh_graphify.clear_incremental_state(tmp_path)
 
-    assert graph_path.read_text(encoding="utf-8") == "shared graph"
-    assert report_path.read_text(encoding="utf-8") == "shared report"
-    assert {path.name for path in tmp_path.iterdir()} == {
-        "graph.json",
-        "GRAPH_REPORT.md",
-    }
+    assert not graph_path.exists()
+    assert not report_path.exists()
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_refresh_uses_a_stable_hash_seed(tmp_path: Path, monkeypatch) -> None:

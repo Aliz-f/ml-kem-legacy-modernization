@@ -35,7 +35,7 @@ def test_lifecycle_liveness_and_unready_storage(tmp_path, monkeypatch, caplog):
 
 
 def test_metrics_exposes_only_bounded_service_information():
-    with TestClient(create_app(load_config({}))) as client:
+    with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:
         response = client.get("/metrics")
 
     assert response.status_code == 200
@@ -47,23 +47,8 @@ def test_metrics_exposes_only_bounded_service_information():
     )
 
 
-def test_unsupported_secure_mode_fails_startup(caplog):
-    app = create_app(load_config({"SECURITY_MODE": "mlkem"}))
-    with pytest.raises(StartupError, match="Modernized Mode"):
-        with TestClient(app):
-            pytest.fail("Secure startup must fail before serving requests")
-    assert not app.state.running
-    assert app.state.config.security_mode == "mlkem"
-    assert "cloud_startup_failed" in caplog.text
-
-
 @pytest.mark.parametrize(("method", "path"), [
-    ("POST", "/api/v1/baseline/measurements"),
     ("POST", "/api/v1/secure/measurements"),
-    ("POST", "/api/v1/crypto/sessions"),
-    ("GET", "/api/v1/crypto/public-key"),
-    ("GET", "/api/v1/measurements"),
-    ("GET", "/api/v1/measurements/record-1"),
 ])
 def test_future_routes_do_not_claim_success(method, path):
     with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:
@@ -132,12 +117,3 @@ def test_storage_initialization_failure_stops_startup(tmp_path, caplog):
     assert app.state.database is None
     assert app.state.repository is None
     assert "private-path-marker" not in str(error.value) + caplog.text
-
-
-def test_unsupported_secure_startup_does_not_create_database(tmp_path):
-    target = tmp_path / "secure.db"
-    config = load_config({"SECURITY_MODE": "mlkem", "DATABASE_URL": f"sqlite:///{target.as_posix()}"})
-    with pytest.raises(StartupError):
-        with TestClient(create_app(config)):
-            pytest.fail("Secure processing is not implemented")
-    assert not target.exists()

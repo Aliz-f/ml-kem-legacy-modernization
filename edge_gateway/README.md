@@ -92,6 +92,33 @@ Domain failures raise `LegacyMeasurementDomainError` and map to the same sanitiz
 `422 INVALID_MEASUREMENT` response as schema failures, before any Cloud call.
 Sequence ordering and duplicate detection remain later tasks.
 
+## Application errors (M2-06)
+
+`edge_gateway.errors.GatewayErrorCode` defines fixed public messages and status
+codes. Application exception handlers always return
+`{"error": {"code": "...", "message": "..."}}` without exception details.
+
+| Error code | HTTP status | Meaning |
+| --- | --- | --- |
+| `INVALID_JSON` | 400 | Unparseable JSON/body syntax |
+| `INVALID_MEASUREMENT` | 422 | Schema or domain validation failed |
+| `DUPLICATE_SEQUENCE` | 409 | Duplicate sequence rejected |
+| `OUT_OF_ORDER_SEQUENCE` | 409 | Older sequence rejected |
+| `CLOUD_UNAVAILABLE` | 503 | Cloud/secure delivery unavailable after its retry policy |
+| `INTERNAL_ERROR` | 500 | Unexpected application failure |
+| `SERVICE_UNAVAILABLE` | 503 | Existing readiness/unfinished-delivery placeholder |
+
+Later sequence and transport stages can raise `GatewayError(code)` once their
+own policies determine a failure. M2-06 defines their error contracts only;
+it does not add sequence tracking, retries, or Cloud delivery. Existing parser
+and domain exceptions map to their fixed validation responses. Unexpected
+exceptions receive a generic JSON `500`; the application handler logs only
+`gateway_internal_error`, without exception text or traceback.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_errors.py edge_gateway/tests/test_gateway_validation.py
+```
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

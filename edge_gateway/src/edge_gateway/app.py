@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
 from edge_gateway.config import ConfigurationError, GatewayConfig, load_config
+from edge_gateway.errors import GatewayError, GatewayErrorCode
 from edge_gateway.models import LegacyMeasurementSchemaError
 from edge_gateway.validation import (
     LegacyJSONError,
@@ -52,6 +53,25 @@ def create_app(config: GatewayConfig | None = None) -> FastAPI:
     app.state.config = settings
     app.state.running = False
 
+    @app.exception_handler(LegacyJSONError)
+    async def invalid_json(request: Request, error: LegacyJSONError):
+        return _error_response(GatewayErrorCode.INVALID_JSON)
+
+    @app.exception_handler(LegacyMeasurementSchemaError)
+    @app.exception_handler(LegacyMeasurementDomainError)
+    async def invalid_measurement(request: Request, error: ValueError):
+        return _error_response(GatewayErrorCode.INVALID_MEASUREMENT)
+
+    @app.exception_handler(GatewayError)
+    async def application_error(request: Request, error: GatewayError):
+        return _error_response(error.code)
+
+    @app.exception_handler(Exception)
+    async def internal_error(request: Request, error: Exception):
+        # Never interpolate exception text or traceback: either can contain secrets.
+        logger.error("gateway_internal_error")
+        return _error_response(GatewayErrorCode.INTERNAL_ERROR)
+
     @app.get("/health")
     async def health():
         if not app.state.running:
@@ -65,17 +85,8 @@ def create_app(config: GatewayConfig | None = None) -> FastAPI:
 
     @app.post("/api/v1/measurements")
     async def measurements(request: Request):
-        try:
-            measurement = parse_legacy_measurement(await request.body())
-            validate_legacy_measurement(measurement)
-        except LegacyJSONError:
-            return JSONResponse(status_code=400, content={"error": {
-                "code": "INVALID_JSON", "message": "request body must be valid JSON",
-            }})
-        except (LegacyMeasurementSchemaError, LegacyMeasurementDomainError):
-            return JSONResponse(status_code=422, content={"error": {
-                "code": "INVALID_MEASUREMENT", "message": "measurement validation failed",
-            }})
+        measurement = parse_legacy_measurement(await request.body())
+        validate_legacy_measurement(measurement)
         # Downstream delivery is not implemented yet.
         return _unavailable()
 
@@ -94,10 +105,11 @@ def create_app(config: GatewayConfig | None = None) -> FastAPI:
 
 
 def _unavailable() -> JSONResponse:
-    return JSONResponse(
-        status_code=503,
-        content={"error": {"code": "SERVICE_UNAVAILABLE", "message": "service is not ready"}},
-    )
+    return _error_response(GatewayErrorCode.SERVICE_UNAVAILABLE)
+
+
+def _error_response(code: GatewayErrorCode) -> JSONResponse:
+    return JSONResponse(status_code=code.status_code, content=code.to_dict())
 
 
 def _logging_level(config: GatewayConfig) -> int:

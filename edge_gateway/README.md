@@ -20,11 +20,11 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | --- | --- |
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
 | `GET /ready` | `503 SERVICE_UNAVAILABLE` until processing and transport exist |
-| `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema → `422`; schema-valid requests → `503` pending delivery |
+| `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema/domain values → `422`; valid requests → `503` pending delivery |
 | `GET /metrics` | Prometheus text with bounded `gateway_service_info` only |
 
-This is roadmap Phase 3 / G2 scaffolding with G3 syntax/schema validation. Domain validation,
-normalization, sequencing, request IDs, Cloud delivery, and operational metrics
+This is roadmap Phase 3 / G2 scaffolding with G3 syntax/schema and domain validation.
+Normalization, sequencing, request IDs, Cloud delivery, and operational metrics
 belong to later tasks. This is not the completed Legacy API; `202` will be
 returned only after Cloud acceptance.
 
@@ -57,9 +57,9 @@ ISO-8601 strings with an explicit UTC timezone; internally they are datetimes.
 
 The model is immutable and independently owned by Gateway, with no imports from
 Legacy or Cloud. It checks schema only: non-empty device IDs, sensor ranges,
-and nonnegative sequences remain M2-05 domain validation. Parsing a model does
+and nonnegative sequences are checked separately by M2-05 domain validation. Parsing a model does
 not mean a measurement has been accepted. M2-04 integrates this schema at the
-HTTP boundary; schema-valid requests still return `503` pending later stages.
+HTTP boundary; requests passing schema and domain validation still return `503` pending delivery.
 Timestamp serialization uses Python datetime microsecond precision.
 
 ## Schema validation (M2-04)
@@ -71,12 +71,26 @@ with missing/extra fields, wrong types, or an invalid timestamp produces
 `422 INVALID_MEASUREMENT`. Both responses use the shared structured error body
 and omit payload values and parser details. Invalid requests make no Cloud calls.
 
-Domain bounds remain M2-05; sequencing, normalization, and delivery also remain
-separate later stages. No measurement is accepted or forwarded by this task.
+Domain bounds are checked separately by M2-05; sequencing, normalization, and
+delivery remain later stages. No measurement is accepted or forwarded yet.
 
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_validation.py
 ```
+
+## Domain validation (M2-05)
+
+After parsing, `edge_gateway.validation.validate_legacy_measurement(measurement)`
+checks temperature in `[-40, 85]`, humidity in `[0, 100]`, sequence number `>= 0`,
+and a non-empty device ID (whitespace-only IDs are rejected). It returns the same
+immutable model without trimming IDs or modifying values. These are protocol
+bounds, so values outside the simulator's normal range, such as `-25` °C, are valid.
+
+The existing model enforces ISO-8601 timestamps with an explicit UTC timezone;
+invalid dates, timezone-less timestamps, and non-UTC offsets return `422`.
+Domain failures raise `LegacyMeasurementDomainError` and map to the same sanitized
+`422 INVALID_MEASUREMENT` response as schema failures, before any Cloud call.
+Sequence ordering and duplicate detection remain later tasks.
 
 ## Configuration
 

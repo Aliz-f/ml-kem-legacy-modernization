@@ -1,4 +1,4 @@
-"""Gateway HTTP application with Legacy syntax/schema validation."""
+"""Gateway HTTP application with Legacy syntax, schema, and domain validation."""
 
 from contextlib import asynccontextmanager
 import logging
@@ -9,7 +9,12 @@ from fastapi.responses import JSONResponse, Response
 
 from edge_gateway.config import ConfigurationError, GatewayConfig, load_config
 from edge_gateway.models import LegacyMeasurementSchemaError
-from edge_gateway.validation import LegacyJSONError, parse_legacy_measurement
+from edge_gateway.validation import (
+    LegacyJSONError,
+    LegacyMeasurementDomainError,
+    parse_legacy_measurement,
+    validate_legacy_measurement,
+)
 
 logger = logging.getLogger("edge_gateway")
 
@@ -61,16 +66,17 @@ def create_app(config: GatewayConfig | None = None) -> FastAPI:
     @app.post("/api/v1/measurements")
     async def measurements(request: Request):
         try:
-            parse_legacy_measurement(await request.body())
+            measurement = parse_legacy_measurement(await request.body())
+            validate_legacy_measurement(measurement)
         except LegacyJSONError:
             return JSONResponse(status_code=400, content={"error": {
                 "code": "INVALID_JSON", "message": "request body must be valid JSON",
             }})
-        except LegacyMeasurementSchemaError:
+        except (LegacyMeasurementSchemaError, LegacyMeasurementDomainError):
             return JSONResponse(status_code=422, content={"error": {
                 "code": "INVALID_MEASUREMENT", "message": "measurement validation failed",
             }})
-        # Domain validation and downstream delivery are not implemented yet.
+        # Downstream delivery is not implemented yet.
         return _unavailable()
 
     @app.get("/metrics")

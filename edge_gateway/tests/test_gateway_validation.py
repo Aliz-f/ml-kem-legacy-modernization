@@ -1,4 +1,4 @@
-"""M2-04 HTTP syntax/schema boundary and rejection before Cloud access."""
+"""M2-04/M2-05 validation boundaries and rejection before Cloud access."""
 
 import json
 import socket
@@ -9,7 +9,11 @@ import pytest
 from edge_gateway.app import create_app
 from edge_gateway.config import load_config
 from edge_gateway.models import LegacyMeasurement
-from edge_gateway.validation import parse_legacy_measurement
+from edge_gateway.validation import (
+    LegacyMeasurementDomainError,
+    parse_legacy_measurement,
+    validate_legacy_measurement,
+)
 
 
 @pytest.fixture
@@ -100,3 +104,47 @@ def test_valid_measurement_parses_but_is_not_accepted_before_delivery(client, pa
 def test_domain_bounds_remain_a_separate_stage(payload):
     payload.update(device_id="", temperature_c=86, humidity_pct=-1, sequence_number=-1)
     assert parse_legacy_measurement(json.dumps(payload).encode()).to_dict() == payload
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("temperature_c", -40), ("temperature_c", 85), ("temperature_c", -25),
+    ("humidity_pct", 0), ("humidity_pct", 100), ("sequence_number", 0),
+    ("device_id", " sensor-001 "),
+    ("timestamp", "2026-09-21T13:45:31Z"),
+    ("timestamp", "2026-09-21T13:45:31.123456+00:00"),
+])
+def test_domain_valid_values_are_preserved(client, payload, field, value):
+    payload[field] = value
+    measurement = parse_legacy_measurement(json.dumps(payload).encode())
+    before = measurement.to_dict()
+    assert validate_legacy_measurement(measurement) is measurement
+    assert measurement.to_dict() == before
+    # Validation success alone must not claim Cloud acceptance.
+    assert client.post("/api/v1/measurements", json=payload).status_code == 503
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("temperature_c", -40.01), ("temperature_c", 85.01),
+    ("humidity_pct", -1), ("humidity_pct", 101),
+    ("humidity_pct", -0.01), ("humidity_pct", 100.01),
+    ("device_id", ""), ("device_id", " \t\n"), ("sequence_number", -1),
+])
+def test_domain_invalid_values_are_422_before_cloud(client, payload, field, value, caplog):
+    payload["device_id"] = "private-device-marker"
+    payload[field] = value
+    body = json.dumps(payload)
+    measurement = parse_legacy_measurement(body.encode())
+    with pytest.raises(LegacyMeasurementDomainError) as error:
+        validate_legacy_measurement(measurement)
+    assert "private-device-marker" not in str(error.value)
+    assert_rejection(client, body, 422, "INVALID_MEASUREMENT")
+    assert "private-device-marker" not in caplog.text
+
+
+@pytest.mark.parametrize("timestamp", [
+    "not-a-date", "2026-02-30T13:45:31Z", "2026-09-21T13:45:31",
+    "2026-09-21T13:45:31+03:00", "2026-09-21",
+])
+def test_domain_timestamp_contract_is_enforced_by_model(client, payload, timestamp):
+    payload["timestamp"] = timestamp
+    assert_rejection(client, json.dumps(payload), 422, "INVALID_MEASUREMENT")

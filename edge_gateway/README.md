@@ -46,6 +46,23 @@ Run application tests from the root with:
 uv run pytest edge_gateway/tests/test_gateway_app.py
 ```
 
+## Legacy request model (M2-03)
+
+`edge_gateway.models.LegacyMeasurement.from_dict(payload)` parses an already
+decoded JSON object containing exactly `device_id`, `temperature_c`,
+`humidity_pct`, `timestamp`, and `sequence_number`. Missing or extra fields,
+incorrect types, and nonfinite sensor numbers raise `LegacyMeasurementSchemaError`.
+Numeric strings and booleans are not coerced into numbers. Timestamps must be
+ISO-8601 strings with an explicit UTC timezone; internally they are datetimes.
+`to_dict()` returns the five wire fields with a UTC `Z` timestamp.
+
+The model is immutable and independently owned by Gateway, with no imports from
+Legacy or Cloud. It checks schema only: non-empty device IDs, sensor ranges,
+and nonnegative sequences remain M2-05 domain validation. Parsing a model does
+not mean a measurement has been accepted. HTTP syntax/error mapping and route
+integration remain later tasks; the skeleton route still returns `503`.
+Timestamp serialization uses Python datetime microsecond precision.
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

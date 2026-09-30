@@ -13,6 +13,7 @@ ai-history = "ai_history.cli:main"
 dev = [
     "cloud-service[test]",
     "edge-gateway",
+    "graphifyy==0.9.72",
     "legacy-system",
     "pytest>=8.0",
     "ruff>=0.8",

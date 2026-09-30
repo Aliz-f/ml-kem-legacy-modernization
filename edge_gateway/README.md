@@ -198,12 +198,44 @@ error definitions. Rejections leave state unchanged.
 
 State describes Gateway acceptance, not Cloud persistence. There is no rollback
 operation; restarting the process loses history. M2-10 provides the standalone
-tracker and unit tests only. Route wiring, Cloud-failure timing integration,
-and application metrics remain later tasks; the placeholder route is unchanged.
+tracker; M2-11 documents and tests its state lifetime and delivery boundary below.
 
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_sequence.py
 ```
+
+## Sequence-state design (M2-11)
+
+One Gateway process should own one `SequenceTracker`, shared across its requests.
+Its private dictionary stores the last valid accepted sequence for each device;
+creating a tracker for every request would lose duplicate protection. A fresh
+process starts with empty history. There is no disk persistence or coordination
+between workers, so this design assumes a single Gateway process.
+
+The caller must apply this order:
+
+1. Parse and validate the Legacy measurement's schema and domain values.
+2. Call `check_and_update(device_id, sequence_number)` to check and commit state.
+3. Continue processing and attempt Cloud delivery after the method returns.
+
+For example, accepting sequence `10` immediately commits `10`. A later Cloud
+timeout or connection failure leaves that value unchanged. A Legacy retry of
+`10` then raises `409 DUPLICATE_SEQUENCE`. Gateway-to-Cloud retries and Cloud
+idempotency are separate from this Legacy-side state.
+
+The existing lock covers the lookup, comparison, and update as one operation.
+It is released before downstream I/O. Concurrent equal values have exactly one
+winner. For different values, scheduling can affect which requests are accepted,
+but state never moves backward and finishes at the highest accepted value.
+A pending Cloud request does not block another sequence update, and its failure
+must not undo a newer accepted value.
+
+The sequence tests cover restart-equivalent instance isolation, simulated Cloud
+failures after commit, another update during pending delivery, and concurrent
+equal/different sequences, alongside the M2-10 policy cases. These are component
+tests using delivery stubs, not HTTP integration tests. M2-12 will wire the shared
+tracker into the route; actual route/Cloud timing verification and application
+metrics remain later work. The current HTTP placeholder is unchanged.
 
 ## Configuration
 

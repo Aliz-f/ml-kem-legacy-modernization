@@ -15,6 +15,10 @@ class SequenceTracker:
     Share one instance across requests. Restarting loses history. Call only
     after schema/domain validation and before Cloud delivery; accepted state
     is never rolled back for a later delivery failure.
+
+    The lock protects only the local check and commit. Cloud I/O belongs to
+    the caller after this method returns and must not hold the sequence lock.
+    Instances do not share state across processes or persist it to storage.
     """
 
     def __init__(self) -> None:

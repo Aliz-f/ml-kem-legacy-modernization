@@ -4915,7 +4915,7 @@
       "file_type": "code",
       "norm_label": "clear_incremental_state()",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L36"
+      "source_location": "L33"
     },
     {
       "id": "scripts_refresh_graphify_normalize_artifacts",
@@ -4927,7 +4927,7 @@
       "file_type": "code",
       "norm_label": "normalize_artifacts()",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L49"
+      "source_location": "L44"
     },
     {
       "id": "scripts_refresh_graphify_refresh_graph",
@@ -4939,7 +4939,7 @@
       "file_type": "code",
       "norm_label": "refresh_graph()",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L17"
+      "source_location": "L14"
     },
     {
       "id": "scripts_refresh_graphify_without_section",
@@ -4951,7 +4951,7 @@
       "file_type": "code",
       "norm_label": "_without_section()",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L67"
+      "source_location": "L62"
     },
     {
       "id": "cloud_service_tests_test_cloud_public_key_secure_app",
@@ -5770,14 +5770,14 @@
       "source_location": "L183"
     },
     {
-      "id": "tests_test_refresh_graphify_test_clear_incremental_state_preserves_only_shared_artifacts",
-      "label": "test_clear_incremental_state_preserves_only_shared_artifacts()",
+      "id": "tests_test_refresh_graphify_test_clear_incremental_state_removes_all_prior_graphify_output",
+      "label": "test_clear_incremental_state_removes_all_prior_graphify_output()",
       "_callable": true,
       "_origin": "ast",
       "community": 41,
       "community_name": "test_refresh_graphify.py",
       "file_type": "code",
-      "norm_label": "test_clear_incremental_state_preserves_only_shared_artifacts()",
+      "norm_label": "test_clear_incremental_state_removes_all_prior_graphify_output()",
       "source_file": "tests/test_refresh_graphify.py",
       "source_location": "L32"
     },
@@ -5803,7 +5803,7 @@
       "file_type": "code",
       "norm_label": "test_refresh_uses_a_stable_hash_seed()",
       "source_file": "tests/test_refresh_graphify.py",
-      "source_location": "L57"
+      "source_location": "L54"
     },
     {
       "id": "cloud_service_src_cloud_service_crypto_aad_build_aad",
@@ -9558,17 +9558,6 @@
       "source_location": "L1"
     },
     {
-      "id": "fastapi",
-      "label": "FastAPI",
-      "_origin": "ast",
-      "community": 29,
-      "community_name": "cloud_service/app.py",
-      "file_type": "code",
-      "norm_label": "fastapi",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
       "id": "cloud_service_src_cloud_service_app_rationale_1",
       "label": "Cloud storage, ephemeral keys and sessions; secure ingestion follows later.",
       "_origin": "ast",
@@ -9921,7 +9910,7 @@
       "source_location": "L1"
     },
     {
-      "id": "scripts_refresh_graphify_rationale_18",
+      "id": "scripts_refresh_graphify_rationale_15",
       "label": "Build the local code-only graph and its report.",
       "_origin": "ast",
       "community": 32,
@@ -9929,21 +9918,21 @@
       "file_type": "rationale",
       "norm_label": "build the local code-only graph and its report.",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L18"
+      "source_location": "L15"
     },
     {
-      "id": "scripts_refresh_graphify_rationale_37",
-      "label": "Remove ignored Graphify state so refresh matches a clean CI checkout.",
+      "id": "scripts_refresh_graphify_rationale_34",
+      "label": "Remove all prior Graphify output so a refresh has no graph baseline.",
       "_origin": "ast",
       "community": 32,
       "community_name": "refresh_graphify.py",
       "file_type": "rationale",
-      "norm_label": "remove ignored graphify state so refresh matches a clean ci checkout.",
+      "norm_label": "remove all prior graphify output so a refresh has no graph baseline.",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L37"
+      "source_location": "L34"
     },
     {
-      "id": "scripts_refresh_graphify_rationale_50",
+      "id": "scripts_refresh_graphify_rationale_45",
       "label": "Remove Graphify metadata that varies only with the local Git checkout.",
       "_origin": "ast",
       "community": 32,
@@ -9951,7 +9940,7 @@
       "file_type": "rationale",
       "norm_label": "remove graphify metadata that varies only with the local git checkout.",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L50"
+      "source_location": "L45"
     },
     {
       "id": "cloud_service_tests_test_cloud_public_key",
@@ -10878,59 +10867,60 @@
       "source_location": "L1"
     },
     {
-      "id": "fixture",
-      "label": "fixture",
+      "id": "pkg_cloud_service",
+      "label": "cloud-service",
       "_origin": "ast",
       "community": 55,
-      "community_name": "fixture",
+      "community_name": "cloud-service",
+      "ecosystem": "python",
       "file_type": "code",
-      "norm_label": "fixture",
-      "source_file": "",
-      "source_location": ""
+      "norm_label": "cloud-service",
+      "source_file": "cloud_service/pyproject.toml",
+      "source_location": "L1",
+      "type": "package",
+      "version": "0.1.0"
     },
     {
-      "id": "gatewayconfig",
-      "label": "GatewayConfig",
+      "id": "pkg_edge_gateway",
+      "label": "edge-gateway",
       "_origin": "ast",
       "community": 56,
-      "community_name": "GatewayConfig",
+      "community_name": "edge-gateway",
+      "ecosystem": "python",
       "file_type": "code",
-      "norm_label": "gatewayconfig",
-      "source_file": "",
-      "source_location": ""
+      "norm_label": "edge-gateway",
+      "source_file": "edge_gateway/pyproject.toml",
+      "source_location": "L1",
+      "type": "package",
+      "version": "0.1.0"
     },
     {
-      "id": "jsonresponse",
-      "label": "JSONResponse",
+      "id": "pkg_legacy_system",
+      "label": "legacy-system",
       "_origin": "ast",
       "community": 57,
-      "community_name": "JSONResponse",
+      "community_name": "legacy-system",
+      "ecosystem": "python",
       "file_type": "code",
-      "norm_label": "jsonresponse",
-      "source_file": "",
-      "source_location": ""
+      "norm_label": "legacy-system",
+      "source_file": "legacy_system/pyproject.toml",
+      "source_location": "L1",
+      "type": "package",
+      "version": "0.1.0"
     },
     {
-      "id": "legacy_system_src_legacy_system_failure_py_failuremode",
-      "label": "FailureMode",
+      "id": "pkg_ml_kem_legacy_modernization",
+      "label": "ml-kem-legacy-modernization",
       "_origin": "ast",
       "community": 58,
-      "community_name": "FailureMode",
+      "community_name": "ml-kem-legacy-modernization",
+      "ecosystem": "python",
       "file_type": "code",
-      "norm_label": "failuremode",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "legacy_system_tests_test_failure_py_failuremode",
-      "label": "FailureMode",
-      "_origin": "ast",
-      "community": 59,
-      "community_name": "FailureMode",
-      "file_type": "code",
-      "norm_label": "failuremode",
-      "source_file": "",
-      "source_location": ""
+      "norm_label": "ml-kem-legacy-modernization",
+      "source_file": "pyproject.toml",
+      "source_location": "L1",
+      "type": "package",
+      "version": "0.1.0"
     },
     {
       "id": "cloud_service_src_cloud_service_storage_database_py_runtimeerror",
@@ -11019,117 +11009,6 @@
       "norm_label": "m4-05 through m4-07 storage model, sqlite lifecycle, and repository.",
       "source_file": "cloud_service/tests/test_cloud_storage.py",
       "source_location": "L1"
-    },
-    {
-      "id": "logcapturefixture",
-      "label": "LogCaptureFixture",
-      "_origin": "ast",
-      "community": 60,
-      "community_name": "LogCaptureFixture",
-      "file_type": "code",
-      "norm_label": "logcapturefixture",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "measurement",
-      "label": "Measurement",
-      "_origin": "ast",
-      "community": 61,
-      "community_name": "Measurement",
-      "file_type": "code",
-      "norm_label": "measurement",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "mlkem768privatekey",
-      "label": "MLKEM768PrivateKey",
-      "_origin": "ast",
-      "community": 62,
-      "community_name": "MLKEM768PrivateKey",
-      "file_type": "code",
-      "norm_label": "mlkem768privatekey",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "pkg_cloud_service",
-      "label": "cloud-service",
-      "_origin": "ast",
-      "community": 63,
-      "community_name": "cloud-service",
-      "ecosystem": "python",
-      "file_type": "code",
-      "norm_label": "cloud-service",
-      "source_file": "cloud_service/pyproject.toml",
-      "source_location": "L1",
-      "type": "package",
-      "version": "0.1.0"
-    },
-    {
-      "id": "pkg_edge_gateway",
-      "label": "edge-gateway",
-      "_origin": "ast",
-      "community": 64,
-      "community_name": "edge-gateway",
-      "ecosystem": "python",
-      "file_type": "code",
-      "norm_label": "edge-gateway",
-      "source_file": "edge_gateway/pyproject.toml",
-      "source_location": "L1",
-      "type": "package",
-      "version": "0.1.0"
-    },
-    {
-      "id": "pkg_legacy_system",
-      "label": "legacy-system",
-      "_origin": "ast",
-      "community": 65,
-      "community_name": "legacy-system",
-      "ecosystem": "python",
-      "file_type": "code",
-      "norm_label": "legacy-system",
-      "source_file": "legacy_system/pyproject.toml",
-      "source_location": "L1",
-      "type": "package",
-      "version": "0.1.0"
-    },
-    {
-      "id": "pkg_ml_kem_legacy_modernization",
-      "label": "ml-kem-legacy-modernization",
-      "_origin": "ast",
-      "community": 66,
-      "community_name": "ml-kem-legacy-modernization",
-      "ecosystem": "python",
-      "file_type": "code",
-      "norm_label": "ml-kem-legacy-modernization",
-      "source_file": "pyproject.toml",
-      "source_location": "L1",
-      "type": "package",
-      "version": "0.1.0"
-    },
-    {
-      "id": "request",
-      "label": "Request",
-      "_origin": "ast",
-      "community": 67,
-      "community_name": "Request",
-      "file_type": "code",
-      "norm_label": "request",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "valueerror",
-      "label": "ValueError",
-      "_origin": "ast",
-      "community": 68,
-      "community_name": "ValueError",
-      "file_type": "code",
-      "norm_label": "valueerror",
-      "source_file": "",
-      "source_location": ""
     },
     {
       "id": "edge_gateway_src_edge_gateway_models",
@@ -11442,7 +11321,6 @@
     {
       "id": "pathlib",
       "label": "pathlib",
-      "_origin": "semantic",
       "community": 0,
       "community_name": "cli.py",
       "external": true,
@@ -11454,7 +11332,6 @@
     {
       "id": "re",
       "label": "re",
-      "_origin": "semantic",
       "community": 0,
       "community_name": "cli.py",
       "external": true,
@@ -11466,7 +11343,6 @@
     {
       "id": "sys",
       "label": "sys",
-      "_origin": "semantic",
       "community": 0,
       "community_name": "cli.py",
       "external": true,
@@ -11478,468 +11354,11 @@
     {
       "id": "threading",
       "label": "threading",
-      "_origin": "semantic",
       "community": 1,
       "community_name": "test_cloud_session_api.py",
       "external": true,
       "file_type": "concept",
       "norm_label": "threading",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "secrets",
-      "label": "secrets",
-      "_origin": "semantic",
-      "community": 11,
-      "community_name": "decrypt",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "secrets",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "argparse",
-      "label": "argparse",
-      "_origin": "semantic",
-      "community": 12,
-      "community_name": "measure_baseline.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "argparse",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "socket",
-      "label": "socket",
-      "_origin": "semantic",
-      "community": 12,
-      "community_name": "measure_baseline.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "socket",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "sqlite3",
-      "label": "sqlite3",
-      "_origin": "semantic",
-      "community": 12,
-      "community_name": "measure_baseline.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "sqlite3",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "tempfile",
-      "label": "tempfile",
-      "_origin": "semantic",
-      "community": 12,
-      "community_name": "measure_baseline.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "tempfile",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "datetime",
-      "label": "datetime",
-      "_origin": "semantic",
-      "community": 14,
-      "community_name": "repository.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "datetime",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "cryptography_hazmat_primitives",
-      "label": "cryptography_hazmat_primitives",
-      "_origin": "semantic",
-      "community": 15,
-      "community_name": "derive_session_key",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "cryptography_hazmat_primitives",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "cryptography_hazmat_primitives_kdf_hkdf",
-      "label": "cryptography_hazmat_primitives_kdf_hkdf",
-      "_origin": "semantic",
-      "community": 15,
-      "community_name": "derive_session_key",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "cryptography_hazmat_primitives_kdf_hkdf",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "copy",
-      "label": "copy",
-      "_origin": "semantic",
-      "community": 17,
-      "community_name": "validate_measurement",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "copy",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "fastapi_testclient",
-      "label": "fastapi_testclient",
-      "_origin": "semantic",
-      "community": 2,
-      "community_name": "load_config",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "fastapi_testclient",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "typing",
-      "label": "typing",
-      "_origin": "semantic",
-      "community": 2,
-      "community_name": "load_config",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "typing",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "concurrent_futures",
-      "label": "concurrent_futures",
-      "_origin": "semantic",
-      "community": 20,
-      "community_name": "test_cloud_baseline.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "concurrent_futures",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "cryptography_hazmat_primitives_asymmetric_mlkem",
-      "label": "cryptography_hazmat_primitives_asymmetric_mlkem",
-      "_origin": "semantic",
-      "community": 25,
-      "community_name": "cloud_service/crypto/mlkem.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "cryptography_hazmat_primitives_asymmetric_mlkem",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "cryptography_hazmat_primitives_serialization",
-      "label": "cryptography_hazmat_primitives_serialization",
-      "_origin": "semantic",
-      "community": 25,
-      "community_name": "cloud_service/crypto/mlkem.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "cryptography_hazmat_primitives_serialization",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "json",
-      "label": "json",
-      "_origin": "semantic",
-      "community": 26,
-      "community_name": "json",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "json",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "base64",
-      "label": "base64",
-      "_origin": "semantic",
-      "community": 28,
-      "community_name": "encoding.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "base64",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "contextlib",
-      "label": "contextlib",
-      "_origin": "semantic",
-      "community": 29,
-      "community_name": "cloud_service/app.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "contextlib",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "fastapi_responses",
-      "label": "fastapi_responses",
-      "_origin": "semantic",
-      "community": 29,
-      "community_name": "cloud_service/app.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "fastapi_responses",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "logging",
-      "label": "logging",
-      "_origin": "semantic",
-      "community": 29,
-      "community_name": "cloud_service/app.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "logging",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "http_server",
-      "label": "http_server",
-      "_origin": "semantic",
-      "community": 3,
-      "community_name": "test_public_key_client.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "http_server",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "urllib_error",
-      "label": "urllib_error",
-      "_origin": "semantic",
-      "community": 3,
-      "community_name": "test_public_key_client.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "urllib_error",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "urllib_parse",
-      "label": "urllib_parse",
-      "_origin": "semantic",
-      "community": 3,
-      "community_name": "test_public_key_client.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "urllib_parse",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "urllib_request",
-      "label": "urllib_request",
-      "_origin": "semantic",
-      "community": 3,
-      "community_name": "test_public_key_client.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "urllib_request",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "traceback",
-      "label": "traceback",
-      "_origin": "semantic",
-      "community": 30,
-      "community_name": "test_cloud_kdf.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "traceback",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "cryptography_exceptions",
-      "label": "cryptography_exceptions",
-      "_origin": "semantic",
-      "community": 31,
-      "community_name": "test_cloud_mlkem.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "cryptography_exceptions",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "os",
-      "label": "os",
-      "_origin": "semantic",
-      "community": 32,
-      "community_name": "refresh_graphify.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "os",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "shutil",
-      "label": "shutil",
-      "_origin": "semantic",
-      "community": 32,
-      "community_name": "refresh_graphify.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "shutil",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "subprocess",
-      "label": "subprocess",
-      "_origin": "semantic",
-      "community": 32,
-      "community_name": "refresh_graphify.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "subprocess",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "asyncio",
-      "label": "asyncio",
-      "_origin": "semantic",
-      "community": 36,
-      "community_name": "edge_gateway/crypto/session.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "asyncio",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "enum",
-      "label": "enum",
-      "_origin": "semantic",
-      "community": 36,
-      "community_name": "edge_gateway/crypto/session.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "enum",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "uuid",
-      "label": "uuid",
-      "_origin": "semantic",
-      "community": 38,
-      "community_name": "KeyService",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "uuid",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "cryptography_hazmat_primitives_ciphers_aead",
-      "label": "cryptography_hazmat_primitives_ciphers_aead",
-      "_origin": "semantic",
-      "community": 39,
-      "community_name": "cloud_service/crypto/symmetric.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "cryptography_hazmat_primitives_ciphers_aead",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "importlib_util",
-      "label": "importlib_util",
-      "_origin": "semantic",
-      "community": 41,
-      "community_name": "test_refresh_graphify.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "importlib_util",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "pytest",
-      "label": "pytest",
-      "_origin": "semantic",
-      "community": 44,
-      "community_name": "pytest",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "pytest",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "collections_abc",
-      "label": "collections_abc",
-      "_origin": "semantic",
-      "community": 5,
-      "community_name": "test_sensor.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "collections_abc",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "math",
-      "label": "math",
-      "_origin": "semantic",
-      "community": 5,
-      "community_name": "test_sensor.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "math",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "numbers",
-      "label": "numbers",
-      "_origin": "semantic",
-      "community": 5,
-      "community_name": "test_sensor.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "numbers",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "dataclasses",
-      "label": "dataclasses",
-      "_origin": "semantic",
-      "community": 7,
-      "community_name": "test_gateway_models.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "dataclasses",
       "source_file": "",
       "type": "external"
     },
@@ -11962,6 +11381,28 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "uvicorn",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "secrets",
+      "label": "secrets",
+      "community": 11,
+      "community_name": "decrypt",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "secrets",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "argparse",
+      "label": "argparse",
+      "community": 12,
+      "community_name": "measure_baseline.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "argparse",
       "source_file": "",
       "type": "external"
     },
@@ -11999,6 +11440,28 @@
       "type": "external"
     },
     {
+      "id": "socket",
+      "label": "socket",
+      "community": 12,
+      "community_name": "measure_baseline.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "socket",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "sqlite3",
+      "label": "sqlite3",
+      "community": 12,
+      "community_name": "measure_baseline.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "sqlite3",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "statistics",
       "label": "statistics",
       "community": 12,
@@ -12006,6 +11469,182 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "statistics",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "tempfile",
+      "label": "tempfile",
+      "community": 12,
+      "community_name": "measure_baseline.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "tempfile",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "datetime",
+      "label": "datetime",
+      "community": 14,
+      "community_name": "repository.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "datetime",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "cryptography_hazmat_primitives",
+      "label": "cryptography_hazmat_primitives",
+      "community": 15,
+      "community_name": "derive_session_key",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "cryptography_hazmat_primitives",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "cryptography_hazmat_primitives_kdf_hkdf",
+      "label": "cryptography_hazmat_primitives_kdf_hkdf",
+      "community": 15,
+      "community_name": "derive_session_key",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "cryptography_hazmat_primitives_kdf_hkdf",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "copy",
+      "label": "copy",
+      "community": 17,
+      "community_name": "validate_measurement",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "copy",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "fastapi_testclient",
+      "label": "fastapi_testclient",
+      "community": 2,
+      "community_name": "load_config",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "fastapi_testclient",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "typing",
+      "label": "typing",
+      "community": 2,
+      "community_name": "load_config",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "typing",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "concurrent_futures",
+      "label": "concurrent_futures",
+      "community": 20,
+      "community_name": "test_cloud_baseline.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "concurrent_futures",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "cryptography_hazmat_primitives_asymmetric_mlkem",
+      "label": "cryptography_hazmat_primitives_asymmetric_mlkem",
+      "community": 25,
+      "community_name": "cloud_service/crypto/mlkem.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "cryptography_hazmat_primitives_asymmetric_mlkem",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "cryptography_hazmat_primitives_serialization",
+      "label": "cryptography_hazmat_primitives_serialization",
+      "community": 25,
+      "community_name": "cloud_service/crypto/mlkem.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "cryptography_hazmat_primitives_serialization",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "json",
+      "label": "json",
+      "community": 26,
+      "community_name": "json",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "json",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "base64",
+      "label": "base64",
+      "community": 28,
+      "community_name": "encoding.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "base64",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "contextlib",
+      "label": "contextlib",
+      "community": 29,
+      "community_name": "cloud_service/app.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "contextlib",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "fastapi",
+      "label": "fastapi",
+      "community": 29,
+      "community_name": "cloud_service/app.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "fastapi",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "fastapi_responses",
+      "label": "fastapi_responses",
+      "community": 29,
+      "community_name": "cloud_service/app.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "fastapi_responses",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "logging",
+      "label": "logging",
+      "community": 29,
+      "community_name": "cloud_service/app.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "logging",
       "source_file": "",
       "type": "external"
     },
@@ -12021,6 +11660,61 @@
       "type": "external"
     },
     {
+      "id": "http_server",
+      "label": "http_server",
+      "community": 3,
+      "community_name": "test_public_key_client.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "http_server",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "urllib_error",
+      "label": "urllib_error",
+      "community": 3,
+      "community_name": "test_public_key_client.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "urllib_error",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "urllib_parse",
+      "label": "urllib_parse",
+      "community": 3,
+      "community_name": "test_public_key_client.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "urllib_parse",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "urllib_request",
+      "label": "urllib_request",
+      "community": 3,
+      "community_name": "test_public_key_client.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "urllib_request",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "traceback",
+      "label": "traceback",
+      "community": 30,
+      "community_name": "test_cloud_kdf.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "traceback",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "types",
       "label": "types",
       "community": 30,
@@ -12028,6 +11722,160 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "types",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "cryptography_exceptions",
+      "label": "cryptography_exceptions",
+      "community": 31,
+      "community_name": "test_cloud_mlkem.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "cryptography_exceptions",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "os",
+      "label": "os",
+      "community": 32,
+      "community_name": "refresh_graphify.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "os",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "shutil",
+      "label": "shutil",
+      "community": 32,
+      "community_name": "refresh_graphify.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "shutil",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "subprocess",
+      "label": "subprocess",
+      "community": 32,
+      "community_name": "refresh_graphify.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "subprocess",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "asyncio",
+      "label": "asyncio",
+      "community": 36,
+      "community_name": "edge_gateway/crypto/session.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "asyncio",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "enum",
+      "label": "enum",
+      "community": 36,
+      "community_name": "edge_gateway/crypto/session.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "enum",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "uuid",
+      "label": "uuid",
+      "community": 38,
+      "community_name": "KeyService",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "uuid",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "cryptography_hazmat_primitives_ciphers_aead",
+      "label": "cryptography_hazmat_primitives_ciphers_aead",
+      "community": 39,
+      "community_name": "cloud_service/crypto/symmetric.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "cryptography_hazmat_primitives_ciphers_aead",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "importlib_util",
+      "label": "importlib_util",
+      "community": 41,
+      "community_name": "test_refresh_graphify.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "importlib_util",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "pytest",
+      "label": "pytest",
+      "community": 44,
+      "community_name": "pytest",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "pytest",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "collections_abc",
+      "label": "collections_abc",
+      "community": 5,
+      "community_name": "test_sensor.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "collections_abc",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "math",
+      "label": "math",
+      "community": 5,
+      "community_name": "test_sensor.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "math",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "numbers",
+      "label": "numbers",
+      "community": 5,
+      "community_name": "test_sensor.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "numbers",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "dataclasses",
+      "label": "dataclasses",
+      "community": 7,
+      "community_name": "test_gateway_models.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "dataclasses",
       "source_file": "",
       "type": "external"
     }
@@ -18438,7 +18286,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L60",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -18450,7 +18298,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L19",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -18462,7 +18310,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L33",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -26886,7 +26734,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L36",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -26898,7 +26746,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L49",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -26910,7 +26758,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L17",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -27250,7 +27098,7 @@
       "weight": 1.0
     },
     {
-      "source": "tests_test_refresh_graphify_test_clear_incremental_state_preserves_only_shared_artifacts",
+      "source": "tests_test_refresh_graphify_test_clear_incremental_state_removes_all_prior_graphify_output",
       "target": "tests_test_refresh_graphify_py_path",
       "relation": "references",
       "_origin": "ast",
@@ -27282,7 +27130,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "tests/test_refresh_graphify.py",
-      "source_location": "L57",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -32465,7 +32313,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L17",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -32476,7 +32324,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L36",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -32487,7 +32335,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L49",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -32498,7 +32346,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L67",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -32943,7 +32791,7 @@
     },
     {
       "source": "tests_test_refresh_graphify",
-      "target": "tests_test_refresh_graphify_test_clear_incremental_state_preserves_only_shared_artifacts",
+      "target": "tests_test_refresh_graphify_test_clear_incremental_state_removes_all_prior_graphify_output",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -32960,7 +32808,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_refresh_graphify.py",
-      "source_location": "L57",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -36176,36 +36024,36 @@
       "weight": 1.0
     },
     {
-      "source": "scripts_refresh_graphify_rationale_18",
+      "source": "scripts_refresh_graphify_rationale_15",
       "target": "scripts_refresh_graphify_refresh_graph",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L18",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
-      "source": "scripts_refresh_graphify_rationale_37",
+      "source": "scripts_refresh_graphify_rationale_34",
       "target": "scripts_refresh_graphify_clear_incremental_state",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L37",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
-      "source": "scripts_refresh_graphify_rationale_50",
+      "source": "scripts_refresh_graphify_rationale_45",
       "target": "scripts_refresh_graphify_normalize_artifacts",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/refresh_graphify.py",
-      "source_location": "L50",
+      "source_location": "L45",
       "weight": 1.0
     },
     {

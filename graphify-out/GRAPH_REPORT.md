@@ -4,7 +4,7 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 1028 nodes · 2388 edges · 69 communities (41 shown, 28 thin omitted)
+- 1018 nodes · 2388 edges · 59 communities (41 shown, 18 thin omitted)
 - Extraction: 87% EXTRACTED · 13% INFERRED · 0% AMBIGUOUS · INFERRED: 303 edges (avg confidence: 0.94)
 - Token cost: 0 input · 0 output
 
@@ -90,7 +90,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (69 total, 28 thin omitted)
+## Communities (59 total, 18 thin omitted)
 
 ### Community 0 - "cli.py"
 Cohesion: 0.12
@@ -242,7 +242,7 @@ Nodes (3): lifespan(), StartupError, test_session_initialization_failure_release
 
 ### Community 41 - "test_refresh_graphify.py"
 Cohesion: 0.38
-Nodes (3): test_clear_incremental_state_preserves_only_shared_artifacts(), test_normalize_artifacts_removes_checkout_specific_metadata(), test_refresh_uses_a_stable_hash_seed()
+Nodes (3): test_clear_incremental_state_removes_all_prior_graphify_output(), test_normalize_artifacts_removes_checkout_specific_metadata(), test_refresh_uses_a_stable_hash_seed()
 
 ### Community 43 - "get_measurement"
 Cohesion: 0.60
@@ -258,8 +258,8 @@ Nodes (3): test_crypto_failure_is_classified_and_recorded(), fail_derivation(), 
 
 ## Knowledge Gaps
 - **4 isolated node(s):** `cloud-service`, `edge-gateway`, `legacy-system`, `ml-kem-legacy-modernization`
-  These have ≤1 connection - possible missing edges. (Counts symbols only; 319 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **28 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges. (Counts symbols only; 309 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -267,7 +267,9 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `SessionManager` connect `SessionManager` to `test_cloud_session_api.py`, `test_public_key_client.py`, `edge_gateway/crypto/session.py`, `test_session.py`, `derive_session_key`, `test_crypto_failure_is_classified_and_recorded`, `session_client.py`, `encapsulate`?**
   _High betweenness centrality (0.035) - this node is a cross-community bridge._
 - **Why does `create_app()` connect `create_app` to `test_cloud_session_api.py`, `sessions.py`, `test_cloud_public_key.py`, `cloud_service/config.py`, `KeyService`, `MeasurementRepository`, `StartupError`, `measure_baseline.py`, `load_config`, `test_cloud_baseline.py`, `test_cloud_queries.py`, `cloud_service/app.py`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `MeasurementRepository` connect `MeasurementRepository` to `StartupError`, `CanonicalMeasurement`, `measure_baseline.py`, `create_app`, `repository.py`, `test_cloud_baseline.py`, `cloud_service/app.py`?**
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `create_app()` (e.g. with `lifespan()` and `Config`) actually correct?**
   _`create_app()` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 24 inferred relationships involving `FailureMode` (e.g. with `FailureInjector` and `test_default_configuration()`) actually correct?**
@@ -276,5 +278,3 @@ _Questions this graph is uniquely positioned to answer:_
   _`MeasurementRepository` has 20 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 22 inferred relationships involving `FailureInjector` (e.g. with `FailureMode` and `test_duplicate_sequence_selection_varies_by_seed()`) actually correct?**
   _`FailureInjector` has 22 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `cloud-service`, `edge-gateway`, `legacy-system` to the rest of the system?**
-  _4 weakly-connected nodes found - possible documentation gaps or missing edges._

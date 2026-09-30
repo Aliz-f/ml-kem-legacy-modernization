@@ -11,9 +11,6 @@ import subprocess
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 GRAPH_OUTPUT = REPOSITORY_ROOT / "graphify-out"
-_SHARED_ARTIFACTS = frozenset({"graph.json", "GRAPH_REPORT.md"})
-
-
 def refresh_graph(root: Path) -> None:
     """Build the local code-only graph and its report."""
     clear_incremental_state(root / "graphify-out")
@@ -34,12 +31,10 @@ def refresh_graph(root: Path) -> None:
 
 
 def clear_incremental_state(output_directory: Path) -> None:
-    """Remove ignored Graphify state so refresh matches a clean CI checkout."""
+    """Remove all prior Graphify output so a refresh has no graph baseline."""
     if not output_directory.exists():
         return
     for path in output_directory.iterdir():
-        if path.name in _SHARED_ARTIFACTS:
-            continue
         if path.is_dir() and not path.is_symlink():
             shutil.rmtree(path)
         else:

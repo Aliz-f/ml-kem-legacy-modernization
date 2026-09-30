@@ -1,4 +1,4 @@
-# AI Task 0028 — Implement Legacy Gateway HTTP client
+# AI Task 0038 — Implement Legacy Gateway HTTP client
 
 **Status:** Complete
 
@@ -31,7 +31,7 @@ Implemented the M1-05 single-request Legacy Gateway HTTP client with stable resu
 ## Files Created
 
 - cloud.db
-- docs/ai/history/0028-implement-legacy-gateway-http-client.md
+- docs/ai/history/0038-implement-legacy-gateway-http-client.md
 - legacy_system/src/legacy_system/client.py
 - legacy_system/tests/test_client.py
 
@@ -83,7 +83,7 @@ Renamed the HTTP status classification test to describe retryability, added expl
 
 ## Files Created
 
-- docs/ai/history/0028-implement-legacy-gateway-http-client.md
+- docs/ai/history/0038-implement-legacy-gateway-http-client.md
 - legacy_system/src/legacy_system/client.py
 - legacy_system/tests/test_client.py
 
@@ -135,7 +135,7 @@ Added explicit handling for http.client.HTTPException, translating protocol-leve
 
 ## Files Created
 
-- docs/ai/history/0028-implement-legacy-gateway-http-client.md
+- docs/ai/history/0038-implement-legacy-gateway-http-client.md
 - legacy_system/src/legacy_system/client.py
 - legacy_system/tests/test_client.py
 

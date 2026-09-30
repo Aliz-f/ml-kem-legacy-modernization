@@ -130,7 +130,7 @@ booleans/numeric strings are not coerced. Invalid types raise
 `to_dict()` returns an independent JSON-ready dictionary with UTC `Z` timestamps
 at Python datetime microsecond precision.
 
-The model requires all values explicitly. M2-08 will construct it from the
+The model requires all values explicitly. M2-08 constructs it from the
 validated Legacy measurement, mapping `timestamp` to `measured_at` and supplying
 the Gateway current UTC time as `received_at` plus configured `GATEWAY_ID`.
 Domain rules remain in the existing validation stage. No request ID, session,
@@ -139,6 +139,26 @@ Legacy or Cloud packages, read configuration, consult a clock, or perform delive
 
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_canonical_model.py
+```
+
+## Normalization (M2-08)
+
+`edge_gateway.normalization.normalize(legacy_measurement, *, gateway_id, received_at)`
+maps a validated Legacy measurement to `CanonicalMeasurement`. It preserves the
+device ID, temperature, humidity, and sequence exactly, maps `timestamp` to
+`measured_at`, and adds the supplied Gateway metadata. It does not trim IDs,
+round numbers, convert units, or mutate the input.
+
+The caller supplies `config.gateway_id` and the Gateway current UTC receipt time
+as `received_at`. Explicit inputs keep the mapping deterministic and avoid
+environment or clock access inside normalization. Canonical model validation
+rejects invalid metadata types and timestamps without an explicit UTC timezone.
+Call after schema/domain validation and sequence-policy acceptance. Route
+orchestration remains M2-12; the existing route still returns `503` for valid
+measurements until Cloud delivery is implemented.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_normalization.py
 ```
 
 ## Configuration

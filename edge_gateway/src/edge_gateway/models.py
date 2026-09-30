@@ -80,8 +80,8 @@ class CanonicalMeasurementSchemaError(ValueError):
 class CanonicalMeasurement:
     """Seven-field Cloud-bound schema, separate from transport and storage data.
 
-    M2-08 will populate measured_at from Legacy timestamp, received_at from the
-    Gateway UTC clock, and gateway_id from configuration after Legacy validation.
+    normalization.normalize populates measured_at from Legacy timestamp and adds
+    the caller-supplied Gateway UTC receipt time and configured gateway_id.
     This model checks types; Legacy domain rules remain in validation.py.
     """
 

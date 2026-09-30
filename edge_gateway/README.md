@@ -204,6 +204,15 @@ The Gateway session key stays in process memory. Replacing a session clears the 
 When a secure transport is attached, Gateway shutdown stops accepting work, closes that transport's HTTP client, and then clears the in-memory session. The cleanup does not print key material. Process signals and Docker stop stay with the application lifecycle. Details are in
 [docs/secure-shutdown.md](docs/secure-shutdown.md).
 
+## Crypto image install (M3-61)
+
+The Gateway crypto dependencies install from the frozen lock as Linux wheels.
+`edge_gateway/docker/crypto-image.Dockerfile` is a Python 3.12 bookworm image
+with no compiler. It runs `uv sync --frozen --package edge-gateway --no-dev`
+and then checks ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. The service image
+`edge_gateway/Dockerfile` remains Member 2's task. Details are in
+[docs/crypto-image.md](docs/crypto-image.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

@@ -184,6 +184,11 @@ existing secure envelope to verify context propagation and authentication.
 uv run pytest edge_gateway/tests/test_gateway_correlation.py
 ```
 
+## Secure shutdown (M3-56)
+
+When a secure transport is attached, Gateway shutdown stops accepting work, closes that transport's HTTP client, and then clears the in-memory session. The cleanup does not print key material. Process signals and Docker stop stay with the application lifecycle. Details are in
+[docs/secure-shutdown.md](docs/secure-shutdown.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

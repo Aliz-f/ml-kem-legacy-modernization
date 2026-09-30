@@ -67,6 +67,7 @@ _DEFAULTS = {
     "LOG_LEVEL": "INFO",
 }
 _LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
+_MAX_FAILURE_DELAY_SECONDS = 30.0
 
 
 def load_config(environ: Mapping[str, str] | None = None) -> Config:
@@ -137,8 +138,8 @@ def load_config(environ: Mapping[str, str] | None = None) -> Config:
         raise ConfigurationError("FAILURE_RATE must be between 0.0 and 1.0")
     failure_seed = None if not value("FAILURE_SEED").strip() else integer("FAILURE_SEED")
     failure_delay_seconds = number("FAILURE_DELAY_SECONDS")
-    if failure_delay_seconds < 0:
-        raise ConfigurationError("FAILURE_DELAY_SECONDS must be zero or greater")
+    if not 0 <= failure_delay_seconds <= _MAX_FAILURE_DELAY_SECONDS:
+        raise ConfigurationError("FAILURE_DELAY_SECONDS must be between 0 and 30 seconds")
     log_level = value("LOG_LEVEL").upper()
     if log_level not in _LOG_LEVELS:
         raise ConfigurationError("LOG_LEVEL must be DEBUG, INFO, WARNING, ERROR or CRITICAL")

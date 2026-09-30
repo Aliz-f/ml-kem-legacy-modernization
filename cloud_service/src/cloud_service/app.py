@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse, Response
 from cloud_service.config import Config, ConfigurationError, SecurityMode, load_config
 from cloud_service.crypto.keys import KeyService
 from cloud_service.crypto.session import SessionAccessError, SessionManager
+from cloud_service.failure import FailureInjector
 from cloud_service.gateway.crypto import router as crypto_router
 from cloud_service.gateway.routes import router as gateway_router
 from cloud_service.gateway.queries import router as query_router
@@ -78,6 +79,7 @@ def create_app(config: Config | None = None) -> FastAPI:
     app.state.repository = None
     app.state.keys = None
     app.state.sessions = None
+    app.state.failure_injector = FailureInjector.from_config(settings)
     app.include_router(gateway_router)
     app.include_router(query_router)
     app.include_router(crypto_router)

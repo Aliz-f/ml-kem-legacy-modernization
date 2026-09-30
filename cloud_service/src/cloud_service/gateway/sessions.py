@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
-from cloud_service.config import SecurityMode
+from cloud_service.config import FailureMode, SecurityMode
 from cloud_service.crypto.encoding import decode_binary
 from cloud_service.crypto.kdf import derive_session_key
 from cloud_service.crypto.session import SessionAccessError, SessionState
@@ -44,9 +44,11 @@ def _decode_ciphertext(value: object) -> bytes:
     return decoded
 
 
-def _establish(keys, manager, gateway_id: str, ciphertext: bytes) -> JSONResponse:
+def _establish(keys, manager, gateway_id: str, ciphertext: bytes, failure) -> JSONResponse:
     session = None
     try:
+        if failure.apply(FailureMode.MLKEM_DECAPSULATION_FAILURE):
+            raise RuntimeError("injected ML-KEM wrapper failure")
         secret = keys.decapsulate(ciphertext)
         key = derive_session_key(secret)
         session = manager.create(gateway_id, keys.key_id, key)
@@ -66,6 +68,11 @@ async def establish_session(request: Request) -> JSONResponse:
     if (request.app.state.config.security_mode != SecurityMode.MLKEM
             or not request.app.state.running or keys is None or keys.closed or manager is None):
         return _error(503, "SERVICE_UNAVAILABLE", "session establishment unavailable")
+    failure = request.app.state.failure_injector.select(
+        (FailureMode.SERVICE_UNAVAILABLE, FailureMode.MLKEM_DECAPSULATION_FAILURE)
+    )
+    if failure.apply(FailureMode.SERVICE_UNAVAILABLE):
+        return _error(503, "SERVICE_UNAVAILABLE", "session establishment unavailable")
     try:
         payload = await request.json()
     except (JSONDecodeError, UnicodeDecodeError):
@@ -82,4 +89,6 @@ async def establish_session(request: Request) -> JSONResponse:
         ciphertext = _decode_ciphertext(payload["encapsulation_ciphertext"])
     except ValueError:
         return _error(400, "INVALID_SESSION_REQUEST", "invalid session request")
-    return await run_in_threadpool(_establish, keys, manager, gateway_id, ciphertext)
+    return await run_in_threadpool(
+        _establish, keys, manager, gateway_id, ciphertext, failure
+    )

@@ -13,6 +13,9 @@ from cloud_service.app import create_app
 from cloud_service.config import load_config
 from cloud_service.crypto.envelope_validation import MAX_ENVELOPE_BYTES, EnvelopeValidationError, validate_envelope
 from cloud_service.crypto.session import SessionManager
+from cloud_service.crypto.session import SessionAccessError
+from cloud_service.crypto.encoding import decode_binary
+from cloud_service.crypto.symmetric import AeadError
 from cloud_service.gateway import secure
 from edge_gateway.crypto.aad import build_aad
 from edge_gateway.crypto.encoding import encode_binary
@@ -178,11 +181,13 @@ def test_session_lookup_ownership_expiry_order(client, monkeypatch):
     monkeypatch.setattr(secure, "decrypt", forbid)
     missing = client.post(PATH, json=wire | {"session_id": "missing"})
     assert (missing.status_code, missing.json()["error"]["code"]) == (409, "SESSION_INVALID")
+    assert missing.json() == {"error": {"code": "SESSION_INVALID", "message": "secure session is invalid"}}
     now[0] += timedelta(seconds=300)
     wrong = client.post(PATH, json=wire | {"gateway_id": "other"})
     assert (wrong.status_code, wrong.json()["error"]["code"]) == (400, "SECURE_MESSAGE_REJECTED")
     expired = client.post(PATH, json=wire)
     assert (expired.status_code, expired.json()["error"]["code"]) == (409, "SESSION_EXPIRED")
+    assert expired.json() == {"error": {"code": "SESSION_EXPIRED", "message": "secure session has expired"}}
     assert len(client.app.state.sessions) == 0
     assert client.app.state.repository.list() == []
 
@@ -198,6 +203,7 @@ def test_authenticated_invalid_measurement_is_not_stored(client, monkeypatch, pl
     monkeypatch.setattr(client.app.state.repository, "save_idempotent", forbid)
     response = client.post(PATH, json=wire)
     assert (response.status_code, response.json()["error"]["code"]) == (422, "INVALID_MEASUREMENT")
+    assert response.json() == {"error": {"code": "INVALID_MEASUREMENT", "message": "measurement validation failed"}}
 
 
 def test_storage_failure_real_sqlite_and_safe_internal_failure(client, monkeypatch, caplog):
@@ -207,6 +213,7 @@ def test_storage_failure_real_sqlite_and_safe_internal_failure(client, monkeypat
     try:
         response = client.post(PATH, json=wire)
         assert (response.status_code, response.json()["error"]["code"]) == (503, "STORAGE_UNAVAILABLE")
+        assert response.json() == {"error": {"code": "STORAGE_UNAVAILABLE", "message": "storage is unavailable"}}
         assert client.app.state.repository.list() == []
     finally:
         with client.app.state.database.transaction() as connection:
@@ -216,6 +223,7 @@ def test_storage_failure_real_sqlite_and_safe_internal_failure(client, monkeypat
     monkeypatch.setattr(client.app.state.repository, "save_idempotent", fail)
     response = client.post(PATH, json=wire)
     assert (response.status_code, response.json()["error"]["code"]) == (500, "INTERNAL_ERROR")
+    assert response.json() == {"error": {"code": "INTERNAL_ERROR", "message": "internal error"}}
     assert "sensitive-marker" not in caplog.text + response.text
 
 
@@ -232,3 +240,63 @@ def test_classical_accepts_only_baseline_and_secure_unavailable():
         assert client.post(PATH, json=canonical()).status_code == 503
         assert client.post("/api/v1/baseline/measurements", json=canonical()).status_code == 202
         assert len(client.app.state.repository.list()) == 1
+
+
+def test_success_contract_survives_new_session_and_request_id(client):
+    first = client.post(PATH, json=envelope(client))
+    assert first.status_code == 202
+    record_id = first.json()["record_id"]
+    assert first.json() == {"status": "accepted", "record_id": record_id}
+    assert isinstance(record_id, str) and record_id.startswith("rec-")
+    session_id, key = establish(client)
+    retry = build_secure_envelope(key=key, session_id=session_id, request_id="new-request", **canonical()).as_dict()
+    duplicate = client.post(PATH, json=retry)
+    assert duplicate.status_code == 202
+    assert duplicate.json() == {"status": "already_accepted", "record_id": record_id}
+    assert len(client.app.state.repository.list()) == 1
+
+
+@pytest.mark.parametrize("failure", ["syntax", "encoding", "ownership", "authentication"])
+def test_rejection_has_one_public_message(client, monkeypatch, caplog, failure):
+    wire = envelope(client)
+    if failure == "syntax":
+        wire.pop("nonce")
+    elif failure == "encoding":
+        wire["nonce"] = "unsafe-binary-marker!"
+    elif failure == "ownership":
+        wire["gateway_id"] = "another-owner"
+    else:
+        def fail(*args):
+            raise AeadError("sensitive-vendor-diagnostic")
+        monkeypatch.setattr(secure, "decrypt", fail)
+    response = client.post(PATH, json=wire)
+    assert response.status_code == 400
+    assert response.json() == {"error": {"code": "SECURE_MESSAGE_REJECTED",
+        "message": "secure message could not be processed"}}
+    assert "sensitive-vendor-diagnostic" not in response.text + caplog.text
+    assert client.app.state.repository.list() == []
+
+
+@pytest.mark.parametrize(("code", "message"), [
+    ("SESSION_INVALID", "secure session is invalid"),
+    ("SESSION_EXPIRED", "secure session has expired"),
+])
+def test_session_http_handler_never_echoes_exception_text(client, monkeypatch, caplog, code, message):
+    wire = envelope(client)
+    def fail(*args):
+        raise SessionAccessError(409, code, "sensitive-session-diagnostic")
+    monkeypatch.setattr(client.app.state.sessions, "get", fail)
+    response = client.post(PATH, json=wire)
+    assert response.status_code == 409
+    assert response.json() == {"error": {"code": code, "message": message}}
+    assert "sensitive-session-diagnostic" not in response.text + caplog.text
+
+
+def test_published_public_key_round_trip_and_handshake(client):
+    public = client.get("/api/v1/crypto/public-key").json()
+    decoded = decode_binary(public["public_key"])
+    assert decoded == client.app.state.keys.public_key
+    assert len(decoded) == 1184
+    assert "=" not in public["public_key"]
+    # Existing helper uses the unchanged Gateway encoder for the ML-KEM ciphertext.
+    assert client.post(PATH, json=envelope(client)).status_code == 202

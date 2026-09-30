@@ -1,4 +1,4 @@
-# Secure ingestion (M4-34–M4-36)
+# Secure ingestion (M4-34–M4-40)
 
 `POST /api/v1/secure/measurements` accepts only SecureEnvelope JSON in explicit
 `SECURITY_MODE=mlkem`. It reuses the Cloud session, AAD, AES-GCM, canonical
@@ -47,7 +47,8 @@ The required M4-35 acknowledgement reuses existing `202 accepted` /
 `already_accepted` repository behavior and original record IDs for duplicates.
 Identical valid envelopes can be processed again; `(device_id, sequence_number)`
 prevents duplicate rows. This is business idempotency, not cryptographic replay
-rejection. No separate M4-37 work is started.
+rejection. M4-37 tests additionally verify that a new session and request ID
+for the same business measurement still return the original record ID.
 
 In `mlkem` mode plaintext canonical bodies fail secure-envelope validation and
 baseline ingestion remains unavailable. In `classical` mode secure ingestion
@@ -69,5 +70,30 @@ internal errors, both mode guards, the exact byte limit, and streaming overflow
 without reading the remainder. This is Cloud HTTP application integration with
 Gateway primitives, not full Legacy/Gateway/Cloud deployment E2E.
 
-M4-37 and later tasks remain unstarted, including runtime failure injection.
+M4-41 and later tasks remain unstarted, including runtime failure injection.
 M4-17 Docker verification stays deferred to M4-81/M4-83. No dependencies changed.
+
+## Response and encoding contracts (M4-37 through M4-40)
+
+Success bodies contain exactly `status` and `record_id`: `accepted` after the
+first committed insert, or `already_accepted` with the original ID for duplicates.
+Errors contain exactly `error`, with `code` and `message`. Malformed envelopes,
+encoding errors, ownership mismatches and authentication failures share the
+message `secure message could not be processed`. Unsupported versions return
+`unsupported protocol version`. No vendor exception text is returned or logged.
+The session HTTP handler maps known status/code pairs to fixed messages instead
+of exposing exception text; an unknown pair becomes a generic internal error.
+
+Unknown sessions return `409 SESSION_INVALID` / `secure session is invalid`;
+expired sessions return `409 SESSION_EXPIRED` / `secure session has expired`.
+Ownership is checked before expiry and expired sessions are removed, never
+extended. These responses support the frozen bounded Gateway recovery contract;
+this task does not modify or claim new Gateway HTTP-client E2E integration.
+
+`cloud_service.crypto.encoding` centralizes non-empty binary encoding for public
+keys, ML-KEM encapsulation ciphertext, nonces and AES-GCM ciphertext/tag data.
+It emits unpadded Base64URL and accepts canonical padded or unpadded input.
+Whitespace, standard Base64 `+`/`/`, malformed padding and nonzero unused pad bits
+are rejected with a fixed safe error. Callers retain their protocol size checks
+(1088-byte encapsulation ciphertext and 12-byte nonce); the encoder is not a
+cryptographic primitive. No dependency or protocol changes are required.

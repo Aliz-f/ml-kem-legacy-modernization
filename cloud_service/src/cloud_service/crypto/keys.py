@@ -1,9 +1,9 @@
 """One ephemeral key pair per Cloud application lifespan."""
 
-from base64 import urlsafe_b64encode
 from uuid import uuid4
 
 from cloud_service.crypto import mlkem
+from cloud_service.crypto.encoding import encode_binary
 
 
 class KeyService:
@@ -19,7 +19,7 @@ class KeyService:
             "protocol_version": "1",
             "algorithm": "ML-KEM-768",
             "key_id": self.key_id,
-            "public_key": urlsafe_b64encode(self.public_key).decode("ascii").rstrip("="),
+            "public_key": encode_binary(self.public_key),
         }
 
     def decapsulate(self, ciphertext: bytes) -> bytes:

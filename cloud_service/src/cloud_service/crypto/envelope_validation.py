@@ -1,10 +1,9 @@
 """Strict bounded wire validation before session lookup or cryptography."""
 
-import base64
 from dataclasses import dataclass, field
 import json
-import re
 
+from cloud_service.crypto.encoding import decode_binary
 from cloud_service.crypto.envelope import EnvelopeSchemaError, SecureEnvelope
 
 MAX_ENVELOPE_BYTES = 64 * 1024
@@ -41,18 +40,6 @@ def parse_json(data: bytes) -> object:
     return json.loads(data.decode("utf-8"), object_pairs_hook=_object, parse_constant=_constant)
 
 
-def _binary(value: str) -> bytes:
-    if not value or re.fullmatch(r"[A-Za-z0-9_-]+={0,2}", value) is None:
-        raise ValueError
-    padded = value if "=" in value else value + "=" * (-len(value) % 4)
-    if len(padded) % 4:
-        raise ValueError
-    decoded = base64.b64decode(padded, altchars=b"-_", validate=True)
-    if not decoded or base64.urlsafe_b64encode(decoded).decode().rstrip("=") != value.rstrip("="):
-        raise ValueError
-    return decoded
-
-
 def validate_envelope(body: bytes) -> ValidatedEnvelope:
     if not isinstance(body, bytes) or len(body) > MAX_ENVELOPE_BYTES:
         raise EnvelopeValidationError()
@@ -63,7 +50,7 @@ def validate_envelope(body: bytes) -> ValidatedEnvelope:
         for value in (envelope.gateway_id, envelope.session_id, envelope.request_id):
             if not value or value != value.strip():
                 raise ValueError
-        nonce, ciphertext = _binary(envelope.nonce), _binary(envelope.ciphertext)
+        nonce, ciphertext = decode_binary(envelope.nonce), decode_binary(envelope.ciphertext)
         if len(nonce) != 12:
             raise ValueError
         return ValidatedEnvelope(envelope, nonce, ciphertext)

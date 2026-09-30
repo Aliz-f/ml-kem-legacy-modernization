@@ -29,7 +29,9 @@ def _ingest(body: bytes, sessions, repository) -> JSONResponse:
     try:
         validated = validate_envelope(body)
     except EnvelopeValidationError as exc:
-        return _error(400, exc.code, "secure message rejected")
+        if exc.code == "UNSUPPORTED_PROTOCOL_VERSION":
+            return _error(400, exc.code, "unsupported protocol version")
+        return _error(400, exc.code, "secure message could not be processed")
     envelope = validated.envelope
     try:
         # Manager enforces lookup -> ownership -> expiry, with no extension.
@@ -45,7 +47,7 @@ def _ingest(body: bytes, sessions, repository) -> JSONResponse:
     except SessionAccessError:
         raise  # Existing frozen HTTP handler handles 409/ownership errors.
     except AeadError:
-        return _error(400, "SECURE_MESSAGE_REJECTED", "secure message rejected")
+        return _error(400, "SECURE_MESSAGE_REJECTED", "secure message could not be processed")
     except StorageError:
         logger.warning("event=secure_storage_failed component=cloud_service request_id=%r gateway_id=%r",
                        envelope.request_id[:256], envelope.gateway_id[:256])
@@ -71,7 +73,7 @@ async def secure_measurement(request: Request) -> JSONResponse:
     if repository is None:
         return _error(503, "STORAGE_UNAVAILABLE", "storage is unavailable")
     if request.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "application/json":
-        return _error(400, "SECURE_MESSAGE_REJECTED", "secure message rejected")
+        return _error(400, "SECURE_MESSAGE_REJECTED", "secure message could not be processed")
     body = bytearray()
     try:
         length = request.headers.get("content-length")
@@ -82,5 +84,5 @@ async def secure_measurement(request: Request) -> JSONResponse:
                 raise ValueError
             body.extend(chunk)
     except (ValueError, ClientDisconnect):
-        return _error(400, "SECURE_MESSAGE_REJECTED", "secure message rejected")
+        return _error(400, "SECURE_MESSAGE_REJECTED", "secure message could not be processed")
     return await run_in_threadpool(_ingest, bytes(body), sessions, repository)

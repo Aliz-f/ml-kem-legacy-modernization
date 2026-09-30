@@ -90,7 +90,7 @@ class SessionManager:
             if session is None or session.state != SessionState.ACTIVE:
                 raise SessionAccessError(409, "SESSION_INVALID", "secure session is invalid")
             if session.gateway_id != gateway_id:
-                raise SessionAccessError(400, "SECURE_MESSAGE_REJECTED", "secure message rejected")
+                raise SessionAccessError(400, "SECURE_MESSAGE_REJECTED", "secure message could not be processed")
             if self._now() >= session.expires_at:
                 self.invalidate(session_id, SessionState.EXPIRED)
                 raise SessionAccessError(409, "SESSION_EXPIRED", "secure session has expired")

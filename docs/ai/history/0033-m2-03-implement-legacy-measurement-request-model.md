@@ -1,4 +1,4 @@
-# AI Task 0028 — M2-03 — Implement Legacy measurement request model
+# AI Task 0033 — M2-03 — Implement Legacy measurement request model
 
 **Status:** Complete
 
@@ -12,7 +12,7 @@
 
 # Task
 
-Implement an independent Gateway-owned LegacyMeasurement request model and focused schema tests under roadmap Phase 3/G3. Preserve the five Legacy field names; do not import Legacy source, wire routes, add domain validation, or integrate transport. User confirmed reservation 0028 and requested one PR containing M2-02 and M2-03, so continue on feat/m2-02-gateway-application-skeleton after merging current origin/develop. The previously suggested separate M2-03 branch is superseded by the combined-PR request.
+Implement an independent Gateway-owned LegacyMeasurement request model and focused schema tests under roadmap Phase 3/G3. Preserve the five Legacy field names; do not import Legacy source, wire routes, add domain validation, or integrate transport. User confirmed the task reservation and requested one PR containing M2-02 and M2-03, so continue on feat/m2-02-gateway-application-skeleton after merging current origin/develop. The previously suggested separate M2-03 branch is superseded by the combined-PR request.
 
 ---
 
@@ -75,7 +75,7 @@ Implemented the Gateway-owned immutable LegacyMeasurement schema with exactly fi
 
 ## AI Notes
 
-Continued reserved task 0028 on the existing M2-02 branch as explicitly requested for one combined PR. M2-02 has completed human review and final verification in record 0029; PR 13 remains closed pending the combined work review. Current origin/develop was merged before edits (already up to date). Course PDFs and workflow were read earlier in this conversation; relevant frozen Legacy schema, Gateway validation design, roadmap G3 and M2-03 through M2-05 were inspected. Extra-field behavior was unspecified, so implementation of the parser waited for the user decision; the user explicitly required rejection. Updated protocol documentation in the required order before tests and implementation. No imports from Legacy or Cloud, no runtime dependencies added, no route or transport integration, no crypto changes. Domain ranges, non-empty IDs and nonnegative sequences remain M2-05; model construction is not acceptance for forwarding. HTTP syntax/error mapping remains later work; parsed-object extra-field errors will map to 422. UTC timestamps use Python datetime microsecond precision and may normalize spelling. The existing skeleton measurement route still returns 503. No Docker or E2E claims; the generated cloud.db test artifact was removed. Human review and separate final verification are pending; after those, reuse the existing branch and PR for both tasks.
+Continued task 0033 on the existing M2-02 branch as explicitly requested for one combined PR. M2-02 has completed human review and final verification in record 0032; PR 13 remains closed pending the combined work review. Current origin/develop was merged before edits (already up to date). Course PDFs and workflow were read earlier in this conversation; relevant frozen Legacy schema, Gateway validation design, roadmap G3 and M2-03 through M2-05 were inspected. Extra-field behavior was unspecified, so implementation of the parser waited for the user decision; the user explicitly required rejection. Updated protocol documentation in the required order before tests and implementation. No imports from Legacy or Cloud, no runtime dependencies added, no route or transport integration, no crypto changes. Domain ranges, non-empty IDs and nonnegative sequences remain M2-05; model construction is not acceptance for forwarding. HTTP syntax/error mapping remains later work; parsed-object extra-field errors will map to 422. UTC timestamps use Python datetime microsecond precision and may normalize spelling. The existing skeleton measurement route still returns 503. No Docker or E2E claims; the generated cloud.db test artifact was removed. Human review and separate final verification are pending; after those, reuse the existing branch and PR for both tasks.
 
 ---
 
@@ -92,7 +92,7 @@ Accepted
 ---
 
 ## Integration bookkeeping
-The combined PR preserves the separate Legacy simulator history. M2-02 is record 0029; M2-03 is record 0028. Human review evidence is preserved.
+The combined PR preserves the separate Legacy simulator history. M2-02 is record 0032; M2-03 is record 0033. Human review evidence is preserved.
 
 Post-merge verification: 360 tests passed; Ruff passed. History validation initially rejected bookkeeping placed after Final Outcome; moving it before Final Verification preserves the required record format.
 

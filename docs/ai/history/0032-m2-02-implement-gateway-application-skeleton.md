@@ -1,4 +1,4 @@
-# AI Task 0029 — M2-02 — Implement Gateway application skeleton
+# AI Task 0032 — M2-02 — Implement Gateway application skeleton
 
 **Status:** Complete
 
@@ -12,7 +12,7 @@
 
 # Task
 
-Implement M2-02 on feat/m2-02-gateway-application-skeleton. User confirmed the external task reservation after branch synchronization. The M2-02 history record is 0029. Initially authorized for task setup only; the subsequent prompt authorizes implementation. Scope is the Gateway application skeleton described in M2-02, with configuration, logging, dependency injection, route registration, lifecycle, startup, shutdown, tests, and documentation. No measurement business logic or Cloud/crypto transport integration.
+Implement M2-02 on feat/m2-02-gateway-application-skeleton. User confirmed the external task reservation after branch synchronization. The M2-02 history record is 0032. Initially authorized for task setup only; the subsequent prompt authorizes implementation. Scope is the Gateway application skeleton described in M2-02, with configuration, logging, dependency injection, route registration, lifecycle, startup, shutdown, tests, and documentation. No measurement business logic or Cloud/crypto transport integration.
 
 ---
 
@@ -104,7 +104,7 @@ Accepted
 ---
 
 ## Integration bookkeeping
-After merging current develop for the combined PR, history numbering was reconciled while preserving the separate Legacy sensor simulator record. M2-02 is record 0029; M2-03 is record 0028. Human review evidence is preserved.
+After merging current develop for the combined PR, history numbering was reconciled while preserving the separate Legacy sensor simulator record. M2-02 is record 0032; M2-03 is record 0033. Human review evidence is preserved.
 
 Post-merge verification: 360 tests passed; Ruff passed. History validation initially rejected bookkeeping placed after Final Outcome; moving it before Final Verification preserves the required record format.
 

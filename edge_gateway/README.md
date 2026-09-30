@@ -21,7 +21,7 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
 | `GET /ready` | `503 SERVICE_UNAVAILABLE` until processing and transport exist |
 | `POST /api/v1/measurements` | Registered, but unavailable (`503`); accepts no measurements |
-| `GET /metrics` | Prometheus text with bounded `gateway_service_info` only |
+| `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
 
 This is roadmap Phase 3 / G2 scaffolding. Measurement parsing/validation,
 normalization, sequencing, request IDs, Cloud delivery, and operational metrics

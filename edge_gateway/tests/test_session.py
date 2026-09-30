@@ -332,3 +332,16 @@ def test_close_wipes_the_session_key(cloud_url):
     manager.close()
     assert session.state is SessionState.CLOSED
     assert bytes(session.session_key) == b"\x00" * len(session.session_key)
+
+
+def test_close_refuses_a_later_handshake(cloud_url):
+    url, cloud, clock = cloud_url
+    manager = _manager(url, clock)
+    asyncio.run(manager.get_or_establish())
+    manager.close()
+
+    with pytest.raises(SessionEstablishmentError) as caught:
+        asyncio.run(manager.get_or_establish())
+
+    assert caught.value.retryable is False
+    assert cloud.posts == 1

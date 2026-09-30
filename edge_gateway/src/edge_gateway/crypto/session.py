@@ -107,10 +107,16 @@ class SessionManager:
         self._injector = injector or CryptoFailureInjector.disabled()
         self._lock = asyncio.Lock()
         self._session: SecureSession | None = None
+        self._closed = False
 
     async def get_or_establish(self) -> SecureSession:
         """Return the active session, establishing one handshake if needed."""
         async with self._lock:
+            if self._closed:
+                raise SessionEstablishmentError(
+                    "Gateway session manager is closed.",
+                    retryable=False,
+                )
             self._apply_session_fault()
             current = self._usable_session()
             if current is not None:
@@ -126,6 +132,15 @@ class SessionManager:
             except SessionEstablishmentError:
                 self._fail_current()
                 raise
+            if self._closed:
+                session.clear(SessionState.CLOSED)
+                if self._session is session:
+                    self._session = None
+                self._metrics.set_active_session(False)
+                raise SessionEstablishmentError(
+                    "Gateway session manager is closed.",
+                    retryable=False,
+                )
             self._session = session
             self._metrics.set_active_session(True)
             return session
@@ -146,7 +161,12 @@ class SessionManager:
             self._metrics.set_active_session(False)
 
     def close(self) -> None:
-        """Drop the current session and wipe its key."""
+        """Drop the current session and wipe its key.
+
+        Later handshakes are refused. Python does not guarantee that every
+        copy of the key is gone from process memory.
+        """
+        self._closed = True
         session = self._session
         if session is not None:
             log_security(

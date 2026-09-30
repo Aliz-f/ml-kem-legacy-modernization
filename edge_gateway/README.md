@@ -199,6 +199,11 @@ this implementation. Details are in
 The Gateway session key stays in process memory. Replacing a session clears the old key buffer and drops that object. Python does not guarantee secure memory zeroization, so that overwrite is not a claim that every copy is gone. Details are in
 [docs/session-memory.md](docs/session-memory.md).
 
+## Secure shutdown (M3-56)
+
+When a secure transport is attached, Gateway shutdown stops accepting work, closes that transport's HTTP client, and then clears the in-memory session. The cleanup does not print key material. Process signals and Docker stop stay with the application lifecycle. Details are in
+[docs/secure-shutdown.md](docs/secure-shutdown.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

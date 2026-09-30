@@ -119,6 +119,28 @@ exceptions receive a generic JSON `500`; the application handler logs only
 uv run pytest edge_gateway/tests/test_gateway_errors.py edge_gateway/tests/test_gateway_validation.py
 ```
 
+## Canonical measurement model (M2-07)
+
+`edge_gateway.models.CanonicalMeasurement` is an immutable Gateway-owned model
+with exactly seven fields: `device_id`, `temperature_c`, `humidity_pct`,
+`measured_at`, `sequence_number`, `received_at`, and `gateway_id`.
+Both timestamps must be explicit UTC datetimes. Numbers must be finite, and
+booleans/numeric strings are not coerced. Invalid types raise
+`CanonicalMeasurementSchemaError` with no supplied values in the message.
+`to_dict()` returns an independent JSON-ready dictionary with UTC `Z` timestamps
+at Python datetime microsecond precision.
+
+The model requires all values explicitly. M2-08 will construct it from the
+validated Legacy measurement, mapping `timestamp` to `measured_at` and supplying
+the Gateway current UTC time as `received_at` plus configured `GATEWAY_ID`.
+Domain rules remain in the existing validation stage. No request ID, session,
+crypto, or Cloud storage metadata belongs in this model. It does not import the
+Legacy or Cloud packages, read configuration, consult a clock, or perform delivery.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_canonical_model.py
+```
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

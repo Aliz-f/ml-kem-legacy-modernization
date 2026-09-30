@@ -1,4 +1,4 @@
-"""Gateway-owned Legacy request schema, independent of the Legacy package."""
+"""Gateway-owned Legacy and canonical models, independent of other components."""
 
 from dataclasses import dataclass, fields
 from datetime import datetime, timedelta
@@ -70,3 +70,53 @@ def _timestamp(value: object) -> datetime:
     if parsed.utcoffset() != timedelta(0):
         raise LegacyMeasurementSchemaError("timestamp must have an explicit UTC timezone")
     return parsed
+
+
+class CanonicalMeasurementSchemaError(ValueError):
+    """Invalid internal canonical schema, without supplied values in messages."""
+
+
+@dataclass(frozen=True, slots=True)
+class CanonicalMeasurement:
+    """Seven-field Cloud-bound schema, separate from transport and storage data.
+
+    M2-08 will populate measured_at from Legacy timestamp, received_at from the
+    Gateway UTC clock, and gateway_id from configuration after Legacy validation.
+    This model checks types; Legacy domain rules remain in validation.py.
+    """
+
+    device_id: str
+    temperature_c: float
+    humidity_pct: float
+    measured_at: datetime
+    sequence_number: int
+    received_at: datetime
+    gateway_id: str
+
+    def __post_init__(self) -> None:
+        for name in ("device_id", "gateway_id"):
+            if not isinstance(getattr(self, name), str):
+                raise CanonicalMeasurementSchemaError(f"{name} must be a string")
+        for name in ("temperature_c", "humidity_pct"):
+            value = getattr(self, name)
+            if type(value) not in (int, float):
+                raise CanonicalMeasurementSchemaError(f"{name} must be a finite number")
+            try:
+                finite = math.isfinite(value)
+            except OverflowError:
+                finite = False
+            if not finite:
+                raise CanonicalMeasurementSchemaError(f"{name} must be a finite number")
+        if type(self.sequence_number) is not int:
+            raise CanonicalMeasurementSchemaError("sequence_number must be an integer")
+        for name in ("measured_at", "received_at"):
+            value = getattr(self, name)
+            if not isinstance(value, datetime) or value.utcoffset() != timedelta(0):
+                raise CanonicalMeasurementSchemaError(f"{name} must be a UTC datetime")
+
+    def to_dict(self) -> dict[str, object]:
+        """Return exactly the canonical wire fields, with explicit UTC timestamps."""
+        result = {field.name: getattr(self, field.name) for field in fields(self)}
+        for name in ("measured_at", "received_at"):
+            result[name] = getattr(self, name).isoformat().replace("+00:00", "Z")
+        return result

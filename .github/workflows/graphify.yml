@@ -1,0 +1,27 @@
+name: Graphify shared code graph
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - "**/*.py"
+      - "**/*.json"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/pyproject.toml"
+      - "uv.lock"
+      - "!graphify-out/**"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - run: uv run python scripts/refresh_graphify.py
+      - name: Verify shared graph is current
+        run: git diff --exit-code -- graphify-out/graph.json graphify-out/GRAPH_REPORT.md

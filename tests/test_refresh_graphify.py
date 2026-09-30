@@ -1,0 +1,71 @@
+"""Tests for stable shared Graphify artifact normalization."""
+
+import importlib.util
+import json
+from pathlib import Path
+
+
+SCRIPT_PATH = Path(__file__).parents[1] / "scripts" / "refresh_graphify.py"
+SPEC = importlib.util.spec_from_file_location("refresh_graphify", SCRIPT_PATH)
+assert SPEC is not None and SPEC.loader is not None
+refresh_graphify = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(refresh_graphify)
+
+
+def test_normalize_artifacts_removes_checkout_specific_metadata(tmp_path: Path) -> None:
+    graph_path = tmp_path / "graph.json"
+    graph_path.write_text(
+        json.dumps({"nodes": [], "built_at_commit": "abc123"}), encoding="utf-8"
+    )
+    report_path = tmp_path / "GRAPH_REPORT.md"
+    report_path.write_text(
+        "# Report\n\n## Graph Freshness\nBuilt from commit.\n\n## Nodes\nNone.\n",
+        encoding="utf-8",
+    )
+
+    refresh_graphify.normalize_artifacts(tmp_path)
+
+    assert json.loads(graph_path.read_text(encoding="utf-8")) == {"nodes": []}
+    assert report_path.read_text(encoding="utf-8") == "# Report\n\n## Nodes\nNone.\n"
+
+
+def test_clear_incremental_state_preserves_only_shared_artifacts(
+    tmp_path: Path,
+) -> None:
+    graph_path = tmp_path / "graph.json"
+    report_path = tmp_path / "GRAPH_REPORT.md"
+    graph_path.write_text("shared graph", encoding="utf-8")
+    report_path.write_text("shared report", encoding="utf-8")
+    (tmp_path / "manifest.json").write_text("incremental state", encoding="utf-8")
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "stamp").write_text("incremental state", encoding="utf-8")
+    backup = tmp_path / "2026-09-30"
+    backup.mkdir()
+    (backup / "graph.json").write_text("generated backup", encoding="utf-8")
+
+    refresh_graphify.clear_incremental_state(tmp_path)
+
+    assert graph_path.read_text(encoding="utf-8") == "shared graph"
+    assert report_path.read_text(encoding="utf-8") == "shared report"
+    assert {path.name for path in tmp_path.iterdir()} == {
+        "graph.json",
+        "GRAPH_REPORT.md",
+    }
+
+
+def test_refresh_uses_a_stable_hash_seed(tmp_path: Path, monkeypatch) -> None:
+    calls: list[dict[str, object]] = []
+    monkeypatch.delenv("PYTHONHASHSEED", raising=False)
+    monkeypatch.setattr(refresh_graphify, "clear_incremental_state", lambda _: None)
+    monkeypatch.setattr(refresh_graphify, "normalize_artifacts", lambda _: None)
+    monkeypatch.setattr(
+        refresh_graphify.subprocess,
+        "run",
+        lambda *_, **kwargs: calls.append(kwargs),
+    )
+
+    refresh_graphify.refresh_graph(tmp_path)
+
+    assert len(calls) == 2
+    assert all(call["env"]["PYTHONHASHSEED"] == "0" for call in calls)

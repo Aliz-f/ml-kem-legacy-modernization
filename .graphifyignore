@@ -1,0 +1,17 @@
+# Graphify is restricted to local, code-only extraction. Keep sensitive and
+# machine-local material out even if extraction options change later.
+.git/
+.venv/
+.env
+.env.*
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+*.db
+*.sqlite
+*.sqlite3
+data/
+logs/
+graphify-out/

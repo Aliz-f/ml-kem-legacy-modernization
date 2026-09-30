@@ -140,6 +140,10 @@ Formal rules:
 |`timestamp`|string|Yes|ISO-8601 UTC|
 |`sequence_number`|integer|Yes|`>= 0`|
 
+The Legacy request object must contain exactly these five fields. Additional
+fields are rejected, not ignored. A parsed JSON object with extra fields is a
+schema error and returns `422 Unprocessable Entity` when the Legacy API is implemented.
+
 ---
 
 # 6. Legacy data model
@@ -3300,4 +3304,3 @@ The resulting protocol is:
 > All three components support controlled local failure injection, structured secret-safe logging, meaningful metrics, health/readiness behavior, contract tests, integration tests, and end-to-end failure/security tests. This document is the source of truth for cross-component fields, endpoints, status codes, crypto parameters, session behavior, retries, and migration semantics.
 
 ---
-

@@ -2,11 +2,14 @@ import threading
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import logging
 import random
+import signal
 
 import pytest
 
 from legacy_system.config import Config, FailureMode
+from legacy_system.client import GatewayClient
 from legacy_system.device import DeviceController
 from legacy_system.sensor import Sensor
 
@@ -220,3 +223,119 @@ def test_client_is_closed_when_send_raises() -> None:
         controller.run()
 
     assert client.closed is True
+
+
+def test_sigterm_stops_during_wait_and_logs_shutdown(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    installed_handlers: dict[signal.Signals, object] = {}
+
+    def fake_signal(signum: signal.Signals, handler: object) -> object:
+        previous = installed_handlers.get(signum, signal.SIG_DFL)
+        installed_handlers[signum] = handler
+        return previous
+
+    monkeypatch.setattr(signal, "signal", fake_signal)
+    caplog.set_level(logging.INFO, logger="legacy_system.device")
+    client = RecordingClient([])
+    controller: DeviceController
+
+    def stop_during_wait(_interval: float) -> None:
+        handler = installed_handlers[signal.SIGTERM]
+        assert callable(handler)
+        handler(signal.SIGTERM, None)
+
+    controller = DeviceController(
+        make_config(),
+        sensor=FakeSensor(),
+        client=client,
+        sleeper=stop_during_wait,
+    )
+
+    controller.run()
+
+    assert client.closed is True
+    assert "device_shutting_down device_id=sensor-001" in caplog.text
+
+
+def test_sigint_stops_after_delivery_and_restores_handlers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    installed_handlers: dict[signal.Signals, object] = {}
+    restored_handlers: dict[signal.Signals, object] = {}
+
+    def fake_signal(signum: signal.Signals, handler: object) -> object:
+        if signum in installed_handlers:
+            restored_handlers[signum] = handler
+        else:
+            installed_handlers[signum] = handler
+        return signal.SIG_DFL
+
+    monkeypatch.setattr(signal, "signal", fake_signal)
+    client = RecordingClient([])
+
+    def stop_after_delivery(_interval: float) -> None:
+        handler = installed_handlers[signal.SIGINT]
+        assert callable(handler)
+        handler(signal.SIGINT, None)
+
+    controller = DeviceController(
+        make_config(),
+        sensor=FakeSensor(),
+        client=client,
+        sleeper=stop_after_delivery,
+    )
+
+    controller.run()
+
+    assert len(client.events) == 1
+    assert client.closed is True
+    assert restored_handlers == {
+        signal.SIGINT: signal.SIG_DFL,
+        signal.SIGTERM: signal.SIG_DFL,
+    }
+
+
+def test_shutdown_after_gateway_unavailable_delivery(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    installed_handlers: dict[signal.Signals, object] = {}
+
+    def fake_signal(signum: signal.Signals, handler: object) -> object:
+        installed_handlers[signum] = handler
+        return signal.SIG_DFL
+
+    monkeypatch.setattr(signal, "signal", fake_signal)
+    retry_delays: list[float] = []
+    opener_calls = 0
+
+    def unavailable_opener(*_args: object, **_kwargs: object) -> object:
+        nonlocal opener_calls
+        opener_calls += 1
+        raise ConnectionError("Gateway unavailable")
+
+    client = GatewayClient(
+        "http://gateway.example.test",
+        request_timeout_seconds=3,
+        opener=unavailable_opener,
+        max_retries=2,
+        sleeper=retry_delays.append,
+    )
+
+    def stop_after_failed_delivery(_interval: float) -> None:
+        handler = installed_handlers[signal.SIGTERM]
+        assert callable(handler)
+        handler(signal.SIGTERM, None)
+
+    controller = DeviceController(
+        make_config(),
+        sensor=FakeSensor(),
+        client=client,
+        sleeper=stop_after_failed_delivery,
+    )
+
+    controller.run()
+
+    assert opener_calls == 3
+    assert retry_delays == [1, 2]

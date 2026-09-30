@@ -20,14 +20,13 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | --- | --- |
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
 | `GET /ready` | `503 SERVICE_UNAVAILABLE` until processing and transport exist |
-| `POST /api/v1/measurements` | Registered, but unavailable (`503`); accepts no measurements |
+| `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema/domain values → `422`; valid requests → `503` pending delivery |
 | `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
 
-This is roadmap Phase 3 / G2 scaffolding. Measurement parsing/validation,
-normalization, sequencing, request IDs, Cloud delivery, and operational metrics
-belong to later tasks. The measurement placeholder does not parse the body;
-it is not the completed Legacy API. Later validation must preserve malformed
-JSON → `400`, invalid parsed fields → `422`, and `202` only after Cloud acceptance.
+This is roadmap Phase 3 / G2 scaffolding with G3 syntax/schema and domain validation.
+Normalization and correlation helpers are available, but their route orchestration,
+sequencing, Cloud delivery, and application metrics remain later tasks. This is not
+the completed Legacy API; `202` will be returned only after Cloud acceptance.
 
 Both configured security modes expose the skeleton. Neither performs Cloud
 requests or establishes sessions. Readiness is unavailable because processing
@@ -58,10 +57,132 @@ ISO-8601 strings with an explicit UTC timezone; internally they are datetimes.
 
 The model is immutable and independently owned by Gateway, with no imports from
 Legacy or Cloud. It checks schema only: non-empty device IDs, sensor ranges,
-and nonnegative sequences remain M2-05 domain validation. Parsing a model does
-not mean a measurement has been accepted. HTTP syntax/error mapping and route
-integration remain later tasks; the skeleton route still returns `503`.
+and nonnegative sequences are checked separately by M2-05 domain validation. Parsing a model does
+not mean a measurement has been accepted. M2-04 integrates this schema at the
+HTTP boundary; requests passing schema and domain validation still return `503` pending delivery.
 Timestamp serialization uses Python datetime microsecond precision.
+
+## Schema validation (M2-04)
+
+`edge_gateway.validation.parse_legacy_measurement(body)` decodes JSON and then
+uses the M2-03 request model. Malformed or empty bodies, invalid encoding, and
+non-JSON constants (`NaN`, `Infinity`) produce `400 INVALID_JSON`. Parsed JSON
+with missing/extra fields, wrong types, or an invalid timestamp produces
+`422 INVALID_MEASUREMENT`. Both responses use the shared structured error body
+and omit payload values and parser details. Invalid requests make no Cloud calls.
+
+Domain bounds are checked separately by M2-05; sequencing, normalization, and
+delivery remain later stages. No measurement is accepted or forwarded yet.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_validation.py
+```
+
+## Domain validation (M2-05)
+
+After parsing, `edge_gateway.validation.validate_legacy_measurement(measurement)`
+checks temperature in `[-40, 85]`, humidity in `[0, 100]`, sequence number `>= 0`,
+and a non-empty device ID (whitespace-only IDs are rejected). It returns the same
+immutable model without trimming IDs or modifying values. These are protocol
+bounds, so values outside the simulator's normal range, such as `-25` °C, are valid.
+
+The existing model enforces ISO-8601 timestamps with an explicit UTC timezone;
+invalid dates, timezone-less timestamps, and non-UTC offsets return `422`.
+Domain failures raise `LegacyMeasurementDomainError` and map to the same sanitized
+`422 INVALID_MEASUREMENT` response as schema failures, before any Cloud call.
+Sequence ordering and duplicate detection remain later tasks.
+
+## Application errors (M2-06)
+
+`edge_gateway.errors.GatewayErrorCode` defines fixed public messages and status
+codes. Application exception handlers always return
+`{"error": {"code": "...", "message": "..."}}` without exception details.
+
+| Error code | HTTP status | Meaning |
+| --- | --- | --- |
+| `INVALID_JSON` | 400 | Unparseable JSON/body syntax |
+| `INVALID_MEASUREMENT` | 422 | Schema or domain validation failed |
+| `DUPLICATE_SEQUENCE` | 409 | Duplicate sequence rejected |
+| `OUT_OF_ORDER_SEQUENCE` | 409 | Older sequence rejected |
+| `CLOUD_UNAVAILABLE` | 503 | Cloud/secure delivery unavailable after its retry policy |
+| `INTERNAL_ERROR` | 500 | Unexpected application failure |
+| `SERVICE_UNAVAILABLE` | 503 | Existing readiness/unfinished-delivery placeholder |
+
+Later sequence and transport stages can raise `GatewayError(code)` once their
+own policies determine a failure. M2-06 defines their error contracts only;
+it does not add sequence tracking, retries, or Cloud delivery. Existing parser
+and domain exceptions map to their fixed validation responses. Unexpected
+exceptions receive a generic JSON `500`; the application handler logs only
+`gateway_internal_error`, without exception text or traceback.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_errors.py edge_gateway/tests/test_gateway_validation.py
+```
+
+## Canonical measurement model (M2-07)
+
+`edge_gateway.models.CanonicalMeasurement` is an immutable Gateway-owned model
+with exactly seven fields: `device_id`, `temperature_c`, `humidity_pct`,
+`measured_at`, `sequence_number`, `received_at`, and `gateway_id`.
+Both timestamps must be explicit UTC datetimes. Numbers must be finite, and
+booleans/numeric strings are not coerced. Invalid types raise
+`CanonicalMeasurementSchemaError` with no supplied values in the message.
+`to_dict()` returns an independent JSON-ready dictionary with UTC `Z` timestamps
+at Python datetime microsecond precision.
+
+The model requires all values explicitly. M2-08 constructs it from the
+validated Legacy measurement, mapping `timestamp` to `measured_at` and supplying
+the Gateway current UTC time as `received_at` plus configured `GATEWAY_ID`.
+Domain rules remain in the existing validation stage. No request ID, session,
+crypto, or Cloud storage metadata belongs in this model. It does not import the
+Legacy or Cloud packages, read configuration, consult a clock, or perform delivery.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_canonical_model.py
+```
+
+## Normalization (M2-08)
+
+`edge_gateway.normalization.normalize(legacy_measurement, *, gateway_id, received_at)`
+maps a validated Legacy measurement to `CanonicalMeasurement`. It preserves the
+device ID, temperature, humidity, and sequence exactly, maps `timestamp` to
+`measured_at`, and adds the supplied Gateway metadata. It does not trim IDs,
+round numbers, convert units, or mutate the input.
+
+The caller supplies `config.gateway_id` and the Gateway current UTC receipt time
+as `received_at`. Explicit inputs keep the mapping deterministic and avoid
+environment or clock access inside normalization. Canonical model validation
+rejects invalid metadata types and timestamps without an explicit UTC timezone.
+Call after schema/domain validation and sequence-policy acceptance. Route
+orchestration remains M2-12; the existing route still returns `503` for valid
+measurements until Cloud delivery is implemented.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_normalization.py
+```
+
+## Request/correlation IDs (M2-09)
+
+`edge_gateway.correlation.create_request_id()` creates a fresh `req-<UUID4>`
+and logs it through the Gateway logger, both in the message and as a structured
+`request_id` attribute. It takes no measurement data or incoming header value.
+Call once after validation and sequence-policy acceptance, then keep the same ID
+for delivery retries and session recovery. IDs are public tracing context, not
+secrets, key material, or metrics labels.
+
+`baseline_headers(request_id)` returns `{"X-Request-ID": request_id}` for the
+baseline Cloud request. Pass the same ID separately to the existing secure
+envelope builder, which authenticates it through AAD. Canonical measurement
+serialization remains unchanged and contains no request ID.
+
+These helpers are ready for M2-12 route orchestration and M2-13 Cloud forwarding;
+the current placeholder route does not yet accept measurements or create IDs.
+Tests construct baseline HTTP requests without sending them and exercise the
+existing secure envelope to verify context propagation and authentication.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_correlation.py
+```
 
 ## Configuration
 

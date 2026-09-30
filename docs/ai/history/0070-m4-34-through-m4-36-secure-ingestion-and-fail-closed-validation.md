@@ -1,4 +1,4 @@
-# AI Task 0063 — M4-34 through M4-36 secure ingestion and fail-closed validation
+# AI Task 0070 — M4-34 through M4-36 secure ingestion and fail-closed validation
 
 **Status:** Complete
 

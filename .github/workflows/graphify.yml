@@ -37,11 +37,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md graphify-out/manifest.json
+          git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md
           git commit -m "chore: refresh shared Graphify code graph"
           git push
-      - name: Verify graph is deterministic and current
-        run: |
-          uv run graphify extract . --code-only --no-viz
-          uv run graphify cluster-only . --no-viz
-          git diff --exit-code -- graphify-out

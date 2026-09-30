@@ -177,9 +177,9 @@ ML-KEM can use implicit rejection. Protocol v1 has no explicit key confirmation.
 
 ## Shared Graphify knowledge graph
 
-`graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md`, and
-`graphify-out/manifest.json` are shared, generated repository-navigation
-artifacts. Repository CI refreshes them for graph-relevant pull-request changes.
+`graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` are shared,
+generated repository-navigation artifacts. Repository CI refreshes them for
+graph-relevant pull-request changes.
 Do not run Graphify installers or hook installers, and do not hand-edit those
 artifacts.
 

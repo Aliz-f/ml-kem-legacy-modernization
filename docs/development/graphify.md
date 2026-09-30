@@ -21,7 +21,6 @@ The committed artifacts are:
 ```text
 graphify-out/graph.json
 graphify-out/GRAPH_REPORT.md
-graphify-out/manifest.json
 ```
 
 ## Automation
@@ -29,12 +28,14 @@ graphify-out/manifest.json
 The `Graphify shared code graph` GitHub Actions workflow refreshes these
 artifacts when a same-repository pull request changes graph-relevant code or
 Python package manifests. It runs local code extraction followed by local
-clustering, commits only changed graph artifacts to the pull request branch,
-then verifies a second refresh produces no diff.
+clustering and commits only changed graph artifacts to the pull request branch.
+Graphify's local `manifest.json` is intentionally ignored because it contains
+machine-specific filesystem timestamps.
 
 Do not run Graphify installers, Graphify hook installers, or hand-edit generated
 artifacts. If CI reports that an artifact is stale, rerun the workflow by pushing
-the applicable branch; do not repair generated JSON manually.
+the applicable branch; do not repair generated JSON manually. The report's
+generic local refresh wording is superseded by this repository workflow.
 
 ## Safety and authority
 

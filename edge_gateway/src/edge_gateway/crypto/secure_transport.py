@@ -14,13 +14,14 @@ import logging
 import math
 import urllib.error
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Protocol
 from urllib.parse import urljoin, urlparse
 
 from edge_gateway.crypto.aad import AadError
-from edge_gateway.crypto.encoding import EncodingError
+from edge_gateway.crypto.encoding import EncodingError, decode_binary, encode_binary
 from edge_gateway.crypto.envelope import SecureEnvelope, build_secure_envelope
+from edge_gateway.crypto.failure import CryptoFailureInjector, corrupt_ciphertext_copy
 from edge_gateway.crypto.plaintext import PlaintextError
 from edge_gateway.crypto.session import SecureSession, SessionEstablishmentError
 from edge_gateway.crypto.symmetric import AeadError
@@ -101,6 +102,7 @@ class SecureTransport:
         cloud_url: str,
         timeout_seconds: float,
         max_retries: int,
+        injector: CryptoFailureInjector | None = None,
     ) -> None:
         if isinstance(max_retries, bool) or not isinstance(max_retries, int) or max_retries < 0:
             raise ValueError("max_retries must be a non-negative integer.")
@@ -115,6 +117,7 @@ class SecureTransport:
         self._endpoint = _endpoint(cloud_url)
         self._timeout_seconds = float(timeout_seconds)
         self._max_retries = max_retries
+        self._injector = injector or CryptoFailureInjector.disabled()
         self._opener = urllib.request.build_opener(_RejectRedirect)
 
     async def send(
@@ -195,7 +198,7 @@ class SecureTransport:
         measurement: _Measurement,
     ) -> SecureEnvelope:
         try:
-            return build_secure_envelope(
+            envelope = build_secure_envelope(
                 key=bytes(session.session_key),
                 session_id=session.session_id,
                 request_id=request_id,
@@ -207,6 +210,11 @@ class SecureTransport:
                 sequence_number=measurement.sequence_number,
                 received_at=measurement.received_at,
             )
+            if self._injector.corrupt_ciphertext():
+                logger.warning("event=corrupt_ciphertext_injected")
+                mutated = corrupt_ciphertext_copy(decode_binary(envelope.ciphertext))
+                envelope = replace(envelope, ciphertext=encode_binary(mutated))
+            return envelope
         except (AadError, PlaintextError, AeadError, EncodingError) as exc:
             logger.warning("secure measurement could not be sealed")
             raise SecureTransportError(

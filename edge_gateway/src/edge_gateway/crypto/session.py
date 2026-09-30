@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
 
+from edge_gateway.crypto.failure import CryptoFailureInjector
 from edge_gateway.crypto.kdf import KdfError, derive_session_key
 from edge_gateway.crypto.mlkem import MlKemError, encapsulate
 from edge_gateway.crypto.public_key import PublicKeyRejected
@@ -108,6 +109,7 @@ class SessionManager:
         *,
         clock: Clock | None = None,
         metrics: SessionMetrics | None = None,
+        injector: CryptoFailureInjector | None = None,
     ) -> None:
         if not isinstance(gateway_id, str) or gateway_id == "" or gateway_id != gateway_id.strip():
             raise ValueError("gateway_id must be a non-empty string.")
@@ -116,12 +118,14 @@ class SessionManager:
         self._timeout_seconds = timeout_seconds
         self._clock = clock or (lambda: datetime.now(timezone.utc))
         self._metrics = metrics or SessionMetrics()
+        self._injector = injector or CryptoFailureInjector.disabled()
         self._lock = asyncio.Lock()
         self._session: SecureSession | None = None
 
     async def get_or_establish(self) -> SecureSession:
         """Return the active session, establishing one handshake if needed."""
         async with self._lock:
+            self._apply_session_fault()
             current = self._usable_session()
             if current is not None:
                 return current
@@ -165,8 +169,26 @@ class SessionManager:
             self._session.clear(SessionState.FAILED)
             self._session = None
 
+    def _apply_session_fault(self) -> None:
+        session = self._session
+        if session is None or session.state is not SessionState.ACTIVE:
+            return
+        if self._injector.session_missing():
+            logger.warning("event=session_missing_injected")
+            session.clear(SessionState.FAILED)
+            self._session = None
+            return
+        if self._injector.session_expired():
+            logger.warning("event=session_expired_injected")
+            session.clear(SessionState.EXPIRED)
+            self._session = None
+
     def _establish(self) -> SecureSession:
         """Run the handshake. The caller holds the establishment lock."""
+        if self._injector.handshake_failure():
+            logger.warning("event=mlkem_handshake_failed reason=injected")
+            self._metrics.record_establishment_failure()
+            raise SessionEstablishmentError("ML-KEM handshake failed.", retryable=False)
         provisional = SecureSession(
             session_id="",
             gateway_id=self._gateway_id,

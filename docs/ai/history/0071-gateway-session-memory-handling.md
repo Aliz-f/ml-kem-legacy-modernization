@@ -1,4 +1,4 @@
-# AI Task 0069 — Gateway session memory handling
+# AI Task 0071 — Gateway session memory handling
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Reviewed Gateway session-memory handling for M3-55. The session key stays in pro
 
 ## Files Created
 
-- docs/ai/history/0069-gateway-session-memory-handling.md
+- docs/ai/history/0071-gateway-session-memory-handling.md
 - edge_gateway/docs/
 - edge_gateway/tests/test_session_memory.py
 

@@ -1,4 +1,4 @@
-# AI Task 0069 — Gateway transport trust documentation
+# AI Task 0070 — Gateway transport trust documentation
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Documented the frozen M3-54 transport decision for the Gateway. Docker and the c
 
 ## Files Created
 
-- docs/ai/history/0069-gateway-transport-trust-documentation.md
+- docs/ai/history/0070-gateway-transport-trust-documentation.md
 - edge_gateway/docs/
 - edge_gateway/tests/test_transport_trust.py
 

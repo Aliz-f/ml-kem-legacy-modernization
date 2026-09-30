@@ -1,4 +1,4 @@
-# AI Task 0069 — Gateway secure shutdown cleanup
+# AI Task 0072 — Gateway secure shutdown cleanup
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Added Gateway secure shutdown for M3-56. When a secure transport is attached, li
 
 ## Files Created
 
-- docs/ai/history/0069-gateway-secure-shutdown-cleanup.md
+- docs/ai/history/0072-gateway-secure-shutdown-cleanup.md
 - edge_gateway/docs/
 - edge_gateway/tests/test_secure_shutdown.py
 

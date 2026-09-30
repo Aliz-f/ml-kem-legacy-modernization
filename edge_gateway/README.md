@@ -213,6 +213,13 @@ and then checks ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. The service image
 `edge_gateway/Dockerfile` remains Member 2's task. Details are in
 [docs/crypto-image.md](docs/crypto-image.md).
 
+## Clean-container crypto test (M3-62)
+
+`edge_gateway/docker/clean-container.Dockerfile` installs Gateway and Cloud
+from the frozen lock, starts Cloud, establishes one ML-KEM session, and stores
+one secure measurement. The receiver exists only in that container process.
+Details are in [docs/clean-container.md](docs/clean-container.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

@@ -305,7 +305,7 @@ Verify:
 valid payload parses
 missing field rejected
 wrong type rejected
-extra behavior matches agreed schema
+extra fields rejected (exactly the five documented Legacy fields)
 field names exactly match protocol
 ```
 

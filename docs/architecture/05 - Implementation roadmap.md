@@ -475,6 +475,10 @@ GET /metrics
 
 ### Task G3 — Legacy measurement validation
 
+Require exactly the five documented Legacy fields; reject additional fields.
+The request model supplies schema rejection; the later HTTP validation layer
+maps parsed-object schema errors to `422`.
+
 Validate:
 
 ```text
@@ -2686,4 +2690,3 @@ FINAL DOCUMENTATION
 ```
 
 ---
-

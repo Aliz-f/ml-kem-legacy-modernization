@@ -174,3 +174,20 @@ cryptographic randomness. Never log or persist private keys, ML-KEM shared
 secrets, or session keys. Tests must allow malformed/incorrect-length ML-KEM
 ciphertext to raise, but may not require every valid-length bit flip to raise:
 ML-KEM can use implicit rejection. Protocol v1 has no explicit key confirmation.
+
+## Shared Graphify knowledge graph
+
+`graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md`, and
+`graphify-out/manifest.json` are shared, generated repository-navigation
+artifacts. Repository CI refreshes them for graph-relevant pull-request changes.
+Do not run Graphify installers or hook installers, and do not hand-edit those
+artifacts.
+
+When it would narrow repository exploration, query the committed graph before
+broad source searching. Graph results are advisory only: this policy, frozen
+architecture documents, direct source, and tests remain authoritative and all
+required reading still applies.
+
+Graphify extraction is code-only and local. Do not configure semantic
+document/PDF extraction or provide Graphify with credentials, secrets, keys,
+databases, or `.env` content.

@@ -1,8 +1,91 @@
 from datetime import datetime, timedelta, timezone
+import random
 
 import pytest
 
-from legacy_system.sensor import Measurement
+from legacy_system.sensor import Measurement, Sensor
+
+
+class FalseyRandomSource(random.Random):
+    def __bool__(self) -> bool:
+        return False
+
+
+class FalseyClock:
+    def __init__(self, timestamp: datetime) -> None:
+        self.timestamp = timestamp
+
+    def __bool__(self) -> bool:
+        return False
+
+    def __call__(self) -> datetime:
+        return self.timestamp
+
+
+def test_sensor_generates_valid_normal_measurements() -> None:
+    sensor = Sensor("sensor-007", random.Random(42))
+
+    measurements = [sensor.read() for _ in range(20)]
+
+    assert all(
+        15.0 <= measurement.temperature_c <= 30.0
+        for measurement in measurements
+    )
+    assert all(
+        30.0 <= measurement.humidity_pct <= 70.0
+        for measurement in measurements
+    )
+    assert all(measurement.device_id == "sensor-007" for measurement in measurements)
+
+
+def test_sensor_assigns_utc_timestamp_at_creation() -> None:
+    timestamp = datetime(2026, 9, 29, 12, 34, 56, tzinfo=timezone(timedelta(hours=2)))
+    sensor = Sensor("sensor-007", clock=lambda: timestamp)
+
+    measurement = sensor.read()
+
+    assert measurement.timestamp == datetime(
+        2026, 9, 29, 10, 34, 56, tzinfo=timezone.utc
+    )
+    assert measurement.timestamp.tzinfo is timezone.utc
+
+
+def test_sensor_increments_sequence_for_each_created_measurement() -> None:
+    sensor = Sensor("sensor-007", random.Random(42))
+
+    first = sensor.read()
+    second = sensor.read()
+    third = sensor.read()
+
+    assert [first.sequence_number, second.sequence_number, third.sequence_number] == [
+        0,
+        1,
+        2,
+    ]
+
+
+def test_sensor_seeded_random_generation_is_reproducible() -> None:
+    timestamp = datetime(2026, 9, 29, 12, 34, 56, tzinfo=timezone.utc)
+    first_sensor = Sensor("sensor-007", random.Random(42), clock=lambda: timestamp)
+    second_sensor = Sensor("sensor-007", random.Random(42), clock=lambda: timestamp)
+
+    assert [first_sensor.read() for _ in range(3)] == [
+        second_sensor.read() for _ in range(3)
+    ]
+
+
+def test_sensor_preserves_falsey_supplied_dependencies() -> None:
+    timestamp = datetime(2026, 9, 29, 12, 34, 56, tzinfo=timezone.utc)
+    random_source = FalseyRandomSource(42)
+    clock = FalseyClock(timestamp)
+    sensor = Sensor("sensor-007", random_source=random_source, clock=clock)
+
+    measurement = sensor.read()
+
+    expected_random = random.Random(42)
+    assert measurement.temperature_c == expected_random.uniform(15.0, 30.0)
+    assert measurement.humidity_pct == expected_random.uniform(30.0, 70.0)
+    assert measurement.timestamp == timestamp
 
 
 def make_measurement(**overrides: object) -> Measurement:

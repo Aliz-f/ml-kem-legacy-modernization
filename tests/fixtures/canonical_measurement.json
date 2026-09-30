@@ -1,0 +1,9 @@
+{
+  "device_id": "sensor-test",
+  "temperature_c": 22.5,
+  "humidity_pct": 44.0,
+  "measured_at": "2026-09-21T12:00:00Z",
+  "sequence_number": 1,
+  "received_at": "2026-09-21T12:00:01Z",
+  "gateway_id": "gateway-test"
+}

@@ -1,11 +1,12 @@
 """HTTP client for sending prepared Legacy Device payloads to the Gateway."""
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
 from http.client import HTTPException
 import json
 import socket
+import time
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -39,16 +40,34 @@ class GatewayClient:
         gateway_url: str,
         request_timeout_seconds: float,
         opener: Callable[..., Any] = urlopen,
+        max_retries: int = 2,
+        sleeper: Callable[[float], None] = time.sleep,
     ) -> None:
+        if isinstance(max_retries, bool) or not isinstance(max_retries, int):
+            raise ValueError("max_retries must be a non-negative integer")
+        if max_retries < 0:
+            raise ValueError("max_retries must be a non-negative integer")
         self._endpoint = f"{gateway_url.rstrip('/')}/api/v1/measurements"
         self._request_timeout_seconds = request_timeout_seconds
         self._opener = opener
+        self._max_retries = max_retries
+        self._sleeper = sleeper
 
     def send(self, payload: Mapping[str, object]) -> GatewayResult:
-        """Send one payload and classify the resulting outcome.
+        """Send a payload with bounded retries for retryable outcomes."""
+        result = self._send_once(payload)
+        attempt_count = 1
 
-        Retry decisions are deliberately left to the M1-06 policy layer.
-        """
+        while result.retryable and attempt_count <= self._max_retries:
+            self._sleeper(2 ** (attempt_count - 1))
+            result = self._send_once(payload)
+            attempt_count += 1
+            result = replace(result, attempt_count=attempt_count)
+
+        return result
+
+    def _send_once(self, payload: Mapping[str, object]) -> GatewayResult:
+        """Send one request and classify its outcome without retrying."""
         try:
             encoded_payload = json.dumps(payload).encode("utf-8")
         except (TypeError, ValueError):

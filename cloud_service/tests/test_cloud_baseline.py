@@ -146,7 +146,8 @@ def test_unexpected_repository_error_is_safe_500(client, payload, monkeypatch, c
 
 def test_secure_body_never_falls_back_to_baseline(client, payload):
     response = client.post("/api/v1/secure/measurements", json=payload)
-    assert response.status_code == 404
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
     assert client.app.state.repository.list() == []
     client.app.state.config = load_config({"SECURITY_MODE": "mlkem"})
     assert client.post(ENDPOINT, json=payload).status_code == 503

@@ -4,6 +4,45 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import math
 from numbers import Real
+import random
+from collections.abc import Callable
+
+
+_Clock = Callable[[], datetime]
+
+
+class Sensor:
+    """Generate valid normal measurements for the configured device."""
+
+    def __init__(
+        self,
+        device_id: str,
+        random_source: random.Random | None = None,
+        clock: _Clock | None = None,
+    ) -> None:
+        self._device_id = device_id
+        if random_source is None:
+            random_source = random.Random()
+        if clock is None:
+            def default_clock() -> datetime:
+                return datetime.now(timezone.utc)
+
+            clock = default_clock
+        self._random_source = random_source
+        self._clock = clock
+        self._next_sequence_number = 0
+
+    def read(self) -> "Measurement":
+        """Create the next valid measurement independently of delivery."""
+        measurement = Measurement(
+            device_id=self._device_id,
+            temperature_c=self._random_source.uniform(15.0, 30.0),
+            humidity_pct=self._random_source.uniform(30.0, 70.0),
+            timestamp=self._clock(),
+            sequence_number=self._next_sequence_number,
+        )
+        self._next_sequence_number += 1
+        return measurement
 
 
 @dataclass(frozen=True, slots=True)

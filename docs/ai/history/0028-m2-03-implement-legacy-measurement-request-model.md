@@ -91,6 +91,13 @@ Accepted
 
 ---
 
+## Integration bookkeeping
+The combined PR merge brought in the earlier Legacy simulator history under 0027. M2-02 history, previously referenced as 0027 above, is now 0029. M2-03 remains 0028. Original workflow events and human review evidence are preserved.
+
+Post-merge verification: 360 tests passed; Ruff passed. History validation initially rejected bookkeeping placed after Final Outcome; moving it before Final Verification preserves the required record format.
+
+---
+
 # Final Verification
 
 ## AI-Executed Verification

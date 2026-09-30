@@ -1,4 +1,4 @@
-# AI Task 0027 — M2-02 — Implement Gateway application skeleton
+# AI Task 0029 — M2-02 — Implement Gateway application skeleton
 
 **Status:** Complete
 
@@ -100,6 +100,13 @@ No problems found
 ## Decision
 
 Accepted
+
+---
+
+## Integration bookkeeping
+After merging current develop for the combined PR, the earlier-created Legacy sensor simulator record already occupied ID 0027. This completed M2-02 record was moved to the next unused ID 0029; original reservation references and human review evidence are preserved. The histories use different filenames, so the same-file conflict resolver does not apply. M2-03 remains record 0028.
+
+Post-merge verification: 360 tests passed; Ruff passed. History validation initially rejected bookkeeping placed after Final Outcome; moving it before Final Verification preserves the required record format.
 
 ---
 

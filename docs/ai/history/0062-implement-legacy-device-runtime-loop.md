@@ -1,4 +1,4 @@
-# AI Task 0055 — Implement Legacy Device runtime loop
+# AI Task 0062 — Implement Legacy Device runtime loop
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Implemented the Legacy Device controller runtime loop in device.py with injected
 
 ## Files Created
 
-- docs/ai/history/0055-implement-legacy-device-runtime-loop.md
+- docs/ai/history/0062-implement-legacy-device-runtime-loop.md
 - legacy_system/src/legacy_system/device.py
 - legacy_system/tests/test_device.py
 
@@ -82,7 +82,7 @@ Replaced truthiness-based dependency fallbacks with explicit None checks and exp
 
 ## Files Created
 
-- docs/ai/history/0055-implement-legacy-device-runtime-loop.md
+- docs/ai/history/0062-implement-legacy-device-runtime-loop.md
 - legacy_system/src/legacy_system/device.py
 - legacy_system/tests/test_device.py
 

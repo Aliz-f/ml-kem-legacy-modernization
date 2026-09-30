@@ -194,6 +194,11 @@ TLS, mTLS, PKI, public-key pinning, and signed key distribution are outside
 this implementation. Details are in
 [docs/transport-trust.md](docs/transport-trust.md).
 
+## Session memory (M3-55)
+
+The Gateway session key stays in process memory. Replacing a session clears the old key buffer and drops that object. Python does not guarantee secure memory zeroization, so that overwrite is not a claim that every copy is gone. Details are in
+[docs/session-memory.md](docs/session-memory.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

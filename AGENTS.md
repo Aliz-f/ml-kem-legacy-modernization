@@ -178,10 +178,13 @@ ML-KEM can use implicit rejection. Protocol v1 has no explicit key confirmation.
 ## Shared Graphify knowledge graph
 
 `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` are shared,
-generated repository-navigation artifacts. Repository CI refreshes them for
-graph-relevant pull-request changes.
+generated repository-navigation artifacts. For graph-relevant pull-request
+changes, repository CI verifies that the repository refresh command produces no
+diff.
+When graph-relevant code changes, run `uv run python
+scripts/refresh_graphify.py` before final checks, AI-history output, and commit.
 Do not run Graphify installers or hook installers, and do not hand-edit those
-artifacts.
+artifacts; use only the repository refresh command.
 
 When it would narrow repository exploration, query the committed graph before
 broad source searching. Graph results are advisory only: this policy, frozen

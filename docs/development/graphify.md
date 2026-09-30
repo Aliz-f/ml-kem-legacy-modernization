@@ -25,16 +25,21 @@ graphify-out/GRAPH_REPORT.md
 
 ## Automation
 
-The `Graphify shared code graph` GitHub Actions workflow refreshes these
-artifacts when a same-repository pull request changes graph-relevant code or
-Python package manifests. It runs local code extraction followed by local
-clustering and commits only changed graph artifacts to the pull request branch.
-Graphify's local `manifest.json` is intentionally ignored because it contains
-machine-specific filesystem timestamps.
+When graph-relevant code changes, agents run the repository-owned refresh
+command before final checks, AI-history output, and commit:
+
+```bash
+uv run python scripts/refresh_graphify.py
+```
+
+The `Graphify shared code graph` GitHub Actions workflow runs the same command
+and fails if the committed graph or report is stale. It does not write to pull
+request branches. Graphify's local `manifest.json` is intentionally ignored
+because it contains machine-specific filesystem timestamps.
 
 Do not run Graphify installers, Graphify hook installers, or hand-edit generated
-artifacts. If CI reports that an artifact is stale, rerun the workflow by pushing
-the applicable branch; do not repair generated JSON manually. The report's
+artifacts. If CI reports that an artifact is stale, have the agent run the
+repository refresh command, then commit its generated changes. The report's
 generic local refresh wording is superseded by this repository workflow.
 
 ## Safety and authority

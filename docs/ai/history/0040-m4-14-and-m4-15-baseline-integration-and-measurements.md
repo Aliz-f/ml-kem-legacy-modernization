@@ -1,4 +1,4 @@
-# AI Task 0027 — M4-14 and M4-15 baseline integration and measurements
+# AI Task 0040 — M4-14 and M4-15 baseline integration and measurements
 
 **Status:** Complete
 

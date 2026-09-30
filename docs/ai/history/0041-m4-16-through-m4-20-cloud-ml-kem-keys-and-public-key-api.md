@@ -1,4 +1,4 @@
-# AI Task 0028 — M4-16 through M4-20 Cloud ML-KEM keys and public-key API
+# AI Task 0041 — M4-16 through M4-20 Cloud ML-KEM keys and public-key API
 
 **Status:** Complete
 

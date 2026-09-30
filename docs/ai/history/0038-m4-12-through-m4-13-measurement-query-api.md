@@ -1,4 +1,4 @@
-# AI Task 0025 — M4-12 through M4-13 measurement query API
+# AI Task 0038 — M4-12 through M4-13 measurement query API
 
 **Status:** Complete
 

@@ -1,4 +1,4 @@
-# AI Task 0031 — M4-21 and M4-22 Cloud HKDF and Gateway interoperability
+# AI Task 0042 — M4-21 and M4-22 Cloud HKDF and Gateway interoperability
 
 **Status:** Complete
 

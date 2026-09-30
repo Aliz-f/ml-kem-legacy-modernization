@@ -75,6 +75,21 @@ def test_metrics_endpoint_exposes_the_same_registry():
     assert "request_id" not in body
 
 
+def test_gateway_security_components_share_the_metrics_registry_by_default():
+    manager = SessionManager("gateway-001", "http://127.0.0.1:9", 0.2)
+    transport = SecureTransport(manager, cloud_url="http://127.0.0.1:9", timeout_seconds=0.2, max_retries=0)
+    dispatch = CloudDispatch(
+        load_config({"SECURITY_MODE": "mlkem"}),
+        baseline=_Baseline(),
+        secure=transport,
+    )
+    app = create_app(load_config({}), pqc_metrics=transport.metrics)
+
+    assert transport.metrics is manager.metrics
+    assert dispatch.pqc_metrics is manager.metrics
+    assert app.state.pqc_metrics is manager.metrics
+
+
 class _Clock:
     def __init__(self) -> None:
         self.now = datetime(2026, 9, 21, 13, 0, tzinfo=timezone.utc)

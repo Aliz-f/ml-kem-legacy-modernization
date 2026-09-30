@@ -6,6 +6,7 @@ import asyncio
 import json
 import logging
 import threading
+from collections.abc import Callable
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -119,12 +120,20 @@ def _send(transport: SecureTransport, **overrides: object) -> SecureAcceptance:
     return asyncio.run(transport.send(**fields))  # type: ignore[arg-type]
 
 
-def _transport(url: str, sessions: _Sessions, *, max_retries: int = 2, timeout_seconds: float = 1) -> SecureTransport:
+def _transport(
+    url: str,
+    sessions: _Sessions,
+    *,
+    max_retries: int = 2,
+    timeout_seconds: float = 1,
+    sleep: Callable[[float], None] | None = None,
+) -> SecureTransport:
     return SecureTransport(
         sessions,
         cloud_url=url,
         timeout_seconds=timeout_seconds,
         max_retries=max_retries,
+        **({"sleep": sleep} if sleep is not None else {}),
     )
 
 
@@ -165,11 +174,13 @@ def test_transport_retry_resends_the_same_envelope(cloud):
         (504, _error("SERVICE_UNAVAILABLE")),
         (202, {"status": "already_accepted", "record_id": "rec-existing"}),
     ]
-    result = _send(_transport(url, _Sessions(), max_retries=2))
+    delays: list[float] = []
+    result = _send(_transport(url, _Sessions(), max_retries=2, sleep=delays.append))
     assert result.status == "already_accepted"
     bodies = [body for _, body, _ in script.requests]
     assert len(bodies) == 3
     assert bodies[0] == bodies[1] == bodies[2]
+    assert delays == [1.0, 2.0]
 
 
 def test_session_conflict_rebuilds_once_with_the_same_request_id(cloud):
@@ -218,10 +229,12 @@ def test_application_rejection_is_not_retried(cloud):
 def test_exhausted_transport_retries_stay_retryable(cloud):
     url, script = cloud
     script.responses = [(503, _error("STORAGE_UNAVAILABLE"))] * 3
+    delays: list[float] = []
     with pytest.raises(SecureTransportError) as caught:
-        _send(_transport(url, _Sessions(), max_retries=2))
+        _send(_transport(url, _Sessions(), max_retries=2, sleep=delays.append))
     assert caught.value.retryable is True
     assert len(script.requests) == 3
+    assert delays == [1.0, 2.0]
 
 
 def test_invalid_measurement_and_session_failure_do_not_post(cloud):

@@ -73,7 +73,10 @@ class CloudDispatch:
         self._baseline = baseline
         self._secure = secure
         self._metrics = metrics or DispatchMetrics()
-        self._pqc_metrics = pqc_metrics or PqcMetrics()
+        secure_metrics = getattr(secure, "metrics", None)
+        self._pqc_metrics = pqc_metrics or (
+            secure_metrics if isinstance(secure_metrics, PqcMetrics) else PqcMetrics()
+        )
 
     @property
     def metrics(self) -> DispatchMetrics:

@@ -16,6 +16,7 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, replace
+from collections.abc import Callable
 from typing import Protocol
 from urllib.parse import urljoin, urlparse
 
@@ -108,6 +109,7 @@ class SecureTransport:
         max_retries: int,
         injector: CryptoFailureInjector | None = None,
         metrics: PqcMetrics | None = None,
+        sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         if isinstance(max_retries, bool) or not isinstance(max_retries, int) or max_retries < 0:
             raise ValueError("max_retries must be a non-negative integer.")
@@ -123,8 +125,17 @@ class SecureTransport:
         self._timeout_seconds = float(timeout_seconds)
         self._max_retries = max_retries
         self._injector = injector or CryptoFailureInjector.disabled()
-        self._metrics = metrics or PqcMetrics()
+        session_metrics = getattr(sessions, "metrics", None)
+        self._metrics = metrics or (
+            session_metrics if isinstance(session_metrics, PqcMetrics) else PqcMetrics()
+        )
+        self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
+
+    @property
+    def metrics(self) -> PqcMetrics:
+        """Return the process registry used by this secure transport."""
+        return self._metrics
 
     async def send(
         self,
@@ -307,11 +318,15 @@ class SecureTransport:
     def _deliver(self, envelope: SecureEnvelope) -> SecureAcceptance:
         body = _dump(envelope)
         failure: _RetryableTransport | None = None
-        for _ in range(self._max_retries + 1):
+        for attempt in range(self._max_retries + 1):
             try:
                 return self._post(body, envelope.request_id, envelope.session_id)
             except _RetryableTransport as exc:
                 failure = exc
+                if attempt < self._max_retries:
+                    # The frozen Gateway policy waits 1s before retry two and
+                    # 2s before retry three. The body remains byte-identical.
+                    self._sleep(2.0**attempt)
         log_security(
             "secure_delivery_rejected",
             logging.WARNING,

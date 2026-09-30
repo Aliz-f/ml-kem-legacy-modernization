@@ -21,8 +21,8 @@ def get_config(request: Request) -> GatewayConfig:
 def create_app(config: GatewayConfig | None = None, *, pqc_metrics: PqcMetrics | None = None) -> FastAPI:
     """Build an isolated app; importing this module has no startup side effects.
 
-    Tests can inject settings from load_config(mapping) and override dependencies
-    using app.dependency_overrides. No Cloud client or crypto session exists yet.
+    Tests and Gateway composition inject the one process-wide PQC registry through
+    ``pqc_metrics``. No Cloud client or crypto session exists yet.
     """
     settings = load_config() if config is None else config
     level = _logging_level(settings)

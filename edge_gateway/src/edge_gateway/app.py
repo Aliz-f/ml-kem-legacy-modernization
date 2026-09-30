@@ -1,4 +1,4 @@
-"""Gateway HTTP skeleton; measurement processing belongs to later tasks."""
+"""Gateway HTTP application with Legacy syntax/schema validation."""
 
 from contextlib import asynccontextmanager
 import logging
@@ -8,6 +8,8 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
 from edge_gateway.config import ConfigurationError, GatewayConfig, load_config
+from edge_gateway.models import LegacyMeasurementSchemaError
+from edge_gateway.validation import LegacyJSONError, parse_legacy_measurement
 
 logger = logging.getLogger("edge_gateway")
 
@@ -57,8 +59,18 @@ def create_app(config: GatewayConfig | None = None) -> FastAPI:
         return _unavailable()
 
     @app.post("/api/v1/measurements")
-    async def measurements():
-        # Registration only: do not parse, accept, or forward measurements yet.
+    async def measurements(request: Request):
+        try:
+            parse_legacy_measurement(await request.body())
+        except LegacyJSONError:
+            return JSONResponse(status_code=400, content={"error": {
+                "code": "INVALID_JSON", "message": "request body must be valid JSON",
+            }})
+        except LegacyMeasurementSchemaError:
+            return JSONResponse(status_code=422, content={"error": {
+                "code": "INVALID_MEASUREMENT", "message": "measurement validation failed",
+            }})
+        # Domain validation and downstream delivery are not implemented yet.
         return _unavailable()
 
     @app.get("/metrics")

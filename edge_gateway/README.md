@@ -20,14 +20,13 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | --- | --- |
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
 | `GET /ready` | `503 SERVICE_UNAVAILABLE` until processing and transport exist |
-| `POST /api/v1/measurements` | Registered, but unavailable (`503`); accepts no measurements |
+| `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema → `422`; schema-valid requests → `503` pending delivery |
 | `GET /metrics` | Prometheus text with bounded `gateway_service_info` only |
 
-This is roadmap Phase 3 / G2 scaffolding. Measurement parsing/validation,
+This is roadmap Phase 3 / G2 scaffolding with G3 syntax/schema validation. Domain validation,
 normalization, sequencing, request IDs, Cloud delivery, and operational metrics
-belong to later tasks. The measurement placeholder does not parse the body;
-it is not the completed Legacy API. Later validation must preserve malformed
-JSON → `400`, invalid parsed fields → `422`, and `202` only after Cloud acceptance.
+belong to later tasks. This is not the completed Legacy API; `202` will be
+returned only after Cloud acceptance.
 
 Both configured security modes expose the skeleton. Neither performs Cloud
 requests or establishes sessions. Readiness is unavailable because processing
@@ -59,9 +58,25 @@ ISO-8601 strings with an explicit UTC timezone; internally they are datetimes.
 The model is immutable and independently owned by Gateway, with no imports from
 Legacy or Cloud. It checks schema only: non-empty device IDs, sensor ranges,
 and nonnegative sequences remain M2-05 domain validation. Parsing a model does
-not mean a measurement has been accepted. HTTP syntax/error mapping and route
-integration remain later tasks; the skeleton route still returns `503`.
+not mean a measurement has been accepted. M2-04 integrates this schema at the
+HTTP boundary; schema-valid requests still return `503` pending later stages.
 Timestamp serialization uses Python datetime microsecond precision.
+
+## Schema validation (M2-04)
+
+`edge_gateway.validation.parse_legacy_measurement(body)` decodes JSON and then
+uses the M2-03 request model. Malformed or empty bodies, invalid encoding, and
+non-JSON constants (`NaN`, `Infinity`) produce `400 INVALID_JSON`. Parsed JSON
+with missing/extra fields, wrong types, or an invalid timestamp produces
+`422 INVALID_MEASUREMENT`. Both responses use the shared structured error body
+and omit payload values and parser details. Invalid requests make no Cloud calls.
+
+Domain bounds remain M2-05; sequencing, normalization, and delivery also remain
+separate later stages. No measurement is accepted or forwarded by this task.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_validation.py
+```
 
 ## Configuration
 

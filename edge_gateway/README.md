@@ -24,8 +24,8 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
 
 This is roadmap Phase 3 / G2 scaffolding with G3 syntax/schema and domain validation.
-Normalization and correlation helpers are available, but their route orchestration,
-sequencing, Cloud delivery, and application metrics remain later tasks. This is not
+Normalization, correlation, and sequence helpers are available, but their route
+orchestration, Cloud delivery, and application metrics remain later tasks. This is not
 the completed Legacy API; `202` will be returned only after Cloud acceptance.
 
 Both configured security modes expose the skeleton. Neither performs Cloud
@@ -90,7 +90,8 @@ The existing model enforces ISO-8601 timestamps with an explicit UTC timezone;
 invalid dates, timezone-less timestamps, and non-UTC offsets return `422`.
 Domain failures raise `LegacyMeasurementDomainError` and map to the same sanitized
 `422 INVALID_MEASUREMENT` response as schema failures, before any Cloud call.
-Sequence ordering and duplicate detection remain later tasks.
+Sequence ordering and duplicate detection are provided by the standalone M2-10
+tracker; route integration remains a later task.
 
 ## Application errors (M2-06)
 
@@ -182,6 +183,26 @@ existing secure envelope to verify context propagation and authentication.
 
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_correlation.py
+```
+
+## Sequence tracker (M2-10)
+
+`edge_gateway.sequence.SequenceTracker.check_and_update(device_id, sequence_number)`
+tracks the last valid sequence accepted per device in memory. Share one tracker
+across requests and call it after schema/domain validation, before Cloud delivery.
+The check and update use one lock. First values (including zero) and increments
+are accepted; gaps advance state and emit `sequence_gap_detected` with device and
+sequence context. Equal values raise `GatewayError(DUPLICATE_SEQUENCE)` and lower
+values raise `GatewayError(OUT_OF_ORDER_SEQUENCE)`, using the existing `409`
+error definitions. Rejections leave state unchanged.
+
+State describes Gateway acceptance, not Cloud persistence. There is no rollback
+operation; restarting the process loses history. M2-10 provides the standalone
+tracker and unit tests only. Route wiring, Cloud-failure timing integration,
+and application metrics remain later tasks; the placeholder route is unchanged.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_sequence.py
 ```
 
 ## Configuration

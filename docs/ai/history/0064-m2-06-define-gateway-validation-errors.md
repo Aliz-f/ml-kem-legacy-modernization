@@ -1,4 +1,4 @@
-# AI Task 0040 — M2-06 define Gateway validation errors
+# AI Task 0064 — M2-06 define Gateway validation errors
 
 **Status:** Complete
 

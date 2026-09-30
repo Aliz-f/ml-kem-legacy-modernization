@@ -1,4 +1,4 @@
-# AI Task 0041 — M2-07 implement canonical measurement model
+# AI Task 0065 — M2-07 implement canonical measurement model
 
 **Status:** Complete
 

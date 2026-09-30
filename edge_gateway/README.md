@@ -21,12 +21,12 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
 | `GET /ready` | `503 SERVICE_UNAVAILABLE` until processing and transport exist |
 | `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema/domain values → `422`; valid requests → `503` pending delivery |
-| `GET /metrics` | Prometheus text with bounded `gateway_service_info` only |
+| `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
 
 This is roadmap Phase 3 / G2 scaffolding with G3 syntax/schema and domain validation.
-Normalization, sequencing, request IDs, Cloud delivery, and operational metrics
-belong to later tasks. This is not the completed Legacy API; `202` will be
-returned only after Cloud acceptance.
+Normalization and correlation helpers are available, but their route orchestration,
+sequencing, Cloud delivery, and application metrics remain later tasks. This is not
+the completed Legacy API; `202` will be returned only after Cloud acceptance.
 
 Both configured security modes expose the skeleton. Neither performs Cloud
 requests or establishes sessions. Readiness is unavailable because processing

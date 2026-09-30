@@ -1,4 +1,4 @@
-# AI Task 0038 — M2-04 implement schema validation
+# AI Task 0062 — M2-04 implement schema validation
 
 **Status:** Complete
 

@@ -1,4 +1,4 @@
-# AI Task 0043 — M2-09 implement request correlation ID creation
+# AI Task 0067 — M2-09 implement request correlation ID creation
 
 **Status:** Complete
 

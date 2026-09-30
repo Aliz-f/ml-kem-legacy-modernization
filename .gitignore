@@ -13,8 +13,13 @@ htmlcov/
 
 # Environment and logs
 .env
+.env.*
+!.env.example
 *.log
 *.db
+*.sqlite
+*.sqlite3
+*.db-journal
 
 # IDEs and operating systems
 .vscode/

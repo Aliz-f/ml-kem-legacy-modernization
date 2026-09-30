@@ -1,4 +1,4 @@
-# AI Task 0042 — M2-08 implement normalization layer
+# AI Task 0066 — M2-08 implement normalization layer
 
 **Status:** Complete
 

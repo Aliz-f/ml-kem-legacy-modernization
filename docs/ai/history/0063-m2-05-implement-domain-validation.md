@@ -1,4 +1,4 @@
-# AI Task 0039 — M2-05 implement domain validation
+# AI Task 0063 — M2-05 implement domain validation
 
 **Status:** Complete
 

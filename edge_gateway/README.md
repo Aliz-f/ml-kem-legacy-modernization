@@ -262,6 +262,13 @@ ciphertext changes, public-key substitution, secret logging, envelope replay,
 downgrade, Cloud unavailability, and a session race. It does not add a replay window.
 Details are in [docs/threat-model.md](docs/threat-model.md).
 
+## Mode evaluation (M3-70)
+
+One local sample compares an equivalent four-measurement workload in classical
+mode and in mlkem mode. The first secure request is reported separately. The
+sample does not rank the modes. Details are in
+[docs/mode-evaluation.md](docs/mode-evaluation.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

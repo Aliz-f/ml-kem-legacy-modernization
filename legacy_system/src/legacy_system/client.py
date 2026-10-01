@@ -5,11 +5,14 @@ from dataclasses import dataclass, replace
 from enum import StrEnum
 from http.client import HTTPException
 import json
+import logging
 import socket
 import time
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+
+logger = logging.getLogger(__name__)
 
 
 class ErrorCategory(StrEnum):
@@ -59,10 +62,28 @@ class GatewayClient:
         attempt_count = 1
 
         while result.retryable and attempt_count <= self._max_retries:
+            logger.warning(
+                "event=gateway_retry device_id=%s sequence_number=%s attempt=%s status_code=%s error_category=%s",
+                payload.get("device_id"),
+                payload.get("sequence_number"),
+                attempt_count,
+                result.status_code,
+                result.error_category,
+            )
             self._sleeper(2 ** (attempt_count - 1))
             result = self._send_once(payload)
             attempt_count += 1
             result = replace(result, attempt_count=attempt_count)
+
+        if not result.success:
+            logger.warning(
+                "event=gateway_request_failed device_id=%s sequence_number=%s status_code=%s attempt=%s error_category=%s",
+                payload.get("device_id"),
+                payload.get("sequence_number"),
+                result.status_code,
+                result.attempt_count,
+                result.error_category,
+            )
 
         return result
 

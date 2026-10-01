@@ -88,6 +88,30 @@ class RaisingClient(RecordingClient):
         raise RuntimeError("delivery failed")
 
 
+class FakeResponse:
+    def __init__(self, status: int) -> None:
+        self.status = status
+
+    def __enter__(self) -> "FakeResponse":
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+
+class ScriptedOpener:
+    def __init__(self, statuses: list[int]) -> None:
+        self._responses = [FakeResponse(status) for status in statuses]
+        self.calls = 0
+
+    def __call__(self, *_args: object, **_kwargs: object) -> FakeResponse:
+        if self.calls >= len(self._responses):
+            raise AssertionError("the opener was called more than expected")
+        response = self._responses[self.calls]
+        self.calls += 1
+        return response
+
+
 def make_config() -> Config:
     return Config(
         device_id="sensor-001",
@@ -223,6 +247,199 @@ def test_client_is_closed_when_send_raises() -> None:
         controller.run()
 
     assert client.closed is True
+
+
+def test_runtime_logs_lifecycle_and_delivery_events(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.INFO, logger="legacy_system.device")
+    sensor = FakeSensor()
+    client = RecordingClient([])
+    stop_event = threading.Event()
+
+    def stop_after_first_measurement(_interval: float) -> None:
+        stop_event.set()
+
+    controller = DeviceController(
+        make_config(),
+        sensor=sensor,
+        failure_injector=RecordingFailureInjector([]),
+        client=client,
+        sleeper=stop_after_first_measurement,
+        stop_event=stop_event,
+    )
+
+    controller.run()
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert "event=device_starting device_id=sensor-001" in messages
+    assert "event=device_ready device_id=sensor-001" in messages
+    assert (
+        "event=measurement_generated device_id=sensor-001 sequence_number=0"
+        in messages
+    )
+    assert (
+        "event=measurement_delivered device_id=sensor-001 sequence_number=0 "
+        "status_code=202 attempt=1"
+    ) in messages
+    assert "event=device_shutting_down device_id=sensor-001" in messages
+    assert all(record.levelno == logging.INFO for record in caplog.records)
+
+
+def test_retry_and_final_failure_logging_are_visible(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.INFO)
+
+    stop_event = threading.Event()
+
+    def stop_after_first_measurement(_interval: float) -> None:
+        stop_event.set()
+
+    opener = ScriptedOpener([503, 503, 503])
+    client = GatewayClient(
+        make_config().gateway_url,
+        request_timeout_seconds=3,
+        opener=opener,
+        max_retries=2,
+        sleeper=lambda _delay: None,
+    )
+    controller = DeviceController(
+        make_config(),
+        sensor=FakeSensor(),
+        client=client,
+        sleeper=stop_after_first_measurement,
+        stop_event=stop_event,
+    )
+
+    controller.run()
+
+    retry_messages = [
+        record.getMessage()
+        for record in caplog.records
+        if "event=gateway_retry" in record.getMessage()
+    ]
+    request_failure_messages = [
+        record.getMessage()
+        for record in caplog.records
+        if "event=gateway_request_failed" in record.getMessage()
+    ]
+    delivery_failure_messages = [
+        record.getMessage()
+        for record in caplog.records
+        if "event=measurement_delivery_failed" in record.getMessage()
+    ]
+
+    assert opener.calls == 3
+    assert retry_messages == [
+        "event=gateway_retry device_id=None sequence_number=0 attempt=1 "
+        "status_code=503 error_category=http",
+        "event=gateway_retry device_id=None sequence_number=0 attempt=2 "
+        "status_code=503 error_category=http",
+    ]
+    assert request_failure_messages == [
+        "event=gateway_request_failed device_id=None sequence_number=0 "
+        "status_code=503 attempt=3 error_category=http"
+    ]
+    assert delivery_failure_messages == [
+        "event=measurement_delivery_failed device_id=sensor-001 "
+        "sequence_number=0 status_code=503 attempt=3 error_category=http"
+    ]
+    assert all(
+        record.levelno == logging.WARNING
+        for record in caplog.records
+        if "event=gateway_" in record.getMessage()
+        or "event=measurement_delivery_failed" in record.getMessage()
+    )
+
+
+@pytest.mark.parametrize("status_code", [400, 409, 422])
+def test_permanent_gateway_failures_are_logged_without_retry(
+    status_code: int,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.WARNING)
+    opener = ScriptedOpener([status_code])
+    delays: list[float] = []
+    stop_event = threading.Event()
+
+    def stop_after_first_measurement(_interval: float) -> None:
+        stop_event.set()
+
+    client = GatewayClient(
+        make_config().gateway_url,
+        request_timeout_seconds=3,
+        opener=opener,
+        max_retries=2,
+        sleeper=delays.append,
+    )
+    controller = DeviceController(
+        make_config(),
+        sensor=FakeSensor(),
+        client=client,
+        sleeper=stop_after_first_measurement,
+        stop_event=stop_event,
+    )
+
+    controller.run()
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert opener.calls == 1
+    assert delays == []
+    assert sum("event=gateway_retry" in message for message in messages) == 0
+    assert messages.count(
+        "event=gateway_request_failed device_id=None sequence_number=0 "
+        f"status_code={status_code} attempt=1 error_category=http"
+    ) == 1
+    assert messages.count(
+        "event=measurement_delivery_failed device_id=sensor-001 "
+        f"sequence_number=0 status_code={status_code} attempt=1 "
+        "error_category=http"
+    ) == 1
+    assert all(record.levelno == logging.WARNING for record in caplog.records)
+
+
+def test_retry_eventual_success_logs_delivery_without_final_failure(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.INFO)
+    opener = ScriptedOpener([503, 202])
+    stop_event = threading.Event()
+
+    def stop_after_first_measurement(_interval: float) -> None:
+        stop_event.set()
+
+    client = GatewayClient(
+        make_config().gateway_url,
+        request_timeout_seconds=3,
+        opener=opener,
+        max_retries=1,
+        sleeper=lambda _delay: None,
+    )
+    controller = DeviceController(
+        make_config(),
+        sensor=FakeSensor(),
+        client=client,
+        sleeper=stop_after_first_measurement,
+        stop_event=stop_event,
+    )
+
+    controller.run()
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert opener.calls == 2
+    assert (
+        "event=gateway_retry device_id=None sequence_number=0 attempt=1 "
+        "status_code=503 error_category=http"
+    ) in messages
+    assert not any("event=gateway_request_failed" in message for message in messages)
+    assert (
+        "event=measurement_delivered device_id=sensor-001 sequence_number=0 "
+        "status_code=202 attempt=2"
+    ) in messages
+    assert not any(
+        "event=measurement_delivery_failed" in message for message in messages
+    )
 
 
 def test_sigterm_stops_during_wait_and_logs_shutdown(

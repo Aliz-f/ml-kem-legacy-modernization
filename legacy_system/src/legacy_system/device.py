@@ -1,6 +1,6 @@
 """Runtime orchestration for the Legacy Device."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 import logging
 import signal
 import threading
@@ -54,22 +54,68 @@ class DeviceController:
 
     def run(self) -> None:
         """Run the device loop until :meth:`stop` is called."""
+        logger.info("event=device_starting device_id=%s", self._config.device_id)
         previous_handlers = self._install_signal_handlers()
         try:
+            logger.info("event=device_ready device_id=%s", self._config.device_id)
             while not self._stop_event.is_set():
                 measurement = self._sensor.read()
+                logger.info(
+                    "event=measurement_generated device_id=%s sequence_number=%s",
+                    self._config.device_id,
+                    measurement.sequence_number,
+                )
                 payload = measurement.to_payload()
                 outgoing = self._failure_injector.apply(payload)
-                self._client.send(outgoing)
+                self._send_with_logging(outgoing, measurement.sequence_number)
                 self._sleeper(self._config.send_interval_seconds)
         finally:
             self._restore_signal_handlers(previous_handlers)
             self._close_client()
             if self._stop_event.is_set():
                 logger.info(
-                    "device_shutting_down device_id=%s",
+                    "event=device_shutting_down device_id=%s",
                     self._config.device_id,
                 )
+
+    def _send_with_logging(
+        self, payload: Mapping[str, object], sequence_number: int
+    ) -> None:
+        """Send payload and log success/failure outcomes."""
+        try:
+            result = self._client.send(payload)
+        except Exception as exc:
+            logger.warning(
+                "event=measurement_delivery_failed device_id=%s sequence_number=%s error=%s",
+                self._config.device_id,
+                sequence_number,
+                type(exc).__name__,
+            )
+            raise
+
+        success = result if isinstance(result, bool) else bool(getattr(result, "success", False))
+        status_code = 202 if result is True else (None if isinstance(result, bool) else getattr(result, "status_code", None))
+        attempt_count = 1 if isinstance(result, bool) else getattr(result, "attempt_count", 1)
+        error_category = None if result is True else (None if isinstance(result, bool) else getattr(result, "error_category", None))
+
+        if success:
+            logger.info(
+                "event=measurement_delivered device_id=%s sequence_number=%s status_code=%s attempt=%s",
+                self._config.device_id,
+                sequence_number,
+                status_code,
+                attempt_count,
+            )
+            return
+
+        logger.warning(
+            "event=measurement_delivery_failed device_id=%s sequence_number=%s status_code=%s attempt=%s error_category=%s",
+            self._config.device_id,
+            sequence_number,
+            status_code,
+            attempt_count,
+            error_category,
+        )
 
     def stop(self) -> None:
         """Request that the loop stop before generating another measurement."""

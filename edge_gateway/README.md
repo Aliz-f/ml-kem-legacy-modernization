@@ -400,6 +400,13 @@ One local run seals a valid measurement, corrupts the outgoing ciphertext copy,
 and records Cloud's authentication rejection. It does not store the rejected measurement.
 Details are in [docs/corrupt-ciphertext.md](docs/corrupt-ciphertext.md).
 
+## ML-KEM handshake failure (M3-73)
+
+One local run stops session establishment before a public key is fetched.
+The Gateway returns failure and the handshake-failure counter increments.
+It does not call the baseline endpoint.
+Details are in [docs/mlkem-handshake-failure.md](docs/mlkem-handshake-failure.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

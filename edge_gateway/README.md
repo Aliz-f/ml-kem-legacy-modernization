@@ -235,6 +235,13 @@ ML-KEM library, HKDF, sessions, AES-GCM, retry, the missing replay window,
 fail-closed behavior, and the Legacy boundary. Details are in
 [docs/crypto-review-checklist.md](docs/crypto-review-checklist.md).
 
+## Crypto AI decisions (M3-66)
+
+Generated crypto proposals are recorded as accepted, modified, and rejected.
+ML-KEM stays a key-establishment step, the session key stays the frozen HKDF
+call, and an ordinary timeout resends the envelope already built. Details are
+in [docs/ai-decisions.md](docs/ai-decisions.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

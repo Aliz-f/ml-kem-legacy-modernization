@@ -126,8 +126,7 @@ def run(samples=100):
             database_url = f"sqlite:///{(Path(directory) / 'baseline.db').as_posix()}"
             with live_cloud(database_url) as (app, client):
                 require(client.get("/health").status_code == 200, "health failed")
-                # Readiness is deliberately not implemented until a later task.
-                require(client.get("/ready").status_code == 503, "readiness contract changed")
+                require(client.get("/ready").status_code == 200, "readiness contract changed")
                 request_ms, sizes, ids = [], [], []
 
                 def post(sequence, request_id):
@@ -188,11 +187,13 @@ def run(samples=100):
                     detail = client.get(f"/api/v1/measurements/{ids[sequence]}")
                     require(detail.status_code == 200 and detail.json() == row, "detail query mismatch")
                     require(any(
-                        f"request_id='baseline-{sequence}' record_id={ids[sequence]}" in message
+                        f"request_id='baseline-{sequence}'" in message
+                        and f"record_id={ids[sequence]}" in message
                         for message in capture.messages
                     ), "request correlation missing")
                 require(any("request_id='baseline-duplicate'" in message for message in capture.messages), "duplicate correlation missing")
-                require(any("storage_failed request_id='baseline-storage-failure'" in message for message in capture.messages), "failure correlation missing")
+                require(any("event=storage_failed" in message and "request_id='baseline-storage-failure'" in message
+                            for message in capture.messages), "failure correlation missing")
             reopened = Database(database_url)
             try:
                 persisted = MeasurementRepository(reopened).list(limit=samples + 1)

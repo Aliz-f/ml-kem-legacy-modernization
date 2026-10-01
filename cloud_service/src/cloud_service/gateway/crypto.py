@@ -27,9 +27,9 @@ async def public_key(request: Request) -> JSONResponse:
     try:
         payload = keys.public_response()
     except Exception:
-        logger.error("public_key_unavailable")
+        logger.error("event=public_key_unavailable component=cloud_service")
         return _unavailable()
-    logger.info("public_key_requested")
+    logger.info("event=public_key_requested component=cloud_service key_id=%s", keys.key_id)
     return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
 

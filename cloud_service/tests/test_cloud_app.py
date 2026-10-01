@@ -23,28 +23,44 @@ def test_lifecycle_liveness_and_unready_storage(tmp_path, monkeypatch, caplog):
             assert response.status_code == 200
             assert response.json() == {"status": "ok"}
             response = client.get("/ready")
-            assert response.status_code == 503
-            assert response.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
+            assert response.status_code == 200
+            assert response.json() == {"status": "ready", "storage": "ok"}
+            database.close()
+            assert client.get("/health").json() == {"status": "ok"}
+            assert client.get("/ready").status_code == 503
         assert not app.state.running
         assert database.closed
         assert app.state.repository is None
     assert "cloud_starting security_mode=classical" in caplog.text
     assert "cloud_shutting_down" in caplog.text
-    assert "cloud_ready" not in caplog.text
+    assert "event=cloud_ready component=cloud_service" in caplog.text
     assert (tmp_path / "cloud.db").is_file()
 
 
-def test_metrics_exposes_only_bounded_service_information():
+def test_metrics_exposes_bounded_service_information_and_zero_value_cloud_metrics():
     with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:
         response = client.get("/metrics")
 
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/plain; version=0.0.4")
-    assert response.text == (
-        "# HELP cloud_service_info Cloud Service process information.\n"
-        "# TYPE cloud_service_info gauge\n"
-        'cloud_service_info{security_mode="classical"} 1\n'
-    )
+    assert 'cloud_service_info{security_mode="classical"} 1' in response.text
+    assert "cloud_request_duration_seconds_count 0" in response.text
+    assert "cloud_mlkem_decapsulation_duration_seconds_count 0" in response.text
+    assert "cloud_active_sessions 0" in response.text
+    assert "request_id" not in response.text
+
+
+def test_mlkem_readiness_requires_initialized_dependencies_not_an_active_session(monkeypatch):
+    from cloud_service import app as module
+
+    app = create_app(load_config({"SECURITY_MODE": "mlkem", "DATABASE_URL": "sqlite:///:memory:"}))
+    with TestClient(app) as client:
+        assert len(app.state.sessions) == 0
+        assert client.get("/ready").json() == {"status": "ready", "storage": "ok", "mlkem": "available"}
+        monkeypatch.setattr(module, "_crypto_dependencies_ready", lambda: False)
+        response = client.get("/ready")
+        assert response.status_code == 503
+        assert response.json() == {"error": {"code": "SERVICE_UNAVAILABLE", "message": "service is not ready"}}
 
 
 @pytest.mark.parametrize(("method", "path"), [

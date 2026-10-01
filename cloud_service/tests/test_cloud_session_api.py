@@ -16,10 +16,15 @@ from cloud_service.config import load_config
 from cloud_service.crypto.session import SecureSession, SessionManager, SessionState
 from cloud_service.gateway import sessions as routes
 from edge_gateway.crypto.encoding import encode_binary
+from edge_gateway.crypto.aad import build_aad
 from edge_gateway.crypto.kdf import derive_session_key
 from edge_gateway.crypto.mlkem import encapsulate
 from edge_gateway.crypto.session import SessionManager as GatewaySessions
 from edge_gateway.crypto.session_client import parse_session_response
+from edge_gateway.crypto.symmetric import encrypt
+from cloud_service.crypto.encoding import encode_binary as cloud_encode_binary
+from cloud_service.crypto.symmetric import AeadError
+from cloud_service.gateway import secure as secure_routes
 
 PATH = "/api/v1/crypto/sessions"
 
@@ -164,15 +169,55 @@ def test_shutdown_and_classical_mode():
             payload, _ = handshake(client)
             body = client.post(PATH, json=payload).json()
             manager = app.state.sessions
+            database = app.state.database
             session = manager.get(body["session_id"], "gateway-1")
             raise RuntimeError("exit")
     assert app.state.sessions is None
+    assert database.closed
     assert len(manager) == 0
     assert session.state == SessionState.CLOSED
     assert session.session_key == bytearray(32)
     with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:
         assert client.post(PATH, json={}).status_code == 503
         assert client.app.state.sessions is None
+
+
+def test_synthetic_secret_markers_never_appear_in_cloud_logs(client, monkeypatch, caplog):
+    """Exercise key generation, decapsulation/KDF/session creation and AEAD failure safely."""
+    from cloud_service.crypto import keys as keys_module
+
+    private_marker = "synthetic-private-key-marker"
+    shared_marker = b"synthetic-shared-secret-marker".ljust(32, b"-")
+
+    class MarkerPrivateKey:
+        marker = private_marker
+
+        def close(self):
+            return None
+
+    with caplog.at_level(logging.DEBUG, logger="cloud_service"):
+        monkeypatch.setattr(keys_module.mlkem, "generate_keypair", lambda: (b"public", MarkerPrivateKey()))
+        keys_module.KeyService().close()  # Key generation must not write the marker to Cloud logs.
+        payload, _ = handshake(client)
+        monkeypatch.setattr(client.app.state.keys, "decapsulate", lambda _ciphertext: shared_marker)
+        established = client.post(PATH, json=payload)
+        session_id = established.json()["session_id"]
+        session = client.app.state.sessions.get(session_id, "gateway-1")
+        session_key = bytes(session.session_key)
+        canonical = b'{"device_id":"sensor-secret","gateway_id":"gateway-1","temperature_c":22.5,"humidity_pct":44.0,"sequence_number":1,"measured_at":"2026-09-21T12:00:00Z","received_at":"2026-09-21T12:00:01Z"}'
+        metadata = {"protocol_version": "1", "gateway_id": "gateway-1", "session_id": session_id, "request_id": "req-secret"}
+        nonce = b"\x01" * 12
+        wire = metadata | {
+            "nonce": cloud_encode_binary(nonce),
+            "ciphertext": cloud_encode_binary(encrypt(session_key, nonce, canonical, build_aad(**metadata))),
+        }
+        assert client.post("/api/v1/secure/measurements", json=wire).status_code == 202
+        monkeypatch.setattr(secure_routes, "decrypt", lambda *_: (_ for _ in ()).throw(AeadError("synthetic-session-key-marker")))
+        assert client.post("/api/v1/secure/measurements", json=wire | {"request_id": "req-secret-failure"}).status_code == 400
+
+    output = caplog.text
+    for marker in (private_marker, shared_marker.decode(), session_key.hex(), encode_binary(session_key), "synthetic-session-key-marker"):
+        assert marker not in output
 
 
 def test_session_initialization_failure_releases_keys(monkeypatch, caplog):

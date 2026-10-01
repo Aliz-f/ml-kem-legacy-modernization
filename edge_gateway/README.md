@@ -242,6 +242,12 @@ ML-KEM stays a key-establishment step, the session key stays the frozen HKDF
 call, and an ordinary timeout resends the envelope already built. Details are
 in [docs/ai-decisions.md](docs/ai-decisions.md).
 
+## Security documentation (M3-67)
+
+The Gateway security facts stay in the frozen Edge Gateway design and the
+shared protocol specification. This note points at those sections. It does not replace the frozen architecture. Details are in
+[docs/security.md](docs/security.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

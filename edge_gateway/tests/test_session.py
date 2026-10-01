@@ -15,6 +15,7 @@ from edge_gateway.crypto.encoding import decode_binary, encode_binary
 from edge_gateway.crypto.kdf import derive_session_key
 from edge_gateway.crypto.mlkem import CIPHERTEXT_LENGTH
 from edge_gateway.crypto.session import (
+    SecureSession,
     SessionEstablishmentError,
     SessionManager,
     SessionMetrics,
@@ -214,6 +215,30 @@ def test_concurrent_callers_share_one_handshake(cloud_url):
     assert cloud.posts == 1
 
 
+def test_replacement_clears_a_held_session_before_the_new_handshake(cloud_url):
+    url, cloud, clock = cloud_url
+    manager = _manager(url, clock)
+    stale = SecureSession(
+        session_id="sess-stale",
+        gateway_id="gateway-001",
+        cloud_key_id="cloud-key-001",
+        created_at=clock.now,
+        expires_at=clock.now + timedelta(minutes=5),
+        session_key=bytearray(b"\x11" * 32),
+        state=SessionState.FAILED,
+    )
+    manager._session = stale
+
+    replacement = asyncio.run(manager.get_or_establish())
+
+    assert cloud.posts == 1
+    assert replacement is not stale
+    assert replacement.state is SessionState.ACTIVE
+    assert stale.state is SessionState.FAILED
+    assert bytes(stale.session_key) == b"\x00" * 32
+    assert manager._session is replacement
+
+
 def test_expired_session_is_replaced(cloud_url):
     url, cloud, clock = cloud_url
     manager = _manager(url, clock)
@@ -307,3 +332,16 @@ def test_close_wipes_the_session_key(cloud_url):
     manager.close()
     assert session.state is SessionState.CLOSED
     assert bytes(session.session_key) == b"\x00" * len(session.session_key)
+
+
+def test_close_refuses_a_later_handshake(cloud_url):
+    url, cloud, clock = cloud_url
+    manager = _manager(url, clock)
+    asyncio.run(manager.get_or_establish())
+    manager.close()
+
+    with pytest.raises(SessionEstablishmentError) as caught:
+        asyncio.run(manager.get_or_establish())
+
+    assert caught.value.retryable is False
+    assert cloud.posts == 1

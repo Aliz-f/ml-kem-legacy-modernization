@@ -46,6 +46,10 @@ def create_app(config: GatewayConfig | None = None, *, pqc_metrics: PqcMetrics |
             yield
         finally:
             app.state.running = False
+            transport = getattr(app.state, "secure_transport", None)
+            shutdown = getattr(transport, "shutdown", None)
+            if shutdown is not None:
+                shutdown()
             logger.info("gateway_shutting_down")
 
     app = FastAPI(

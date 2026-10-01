@@ -19,7 +19,7 @@ def test_normalize_artifacts_removes_checkout_specific_metadata(tmp_path: Path) 
     )
     report_path = tmp_path / "GRAPH_REPORT.md"
     report_path.write_text(
-        "# Report\n\n## Graph Freshness\nBuilt from commit.\n\n## Nodes\nNone.\n",
+        "# Report  (2026-10-01)\n\n## Graph Freshness\nBuilt from commit.\n\n## Nodes\nNone.\n",
         encoding="utf-8",
     )
 
@@ -49,6 +49,31 @@ def test_clear_incremental_state_removes_all_prior_graphify_output(
     assert not graph_path.exists()
     assert not report_path.exists()
     assert list(tmp_path.iterdir()) == []
+
+
+def test_report_is_identical_across_local_and_ci_dates(tmp_path: Path) -> None:
+    outputs = []
+    # Same instant straddling midnight locally/UTC, plus a later build day.
+    for day in ("2026-10-01", "2026-09-30", "2027-01-01"):
+        graph_path = tmp_path / "graph.json"
+        report_path = tmp_path / "GRAPH_REPORT.md"
+        graph_path.write_text('{"nodes": [], "built_at_commit": "abc"}', encoding="utf-8")
+        report_path.write_text(
+            f"# Graph Report - project  ({day})\n\n"
+            "## Graph Freshness\nVolatile metadata.\n\n"
+            "## Nodes\nSource date: 2026-09-30\n",
+            encoding="utf-8",
+        )
+        refresh_graphify.normalize_artifacts(tmp_path)
+        first = (graph_path.read_bytes(), report_path.read_bytes())
+        refresh_graphify.normalize_artifacts(tmp_path)
+        assert (graph_path.read_bytes(), report_path.read_bytes()) == first
+        outputs.append(first)
+
+    assert outputs[0] == outputs[1] == outputs[2]
+    assert report_path.read_text(encoding="utf-8") == (
+        "# Graph Report - project\n\n## Nodes\nSource date: 2026-09-30\n"
+    )
 
 
 def test_refresh_uses_a_stable_hash_seed(tmp_path: Path, monkeypatch) -> None:

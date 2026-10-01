@@ -1,15 +1,14 @@
 """Validated session handshake; no secure-message processing."""
 
-import base64
 from json import JSONDecodeError
 import logging
-import re
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
-from cloud_service.config import SecurityMode
+from cloud_service.config import FailureMode, SecurityMode
+from cloud_service.crypto.encoding import decode_binary
 from cloud_service.crypto.kdf import derive_session_key
 from cloud_service.crypto.session import SessionAccessError, SessionState
 
@@ -23,24 +22,33 @@ def _error(status: int, code: str, message: str) -> JSONResponse:
 
 
 async def session_access_error_handler(request: Request, exc: SessionAccessError) -> JSONResponse:
-    return _error(exc.status_code, exc.code, str(exc))
+    # Only fixed public messages cross the HTTP boundary, never exception text.
+    responses = {
+        (409, "SESSION_INVALID"): "secure session is invalid",
+        (409, "SESSION_EXPIRED"): "secure session has expired",
+        (400, "SECURE_MESSAGE_REJECTED"): "secure message could not be processed",
+    }
+    message = responses.get((exc.status_code, exc.code))
+    if message is None:
+        return _error(500, "INTERNAL_ERROR", "internal error")
+    return _error(exc.status_code, exc.code, message)
 
 
 def _decode_ciphertext(value: object) -> bytes:
     # 1088 raw bytes have 1451 unpadded or 1452 padded Base64URL characters.
     if not isinstance(value, str) or len(value) not in (1451, 1452):
         raise ValueError
-    if re.fullmatch(r"[A-Za-z0-9_-]+=?", value) is None:
-        raise ValueError
-    decoded = base64.b64decode(value + "=" * (-len(value) % 4), altchars=b"-_", validate=True)
-    if len(decoded) != 1088 or base64.urlsafe_b64encode(decoded).decode().rstrip("=") != value.rstrip("="):
+    decoded = decode_binary(value)
+    if len(decoded) != 1088:
         raise ValueError
     return decoded
 
 
-def _establish(keys, manager, gateway_id: str, ciphertext: bytes) -> JSONResponse:
+def _establish(keys, manager, gateway_id: str, ciphertext: bytes, failure) -> JSONResponse:
     session = None
     try:
+        if failure.apply(FailureMode.MLKEM_DECAPSULATION_FAILURE):
+            raise RuntimeError("injected ML-KEM wrapper failure")
         secret = keys.decapsulate(ciphertext)
         key = derive_session_key(secret)
         session = manager.create(gateway_id, keys.key_id, key)
@@ -60,6 +68,11 @@ async def establish_session(request: Request) -> JSONResponse:
     if (request.app.state.config.security_mode != SecurityMode.MLKEM
             or not request.app.state.running or keys is None or keys.closed or manager is None):
         return _error(503, "SERVICE_UNAVAILABLE", "session establishment unavailable")
+    failure = request.app.state.failure_injector.select(
+        (FailureMode.SERVICE_UNAVAILABLE, FailureMode.MLKEM_DECAPSULATION_FAILURE)
+    )
+    if failure.apply(FailureMode.SERVICE_UNAVAILABLE):
+        return _error(503, "SERVICE_UNAVAILABLE", "session establishment unavailable")
     try:
         payload = await request.json()
     except (JSONDecodeError, UnicodeDecodeError):
@@ -76,4 +89,6 @@ async def establish_session(request: Request) -> JSONResponse:
         ciphertext = _decode_ciphertext(payload["encapsulation_ciphertext"])
     except ValueError:
         return _error(400, "INVALID_SESSION_REQUEST", "invalid session request")
-    return await run_in_threadpool(_establish, keys, manager, gateway_id, ciphertext)
+    return await run_in_threadpool(
+        _establish, keys, manager, gateway_id, ciphertext, failure
+    )

@@ -50,9 +50,9 @@ def test_metrics_exposes_only_bounded_service_information():
 @pytest.mark.parametrize(("method", "path"), [
     ("POST", "/api/v1/secure/measurements"),
 ])
-def test_future_routes_do_not_claim_success(method, path):
+def test_secure_route_unavailable_in_classical_mode(method, path):
     with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:
-        assert client.request(method, path).status_code == 404
+        assert client.request(method, path).status_code == 503
 
 
 def test_factory_validates_process_config(monkeypatch):

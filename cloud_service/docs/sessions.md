@@ -89,11 +89,11 @@ and storage on shutdown, including exceptional exits. Startup failure releases
 already-created keys/storage. Buffers are overwritten in place, but Python
 and cryptographic-library memory zeroization of all copies is not guaranteed.
 
-The app registers the frozen session-error HTTP mapping for later secure
-access. Tests exercise it with a **test-only probe route**; production
-`POST /api/v1/secure/measurements` remains unimplemented (`404`). `/ready`
-remains `503` and plaintext ingestion remains rejected in `mlkem` mode.
-This task does not claim successful secure ingestion or full readiness.
+The app registers the frozen session-error HTTP mapping. Session tests exercise
+it with a **test-only probe route**; M4-34–M4-36 now also use it in the production
+[secure ingestion route](secure-ingestion.md). `/ready` remains `503` and
+plaintext ingestion remains rejected in `mlkem` mode. The original session
+task alone did not claim secure ingestion or full readiness.
 
 ## Verification scope
 

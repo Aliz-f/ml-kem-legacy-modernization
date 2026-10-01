@@ -9,6 +9,7 @@ that logical request once. This client does not call the baseline endpoint.
 from __future__ import annotations
 
 import asyncio
+import http.client
 import json
 import logging
 import math
@@ -131,6 +132,24 @@ class SecureTransport:
         )
         self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
+        self._closed = False
+
+    def shutdown(self) -> None:
+        """Stop secure work, close the HTTP client, then clear the session.
+
+        Gateway design section 53 orders the client close before the session
+        is destroyed. A second call does nothing. No key material is logged.
+        """
+        if self._closed:
+            return
+        self._closed = True
+        opener = self._opener
+        self._opener = None
+        if opener is not None:
+            opener.close()
+        close = getattr(self._sessions, "close", None)
+        if close is not None:
+            close()
 
     @property
     def metrics(self) -> PqcMetrics:
@@ -149,6 +168,14 @@ class SecureTransport:
         received_at: str,
     ) -> SecureAcceptance:
         """Encrypt and deliver one measurement. Does not call the baseline API."""
+        if self._closed:
+            log_security(
+                "secure_delivery_rejected",
+                logging.WARNING,
+                request_id=request_id,
+                reason="closed",
+            )
+            raise SecureTransportError("Secure transport is closed.", retryable=False)
         measurement = _Measurement(
             device_id=device_id,
             temperature_c=temperature_c,
@@ -362,6 +389,11 @@ class SecureTransport:
             return self._raise_http(exc, request_id, session_id)
         except urllib.error.URLError as exc:
             raise _RetryableTransport("connection") from exc
+        except http.client.HTTPException as exc:
+            # A Cloud response may be lost after persistence.  In particular,
+            # an incomplete HTTP body must be retried using this exact wire
+            # envelope, not re-encrypted.
+            raise _RetryableTransport("incomplete response") from exc
         if status != 202:
             log_security(
                 "secure_delivery_rejected",
@@ -374,6 +406,11 @@ class SecureTransport:
                 "Cloud secure measurement was not accepted.",
                 retryable=False,
             )
+        if not payload:
+            # Some HTTP stacks surface a deliberately truncated 202 body as
+            # empty bytes instead of an IncompleteRead.  The accepted response
+            # schema is non-empty JSON, so retry the same envelope.
+            raise _RetryableTransport("incomplete response")
         return _parse_acceptance(payload)
 
     def _raise_http(self, exc: urllib.error.HTTPError, request_id: str, session_id: str) -> SecureAcceptance:

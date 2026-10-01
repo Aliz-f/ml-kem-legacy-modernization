@@ -45,6 +45,7 @@ configuration values. Logging includes no configuration dump or request body.
 | `GET /ready` | `503` with structured `SERVICE_UNAVAILABLE` error |
 | `GET /api/v1/crypto/public-key` | `200` with protocol v1 ML-KEM-768 public metadata in `mlkem` mode; `503` if unavailable or in `classical` mode |
 | `POST /api/v1/crypto/sessions` | `200` with versioned session metadata after validated ML-KEM/HKDF establishment in `mlkem` mode; see [sessions](sessions.md) |
+| `POST /api/v1/secure/measurements` | Authenticated ingestion in `mlkem` mode; see [secure ingestion](secure-ingestion.md) |
 | `POST /api/v1/baseline/measurements` | `202 accepted` or `202 already_accepted` after committed persistence |
 | `GET /api/v1/measurements` | Bounded `200 {"items": [...]}` with optional device filter |
 | `GET /api/v1/measurements/{record_id}` | Stored record with `200`, or structured `404` |
@@ -59,12 +60,10 @@ M4-16–M4-20 allow `SECURITY_MODE=mlkem` to start the ephemeral
 [key service](mlkem-key-service.md). Storage and key initialization must succeed
 before liveness is reported. Key failure aborts startup and closes storage;
 there is no switch to classical mode. Baseline ingestion is rejected in `mlkem`
-mode. No key is generated in baseline mode. Full secure ingestion is not yet
-available and readiness remains `503`. Failure-injection settings are still
+mode. No key is generated in baseline mode. Readiness remains `503`. Failure-injection settings are still
 parsed configuration only.
 
-The secure measurement route is not registered yet
-and return the framework's `404`. Baseline ingestion returns `202` only after
+M4-34–M4-36 register secure measurement ingestion. Baseline ingestion returns `202` only after
 the storage transaction commits. See [baseline ingestion](baseline.md).
 Storage initialization and cleanup are implemented by M4-06/07. Request, storage, session, and
 crypto metrics remain their designated later work. The app contains

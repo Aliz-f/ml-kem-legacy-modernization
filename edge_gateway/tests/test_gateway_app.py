@@ -1,4 +1,4 @@
-"""M2-02 lifecycle and route registration, without measurement processing."""
+"""Gateway lifecycle and route registration without configured Cloud transports."""
 
 import logging
 
@@ -26,20 +26,22 @@ def test_lifecycle_and_health(caplog):
 
 @pytest.mark.parametrize("mode", ["classical", "mlkem"])
 def test_registered_routes_never_claim_readiness_or_acceptance(mode):
-    config = load_config({"SECURITY_MODE": mode, "CLOUD_URL": "http://unreachable.invalid"})
+    config = load_config({
+        "SECURITY_MODE": mode, "CLOUD_URL": "http://unreachable.invalid", "CLOUD_MAX_RETRIES": "0",
+    })
     with TestClient(create_app(config)) as client:
         assert client.get("/health").status_code == 200
-        for response in [
-            client.get("/ready"),
-            client.post("/api/v1/measurements", json={
+        for response, code, message in [
+            (client.get("/ready"), "SERVICE_UNAVAILABLE", "service is not ready"),
+            (client.post("/api/v1/measurements", json={
                 "device_id": "sensor-001", "temperature_c": 21.7,
                 "humidity_pct": 42.5, "timestamp": "2026-09-21T13:45:31Z",
                 "sequence_number": 184,
-            }),
+            }), "CLOUD_UNAVAILABLE", "cloud service is unavailable"),
         ]:
             assert response.status_code == 503
             assert response.json() == {
-                "error": {"code": "SERVICE_UNAVAILABLE", "message": "service is not ready"},
+                "error": {"code": code, "message": message},
             }
         metrics = client.get("/metrics")
         assert metrics.status_code == 200

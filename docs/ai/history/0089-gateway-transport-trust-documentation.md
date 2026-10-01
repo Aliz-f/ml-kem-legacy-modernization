@@ -1,4 +1,4 @@
-# AI Task 0076 — Gateway transport trust documentation
+# AI Task 0089 — Gateway transport trust documentation
 
 **Status:** Complete
 

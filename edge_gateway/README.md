@@ -338,6 +338,55 @@ from the frozen lock, starts Cloud, establishes one ML-KEM session, and stores
 one secure measurement. The receiver exists only in that container process.
 Details are in [docs/clean-container.md](docs/clean-container.md).
 
+## Crypto AI-history (M3-64)
+
+Generated Gateway crypto code stays untrusted until a human security review.
+Significant crypto changes follow the repository AI-history workflow: start,
+implementation, tests, output, human review, and a separate final verification.
+Details are in [docs/ai-history.md](docs/ai-history.md).
+
+## Crypto review checklist (M3-65)
+
+Generated Gateway crypto stays untrusted until a human reviews it. A passing
+test suite does not replace this checklist. The checks cover the maintained
+ML-KEM library, HKDF, sessions, AES-GCM, retry, the missing replay window,
+fail-closed behavior, and the Legacy boundary. Details are in
+[docs/crypto-review-checklist.md](docs/crypto-review-checklist.md).
+
+## Crypto AI decisions (M3-66)
+
+Generated crypto proposals are recorded as accepted, modified, and rejected.
+ML-KEM stays a key-establishment step, the session key stays the frozen HKDF
+call, and an ordinary timeout resends the envelope already built. Details are
+in [docs/ai-decisions.md](docs/ai-decisions.md).
+
+## Security documentation (M3-67)
+
+The Gateway security facts stay in the frozen Edge Gateway design and the
+shared protocol specification. This note points at those sections. It does not replace the frozen architecture. Details are in
+[docs/security.md](docs/security.md).
+
+## Security technical debt (M3-68)
+
+The course system keeps simplified public-key trust, in-memory sessions, an
+ephemeral Cloud key, and no cryptographic replay window. The register records
+those limits and their future improvements. It does not add those future controls.
+Details are in [docs/technical-debt.md](docs/technical-debt.md).
+
+## Threat model (M3-69)
+
+The Gateway threat model covers tampered ciphertext, a bad session, ML-KEM
+ciphertext changes, public-key substitution, secret logging, envelope replay,
+downgrade, Cloud unavailability, and a session race. It does not add a replay window.
+Details are in [docs/threat-model.md](docs/threat-model.md).
+
+## Mode evaluation (M3-70)
+
+One local sample compares an equivalent four-measurement workload in classical
+mode and in mlkem mode. The first secure request is reported separately. The
+sample does not rank the modes. Details are in
+[docs/mode-evaluation.md](docs/mode-evaluation.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

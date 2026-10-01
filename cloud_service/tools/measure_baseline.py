@@ -187,7 +187,8 @@ def run(samples=100):
                     detail = client.get(f"/api/v1/measurements/{ids[sequence]}")
                     require(detail.status_code == 200 and detail.json() == row, "detail query mismatch")
                     require(any(
-                        f"request_id='baseline-{sequence}' record_id={ids[sequence]}" in message
+                        f"request_id='baseline-{sequence}'" in message
+                        and f"record_id={ids[sequence]}" in message
                         for message in capture.messages
                     ), "request correlation missing")
                 require(any("request_id='baseline-duplicate'" in message for message in capture.messages), "duplicate correlation missing")

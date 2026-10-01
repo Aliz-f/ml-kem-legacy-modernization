@@ -68,7 +68,9 @@ async def baseline_measurement(request: Request) -> JSONResponse:
     request.app.state.metrics.increment(metric)
     event = "measurement_stored" if result.created else "measurement_duplicate"
     logger.info(
-        "event=%s component=cloud_service request_id=%r record_id=%s status=%s",
-        event, correlation, result.measurement.record_id, status,
+        "event=%s component=cloud_service request_id=%r gateway_id=%r device_id=%r "
+        "sequence_number=%s record_id=%s status=%s",
+        event, correlation, measurement.gateway_id[:256], measurement.device_id[:256],
+        measurement.sequence_number, result.measurement.record_id, status,
     )
     return JSONResponse(status_code=202, content={"status": status, "record_id": result.measurement.record_id})

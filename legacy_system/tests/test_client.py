@@ -1,3 +1,4 @@
+import logging
 import socket
 from http.client import HTTPException
 from urllib.error import HTTPError, URLError
@@ -193,6 +194,28 @@ def test_unserializable_payload_is_non_retryable() -> None:
     assert result.attempt_count == 1
     assert result.error_category is ErrorCategory.PAYLOAD
     assert result.retryable is False
+
+
+def test_retry_logging_exposes_failed_attempts_and_retry_events(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.WARNING, logger="legacy_system.client")
+    opener = ScriptedOpener([FakeResponse(503), FakeResponse(422)])
+    delays: list[float] = []
+    client = GatewayClient(
+        "http://gateway.example.test",
+        request_timeout_seconds=3,
+        opener=opener,
+        max_retries=2,
+        sleeper=delays.append,
+    )
+
+    result = client.send({"device_id": "sensor-001", "sequence_number": 42})
+
+    assert result.success is False
+    assert result.status_code == 422
+    assert "event=gateway_request_failed" in caplog.text
+    assert "event=gateway_retry" in caplog.text
 
 
 @pytest.mark.parametrize("status_code", [500, 502, 503, 504])

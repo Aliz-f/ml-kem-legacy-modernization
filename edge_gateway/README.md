@@ -255,6 +255,13 @@ ephemeral Cloud key, and no cryptographic replay window. The register records
 those limits and their future improvements. It does not add those future controls.
 Details are in [docs/technical-debt.md](docs/technical-debt.md).
 
+## Threat model (M3-69)
+
+The Gateway threat model covers tampered ciphertext, a bad session, ML-KEM
+ciphertext changes, public-key substitution, secret logging, envelope replay,
+downgrade, Cloud unavailability, and a session race. It does not add a replay window.
+Details are in [docs/threat-model.md](docs/threat-model.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

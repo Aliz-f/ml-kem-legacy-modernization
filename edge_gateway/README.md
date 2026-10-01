@@ -220,6 +220,13 @@ from the frozen lock, starts Cloud, establishes one ML-KEM session, and stores
 one secure measurement. The receiver exists only in that container process.
 Details are in [docs/clean-container.md](docs/clean-container.md).
 
+## Crypto AI-history (M3-64)
+
+Generated Gateway crypto code stays untrusted until a human security review.
+Significant crypto changes follow the repository AI-history workflow: start,
+implementation, tests, output, human review, and a separate final verification.
+Details are in [docs/ai-history.md](docs/ai-history.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

@@ -1,4 +1,4 @@
-# AI Task 0069 — Implement Legacy Device graceful shutdown
+# AI Task 0087 — Implement Legacy Device graceful shutdown
 
 **Status:** Complete
 

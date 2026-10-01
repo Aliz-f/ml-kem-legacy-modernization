@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import random
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from cloud_service.config import Config, FailureMode
@@ -23,6 +23,7 @@ class FailureSelection:
     """One request's optional fault, selected before its processing stages."""
 
     mode: FailureMode | None = None
+    on_applied: Callable[[str], None] | None = None
     _applied: bool = False
 
     def inject(self, mode: FailureMode) -> bool:
@@ -34,6 +35,8 @@ class FailureSelection:
             return False
         if not self._applied:
             logger.warning("event=failure_injected failure_type=%s", mode.value)
+            if self.on_applied is not None:
+                self.on_applied(mode.value)
             self._applied = True
         return True
 
@@ -41,17 +44,26 @@ class FailureSelection:
 class FailureInjector:
     """Select configured Cloud faults without changing normal behavior."""
 
-    def __init__(self, mode: FailureMode, rate: float, seed: int | None, delay_seconds: float):
+    def __init__(
+        self, mode: FailureMode, rate: float, seed: int | None, delay_seconds: float,
+        *, on_applied: Callable[[str], None] | None = None,
+    ):
         self._mode = mode
         self._rate = rate
         self._delay_seconds = delay_seconds
         self._random = random.Random(seed)
+        self._on_applied = on_applied
         if mode is not FailureMode.NONE and rate > 0:
             logger.warning("event=failure_injection_enabled mode=%s rate=%s", mode.value, rate)
 
     @classmethod
-    def from_config(cls, config: Config) -> FailureInjector:
-        return cls(config.failure_mode, config.failure_rate, config.failure_seed, config.failure_delay_seconds)
+    def from_config(
+        cls, config: Config, *, on_applied: Callable[[str], None] | None = None,
+    ) -> FailureInjector:
+        return cls(
+            config.failure_mode, config.failure_rate, config.failure_seed,
+            config.failure_delay_seconds, on_applied=on_applied,
+        )
 
     @property
     def delay_seconds(self) -> float:
@@ -66,15 +78,15 @@ class FailureInjector:
         """
         candidates = tuple(sorted(set(allowed) & _INJECTABLE, key=str))
         if not candidates or self._mode is FailureMode.NONE or self._rate == 0:
-            return FailureSelection()
+            return FailureSelection(on_applied=self._on_applied)
         if self._mode is FailureMode.RANDOM:
             if self._rate < 1 and self._random.random() >= self._rate:
-                return FailureSelection()
+                return FailureSelection(on_applied=self._on_applied)
             selected = self._random.choice(candidates)
         else:
             if self._mode not in candidates:
-                return FailureSelection()
+                return FailureSelection(on_applied=self._on_applied)
             if self._rate < 1 and self._random.random() >= self._rate:
                 return FailureSelection()
             selected = self._mode
-        return FailureSelection(selected)
+        return FailureSelection(selected, on_applied=self._on_applied)

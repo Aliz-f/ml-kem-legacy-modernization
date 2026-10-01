@@ -43,12 +43,12 @@ async def baseline_measurement(request: Request) -> JSONResponse:
     try:
         payload = await request.json()
     except (JSONDecodeError, UnicodeDecodeError):
-        logger.info("baseline_invalid_json request_id=%r", correlation)
+        logger.info("event=measurement_validation_failed component=cloud_service request_id=%r", correlation)
         return _error(400, "INVALID_JSON", "invalid JSON body")
     try:
         measurement = validate_measurement(payload)
     except MeasurementValidationError:
-        logger.info("measurement_validation_failed request_id=%r", correlation)
+        logger.info("event=measurement_validation_failed component=cloud_service request_id=%r", correlation)
         return _error(422, "INVALID_MEASUREMENT", "measurement validation failed")
 
     try:
@@ -56,12 +56,21 @@ async def baseline_measurement(request: Request) -> JSONResponse:
             raise StorageError("injected storage failure")
         result = await run_in_threadpool(repository.save_idempotent, measurement)
     except StorageError:
-        logger.warning("storage_failed request_id=%r", correlation)
+        request.app.state.metrics.increment("cloud_storage_failures_total")
+        logger.warning("event=storage_failed component=cloud_service request_id=%r", correlation)
         return _error(503, "STORAGE_UNAVAILABLE", "storage is unavailable")
     except Exception:
         logger.error("baseline_internal_error request_id=%r", correlation)
         return _error(500, "INTERNAL_ERROR", "internal error")
 
     status = "accepted" if result.created else "already_accepted"
-    logger.info("measurement_%s request_id=%r record_id=%s", status, correlation, result.measurement.record_id)
+    metric = "cloud_measurements_stored_total" if result.created else "cloud_duplicate_measurements_total"
+    request.app.state.metrics.increment(metric)
+    event = "measurement_stored" if result.created else "measurement_duplicate"
+    logger.info(
+        "event=%s component=cloud_service request_id=%r gateway_id=%r device_id=%r "
+        "sequence_number=%s record_id=%s status=%s",
+        event, correlation, measurement.gateway_id[:256], measurement.device_id[:256],
+        measurement.sequence_number, result.measurement.record_id, status,
+    )
     return JSONResponse(status_code=202, content={"status": status, "record_id": result.measurement.record_id})

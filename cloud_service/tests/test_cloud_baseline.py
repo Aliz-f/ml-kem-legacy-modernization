@@ -57,6 +57,24 @@ def test_acceptance_is_committed_and_correlated(client, payload, caplog):
         independent.close()
     assert "req-baseline-test" in caplog.text
     assert record_id in caplog.text
+    assert "event=measurement_stored" in caplog.text
+    assert "gateway_id='gateway-test'" in caplog.text
+    assert "device_id='sensor-test'" in caplog.text
+    assert "sequence_number=1" in caplog.text
+
+
+def test_duplicate_log_keeps_frozen_common_correlation_fields(client, payload, caplog):
+    assert client.post(ENDPOINT, json=payload).status_code == 202
+
+    with caplog.at_level(logging.INFO, logger="cloud_service"):
+        duplicate = client.post(ENDPOINT, json=payload, headers={"X-Request-ID": "req-baseline-duplicate"})
+
+    assert duplicate.json()["status"] == "already_accepted"
+    assert "event=measurement_duplicate" in caplog.text
+    assert "request_id='req-baseline-duplicate'" in caplog.text
+    assert "gateway_id='gateway-test'" in caplog.text
+    assert "device_id='sensor-test'" in caplog.text
+    assert "sequence_number=1" in caplog.text
 
 
 def test_duplicate_and_lost_response_retry_preserve_original(client, payload):

@@ -1,4 +1,4 @@
-# AI Task 0070 — M2-11 sequence-state design
+# AI Task 0076 — M2-11 sequence-state design
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Completed M2-11 sequence-state design using the existing M2-10 tracker and lock.
 
 ## Files Created
 
-- docs/ai/history/0070-m2-11-sequence-state-design.md
+- docs/ai/history/0076-m2-11-sequence-state-design.md
 
 ## Files Modified
 

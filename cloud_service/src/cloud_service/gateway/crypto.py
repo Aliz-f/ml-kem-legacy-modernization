@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from cloud_service.config import SecurityMode
+from cloud_service.config import FailureMode, SecurityMode
 
 router = APIRouter()
 logger = logging.getLogger("cloud_service")
@@ -16,6 +16,13 @@ async def public_key(request: Request) -> JSONResponse:
     keys = request.app.state.keys
     if (request.app.state.config.security_mode != SecurityMode.MLKEM
             or not request.app.state.running or keys is None or keys.closed):
+        return _unavailable()
+    failure = request.app.state.failure_injector.select(
+        (FailureMode.SERVICE_UNAVAILABLE, FailureMode.PUBLIC_KEY_UNAVAILABLE)
+    )
+    if failure.apply(FailureMode.SERVICE_UNAVAILABLE):
+        return _unavailable()
+    if failure.apply(FailureMode.PUBLIC_KEY_UNAVAILABLE):
         return _unavailable()
     try:
         payload = keys.public_response()

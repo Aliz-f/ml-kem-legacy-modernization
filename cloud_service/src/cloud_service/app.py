@@ -1,4 +1,4 @@
-"""Cloud storage, ephemeral keys and sessions; secure ingestion follows later."""
+"""Cloud baseline and authenticated secure ingestion with managed lifecycle."""
 
 from contextlib import asynccontextmanager
 import logging
@@ -9,10 +9,12 @@ from fastapi.responses import JSONResponse, Response
 from cloud_service.config import Config, ConfigurationError, SecurityMode, load_config
 from cloud_service.crypto.keys import KeyService
 from cloud_service.crypto.session import SessionAccessError, SessionManager
+from cloud_service.failure import FailureInjector
 from cloud_service.gateway.crypto import router as crypto_router
 from cloud_service.gateway.routes import router as gateway_router
 from cloud_service.gateway.queries import router as query_router
 from cloud_service.gateway.sessions import router as session_router, session_access_error_handler
+from cloud_service.gateway.secure import router as secure_router
 from cloud_service.storage.database import Database, StorageError
 from cloud_service.storage.repository import MeasurementRepository
 
@@ -77,10 +79,12 @@ def create_app(config: Config | None = None) -> FastAPI:
     app.state.repository = None
     app.state.keys = None
     app.state.sessions = None
+    app.state.failure_injector = FailureInjector.from_config(settings)
     app.include_router(gateway_router)
     app.include_router(query_router)
     app.include_router(crypto_router)
     app.include_router(session_router)
+    app.include_router(secure_router)
     app.add_exception_handler(SessionAccessError, session_access_error_handler)
 
     @app.get("/health")

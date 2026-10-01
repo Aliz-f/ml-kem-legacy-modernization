@@ -1,5 +1,6 @@
 """Baseline canonical ingestion; no secure processing or plaintext fallback."""
 
+import asyncio
 from json import JSONDecodeError
 import logging
 
@@ -7,7 +8,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
-from cloud_service.config import SecurityMode
+from cloud_service.config import FailureMode, SecurityMode
 from cloud_service.storage.database import StorageError
 from cloud_service.validation import MeasurementValidationError, validate_measurement
 
@@ -27,6 +28,14 @@ async def baseline_measurement(request: Request) -> JSONResponse:
     repository = request.app.state.repository
     if not request.app.state.running or repository is None:
         return _error(503, "STORAGE_UNAVAILABLE", "storage is unavailable")
+    injector = request.app.state.failure_injector
+    failure = injector.select(
+        (FailureMode.SERVICE_UNAVAILABLE, FailureMode.PROCESSING_DELAY, FailureMode.STORAGE_FAILURE)
+    )
+    if failure.apply(FailureMode.SERVICE_UNAVAILABLE):
+        return _error(503, "SERVICE_UNAVAILABLE", "baseline service is unavailable")
+    if failure.apply(FailureMode.PROCESSING_DELAY):
+        await asyncio.sleep(injector.delay_seconds)
 
     # Bound diagnostic text and use repr formatting to escape control characters.
     request_id = request.headers.get("X-Request-ID")
@@ -43,6 +52,8 @@ async def baseline_measurement(request: Request) -> JSONResponse:
         return _error(422, "INVALID_MEASUREMENT", "measurement validation failed")
 
     try:
+        if failure.apply(FailureMode.STORAGE_FAILURE):
+            raise StorageError("injected storage failure")
         result = await run_in_threadpool(repository.save_idempotent, measurement)
     except StorageError:
         logger.warning("storage_failed request_id=%r", correlation)

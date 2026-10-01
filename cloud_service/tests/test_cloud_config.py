@@ -50,7 +50,7 @@ def test_process_environment_and_explicit_mapping(monkeypatch):
     ("SECURITY_MODE", ["unknown", "", "MLKEM"]),
     ("FAILURE_MODE", ["unknown", "invalid_temperature", ""]),
     ("FAILURE_RATE", ["-0.01", "1.01", "nan", "inf", "-inf", "invalid", ""]),
-    ("FAILURE_DELAY_SECONDS", ["-0.01", "nan", "inf", "invalid", ""]),
+    ("FAILURE_DELAY_SECONDS", ["-0.01", "30.01", "nan", "inf", "invalid", ""]),
     ("FAILURE_SEED", ["1.5", "invalid"]),
     ("LOG_LEVEL", ["TRACE", ""]),
 ])

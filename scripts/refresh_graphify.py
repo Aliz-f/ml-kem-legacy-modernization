@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 
@@ -42,7 +43,7 @@ def clear_incremental_state(output_directory: Path) -> None:
 
 
 def normalize_artifacts(output_directory: Path) -> None:
-    """Remove Graphify metadata that varies only with the local Git checkout."""
+    """Remove checkout and wall-clock metadata from the shared artifacts."""
     graph_path = output_directory / "graph.json"
     graph = json.loads(graph_path.read_text(encoding="utf-8"))
     graph.pop("built_at_commit", None)
@@ -51,10 +52,19 @@ def normalize_artifacts(output_directory: Path) -> None:
     )
 
     report_path = output_directory / "GRAPH_REPORT.md"
+    report = _without_section(
+        report_path.read_text(encoding="utf-8"), "## Graph Freshness\n"
+    )
+    # Graphify uses date.today() here. UTC alone would still drift next day.
+    # Match only the title suffix; dates in source-derived content are retained.
+    report = re.sub(
+        r"\A(# Graph Report - [^\n]+?)  \(\d{4}-\d{2}-\d{2}\)(?=\n|\Z)",
+        r"\1",
+        report,
+        count=1,
+    )
     report_path.write_text(
-        _without_section(
-            report_path.read_text(encoding="utf-8"), "## Graph Freshness\n"
-        ),
+        report,
         encoding="utf-8",
     )
 

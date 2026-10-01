@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from typing import TypeAlias
 import threading
 from collections.abc import Callable
 from datetime import datetime, timezone
@@ -55,9 +56,12 @@ class _Sessions:
             self.current = None
 
 
+_ResponsePayload: TypeAlias = dict[str, object] | None
+
+
 class _Cloud:
     def __init__(self) -> None:
-        self.responses: list[tuple[int, dict[str, object]]] = [(202, {"status": "accepted", "record_id": "rec-1"})]
+        self.responses: list[tuple[int, _ResponsePayload]] = [(202, {"status": "accepted", "record_id": "rec-1"})]
         self.requests: list[tuple[str, bytes, str | None]] = []
         self.redirect_to: str | None = None
         self.delay_seconds = 0.0
@@ -79,6 +83,14 @@ class _Handler(BaseHTTPRequestHandler):
             self.end_headers()
             return
         status, payload = cloud.responses.pop(0)
+        if payload is None:
+            # Simulate the Cloud persisting the request but losing its response.
+            # The declared byte is intentionally never written before close.
+            self.send_response(status)
+            self.send_header("Content-Length", "1")
+            self.end_headers()
+            self.close_connection = True
+            return
         encoded = json.dumps(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
@@ -181,6 +193,20 @@ def test_transport_retry_resends_the_same_envelope(cloud):
     assert len(bodies) == 3
     assert bodies[0] == bodies[1] == bodies[2]
     assert delays == [1.0, 2.0]
+
+
+def test_lost_response_retries_the_same_envelope(cloud):
+    url, script = cloud
+    script.responses = [
+        (202, None),
+        (202, {"status": "already_accepted", "record_id": "rec-existing"}),
+    ]
+    delays: list[float] = []
+    result = _send(_transport(url, _Sessions(), max_retries=1, sleep=delays.append))
+    assert result == SecureAcceptance(status="already_accepted", record_id="rec-existing")
+    bodies = [body for _, body, _ in script.requests]
+    assert bodies[0] == bodies[1]
+    assert delays == [1.0]
 
 
 def test_session_conflict_rebuilds_once_with_the_same_request_id(cloud):

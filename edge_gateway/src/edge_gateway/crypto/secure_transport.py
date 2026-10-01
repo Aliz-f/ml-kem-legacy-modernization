@@ -9,6 +9,7 @@ that logical request once. This client does not call the baseline endpoint.
 from __future__ import annotations
 
 import asyncio
+import http.client
 import json
 import logging
 import math
@@ -362,6 +363,11 @@ class SecureTransport:
             return self._raise_http(exc, request_id, session_id)
         except urllib.error.URLError as exc:
             raise _RetryableTransport("connection") from exc
+        except http.client.HTTPException as exc:
+            # A Cloud response may be lost after persistence.  In particular,
+            # an incomplete HTTP body must be retried using this exact wire
+            # envelope, not re-encrypted.
+            raise _RetryableTransport("incomplete response") from exc
         if status != 202:
             log_security(
                 "secure_delivery_rejected",
@@ -374,6 +380,11 @@ class SecureTransport:
                 "Cloud secure measurement was not accepted.",
                 retryable=False,
             )
+        if not payload:
+            # Some HTTP stacks surface a deliberately truncated 202 body as
+            # empty bytes instead of an IncompleteRead.  The accepted response
+            # schema is non-empty JSON, so retry the same envelope.
+            raise _RetryableTransport("incomplete response")
         return _parse_acceptance(payload)
 
     def _raise_http(self, exc: urllib.error.HTTPError, request_id: str, session_id: str) -> SecureAcceptance:

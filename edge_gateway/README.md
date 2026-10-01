@@ -522,3 +522,35 @@ read its configuration directly from the environment.
 `SECURITY_MODE=classical` is the explicitly selected baseline mode. The
 `mlkem` setting selects only the supplied secure transport; missing or failed
 secure delivery returns `503` without a plaintext fallback.
+
+## Application failure-injection framework (M2-19)
+
+`edge_gateway.failure.FailureInjector.from_config(config)` builds a local
+selector using `FAILURE_MODE`, `FAILURE_RATE`, and optional `FAILURE_SEED`.
+Defaults (`none`, `0.0`, empty seed) disable selection. Rate zero never selects;
+rate one always selects an eligible fault; intermediate rates use one probability
+check per eligible call. A seed reproduces decisions for the same call order.
+Concurrent request scheduling can change which request receives a decision.
+
+`select()` returns one mode or `None`. Application modes are `processing_error`,
+`processing_delay`, `cloud_timeout`, `cloud_unavailable`, and `drop_message`.
+`random` chooses only from these modes, with a stable candidate order. Pass
+`allowed` to restrict selection to implemented/applicable boundaries. Keep one
+injector per application and select once after validation, sequence acceptance,
+normalization, and request-ID creation; retain that decision across boundaries.
+Failure selection must never bypass validation or roll back sequence state.
+
+This task provides selection infrastructure only. M2-20 through M2-24 implement
+fault execution and route/transport wiring; setting an application failure mode
+does not yet inject a fault into live requests. The existing processing hook is
+available for that wiring. Execution hooks must log actual injection, preserve
+bounded transport retries, and never return success for a dropped measurement.
+The selector logs enablement and debug selection without claiming execution.
+
+Member 3's crypto injector remains separate; crypto modes select no application
+fault. This framework does not generate keys/nonces/request IDs, mutate payloads,
+or add network fields. Its private PRNG does not change global random state.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_failure_injector.py
+```

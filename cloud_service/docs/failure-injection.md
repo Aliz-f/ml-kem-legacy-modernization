@@ -16,14 +16,14 @@ never used for keys, shared secrets, session keys, or AEAD nonces.
 | `storage_failure` | After validation, secure and baseline paths return `503 STORAGE_UNAVAILABLE` without a false `202`. |
 | `processing_delay` | Secure and baseline processing await the configured bounded delay. |
 | `service_unavailable` | Secure, session-establishment, baseline, or public-key API boundaries return `503`. |
-| `drop_response` | The measurement commits, then Cloud returns a retryable non-acceptance `503`. Retrying the same already-built envelope reaches idempotency and returns `202 already_accepted` with the original record ID. |
+| `drop_response` | The measurement commits, then Cloud starts but intentionally never completes the response. The Gateway receives a transport failure, retries the same already-built envelope, and receives `202 already_accepted` with the original record ID. |
 | `random` | Applies the rate gate once per request, then chooses one applicable injectable mode using the configured seed. |
 
-`drop_response` deliberately models the Cloud-side lost acknowledgement in the
-in-process HTTP harness. It does not claim to close a real TCP connection; the
-Member 5 network/E2E suite owns that transport-level verification. The tested
-retry is an identical envelope: same request ID, session ID, nonce, ciphertext,
-and AAD. It is business idempotency, not a cryptographic replay counter/window.
+`drop_response` deliberately starts an incomplete HTTP response. Uvicorn closes
+the connection when the ASGI response is not completed, so the Gateway receives
+a transport failure rather than an HTTP status result. The tested retry is an
+identical envelope: same request ID, session ID, nonce, ciphertext, and AAD.
+It is business idempotency, not a cryptographic replay counter/window.
 
 When a non-default mode has a positive rate, Cloud logs the safe warning
 `event=failure_injection_enabled`; every selected fault logs

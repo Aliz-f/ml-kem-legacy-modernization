@@ -4,7 +4,7 @@ import asyncio
 import logging
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import ClientDisconnect
 
@@ -20,6 +20,23 @@ from cloud_service.validation import MeasurementValidationError, validate_measur
 
 router = APIRouter()
 logger = logging.getLogger("cloud_service")
+
+
+class _DroppedResponse(Response):
+    """Start an accepted response, then let the server close it unfinished.
+
+    The deliberately incomplete response represents a lost acknowledgement:
+    Uvicorn closes an ASGI response that starts but never completes, and the
+    Gateway therefore receives a transport error rather than an HTTP result.
+    """
+
+    def __init__(self) -> None:
+        # A non-zero length makes an empty body unambiguously incomplete to an
+        # HTTP client.  Do not send a body event.
+        super().__init__(status_code=202, headers={"Content-Length": "1"})
+
+    async def __call__(self, scope, receive, send) -> None:
+        await send({"type": "http.response.start", "status": self.status_code, "headers": self.raw_headers})
 
 
 def _error(status: int, code: str, message: str) -> JSONResponse:
@@ -72,11 +89,10 @@ def _ingest(body: bytes, sessions, repository, failure) -> JSONResponse:
                 envelope.request_id[:256], envelope.gateway_id[:256], measurement.device_id[:256],
                 measurement.sequence_number, status, result.measurement.record_id)
     if failure.apply(FailureMode.DROP_RESPONSE):
-        # The record is committed, but the caller receives a retryable outcome.
-        # A retransmission must retain its already-built envelope and reaches
-        # the repository's idempotency path. Transport-level connection loss is
-        # exercised by Member 5's real-network E2E suite.
-        return _error(503, "SERVICE_UNAVAILABLE", "secure response is unavailable")
+        # The record is committed, but the Gateway receives no completed HTTP
+        # response.  Its ordinary retry must retain the already-built envelope
+        # and therefore reaches the repository's idempotency path.
+        return _DroppedResponse()
     return JSONResponse(status_code=202, content={"status": status, "record_id": result.measurement.record_id})
 
 

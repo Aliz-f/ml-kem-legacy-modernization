@@ -1,5 +1,7 @@
 """M4-41 through M4-51 controlled Cloud failures and unchanged safe defaults."""
 
+import asyncio
+import json
 import logging
 
 from fastapi.testclient import TestClient
@@ -209,8 +211,18 @@ def test_service_unavailable_stops_secure_boundary(tmp_path):
 def test_drop_response_commits_then_same_envelope_retries_idempotently(tmp_path):
     with secure_client(tmp_path, FailureMode.DROP_RESPONSE) as client:
         wire = envelope(client)
-        first = client.post(SECURE_PATH, json=wire)
-        assert first.status_code == 503
+        failure = client.app.state.failure_injector.select((FailureMode.DROP_RESPONSE,))
+        response = secure._ingest(json.dumps(wire).encode(), client.app.state.sessions, client.app.state.repository, failure)
+        messages = []
+
+        async def send(message):
+            messages.append(message)
+
+        asyncio.run(response({"type": "http"}, None, send))
+        assert messages == [{
+            "type": "http.response.start", "status": 202,
+            "headers": [(b"content-length", b"1")],
+        }]
         records = client.app.state.repository.list()
         assert len(records) == 1
         client.app.state.failure_injector = FailureInjector(FailureMode.NONE, 0.0, None, 0)

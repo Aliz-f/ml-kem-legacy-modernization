@@ -170,8 +170,8 @@ uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -q
 
 This covers the Member 2 client boundary and complements the Cloud-local
 serializer harness. The M2-17 tests below extend it through the Legacy boundary.
-Cloud health is checked; readiness currently returns the documented `503`
-placeholder pending its owning readiness task.
+Cloud health and dependency readiness both return `200`. Gateway readiness
+remains a `503` placeholder pending its owning readiness task.
 
 ## First full baseline E2E support (M2-17)
 
@@ -206,8 +206,26 @@ This is Member 2's transformation evidence for the Phase 5 baseline milestone.
 Member 5 retains ownership of shared E2E orchestration, deployment, and baseline
 freeze coordination. These tests use the deterministic send path, not the
 continuous sensor loop or Docker Compose. Both services' `/health` endpoints
-return `200`; `/ready` remains a `503` placeholder. Compose currently has no
+return `200`; Cloud `/ready` returns `200`, while Gateway `/ready` remains a
+`503` placeholder. Compose currently has no
 service definitions, so this does not establish container deployment readiness.
+
+## Baseline Gateway measurements (M2-18)
+
+A small collector in the existing live integration test records Legacy request
+counts, accepted/rejected/failed outcomes, Gateway request duration, baseline
+Cloud delivery and attempt latency, actual retries, and canonical HTTP body
+size. Production behavior is unchanged. Run from the workspace root:
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -k baseline_gateway_measurements -q -s
+```
+
+Each scenario prints an `M2-18` JSON report. See
+[the measurement method and recorded sample](docs/baseline-measurements.md)
+for timing boundaries, workload, configuration, and limitations. This supplies
+Member 2 evidence for the Phase 5 baseline milestone; Member 5 retains ownership
+of the shared benchmark harness, deployment, and baseline freeze.
 
 ## Canonical measurement model (M2-07)
 

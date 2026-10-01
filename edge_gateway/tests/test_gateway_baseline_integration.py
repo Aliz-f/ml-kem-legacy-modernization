@@ -77,8 +77,9 @@ def live_service(app, logger_name):
             url = f"http://127.0.0.1:{listener.getsockname()[1]}"
             with httpx.Client(base_url=url, timeout=5, trust_env=False) as query:
                 assert query.get("/health").status_code == 200
-                # Readiness remains a placeholder in the current application.
-                assert query.get("/ready").status_code == 503
+                # Cloud now checks dependencies; Gateway readiness is still a placeholder.
+                expected_ready = 200 if logger_name == "cloud_service" else 503
+                assert query.get("/ready").status_code == expected_ready
                 yield url, query
         finally:
             server.should_exit = True
@@ -122,12 +123,12 @@ def test_baseline_client_preserves_fields_correlation_and_persistence(tmp_path, 
             assert path == "/api/v1/baseline/measurements"
             assert request_id == "req-test-001"
             assert json.loads(body) == CANONICAL  # Exactly seven fields, no request_id.
-            for status in ("accepted", "already_accepted"):
+            for event in ("measurement_stored", "measurement_duplicate"):
                 assert any(
-                    record.name == "cloud_service" and record.getMessage() == (
-                        f"measurement_{status} request_id='req-test-001' "
-                        f"record_id={accepted.record_id}"
-                    ) for record in caplog.records
+                    record.name == "cloud_service"
+                    and f"event={event} " in record.getMessage()
+                    and "request_id='req-test-001' " in record.getMessage()
+                    and f"record_id={accepted.record_id} " in record.getMessage() for record in caplog.records
                 )
 
     # A fresh connection after Cloud shutdown proves committed disk persistence.
@@ -240,10 +241,10 @@ def test_legacy_to_sqlite_preserves_gateway_transformations(
                 assert detail.status_code == 200
                 assert detail.json() == row
                 assert any(
-                    record.name == "cloud_service" and record.getMessage() == (
-                        f"measurement_accepted request_id={request_id!r} "
-                        f"record_id={row['record_id']}"
-                    ) for record in caplog.records
+                    record.name == "cloud_service"
+                    and "event=measurement_stored " in record.getMessage()
+                    and f"request_id={request_id!r} " in record.getMessage()
+                    and f"record_id={row['record_id']} " in record.getMessage() for record in caplog.records
                 )
 
     with sqlite3.connect(database_path) as connection:
@@ -292,3 +293,104 @@ def test_baseline_e2e_rejections_and_failed_delivery_preserve_sequence_policy(tm
             assert row["sequence_number"] == 3
             assert row["temperature_c"] == payload["temperature_c"]
             assert row["humidity_pct"] == payload["humidity_pct"]
+
+
+@pytest.mark.parametrize("storage_failure", [False, True], ids=["healthy", "storage_failure"])
+def test_baseline_gateway_measurements(tmp_path, storage_failure):
+    """M2-18 evidence, collected around real delivery without performance thresholds."""
+    import platform
+    from statistics import mean
+    from time import perf_counter
+
+    attempts, delivery_ms, gateway_ms, statuses = [], [], [], []
+
+    class MeasuredClient(BaselineCloudClient):
+        async def send(self, **fields):
+            started = perf_counter()
+            try:
+                return await super().send(**fields)
+            finally:
+                delivery_ms.append((perf_counter() - started) * 1000)
+
+        def _post(self, body, request_id):
+            started = perf_counter()
+            try:
+                return super()._post(body, request_id)
+            finally:
+                attempts.append((len(body), (perf_counter() - started) * 1000))
+
+    database_path = tmp_path / "measurements.db"
+    with live_cloud(database_path) as (cloud, cloud_url, query, requests):
+        if storage_failure:
+            with cloud.state.database.transaction() as connection:
+                connection.execute("PRAGMA query_only = ON")
+        transport = MeasuredClient(cloud_url=cloud_url, timeout_seconds=5, max_retries=2)
+        gateway = create_gateway(load_gateway_config({
+            "GATEWAY_ID": "gateway-baseline", "CLOUD_URL": cloud_url,
+            "SECURITY_MODE": "classical", "CLOUD_TIMEOUT_SECONDS": "5",
+            "CLOUD_MAX_RETRIES": "2", "FAILURE_MODE": "none",
+        }), baseline_transport=transport)
+
+        @gateway.middleware("http")
+        async def measure_request(request: Request, call_next):
+            started = perf_counter()
+            response = await call_next(request)
+            if request.method == "POST" and request.url.path == "/api/v1/measurements":
+                gateway_ms.append((perf_counter() - started) * 1000)
+                statuses.append(response.status_code)
+            return response
+
+        samples = 1 if storage_failure else 100
+        payload = Measurement(
+            device_id="sensor-test", temperature_c=22.5, humidity_pct=44.0,
+            timestamp=datetime.fromisoformat("2026-09-21T12:00:00Z"), sequence_number=1,
+        ).to_payload()
+        with live_service(gateway, "edge_gateway") as (gateway_url, caller):
+            legacy = GatewayClient(gateway_url, request_timeout_seconds=10, max_retries=0)
+            for sequence in range(1, samples + 1):
+                result = legacy.send({**payload, "sequence_number": sequence})
+                assert result.status_code == (503 if storage_failure else 202)
+                assert result.attempt_count == 1
+            if not storage_failure:
+                # Separate rejection controls: syntax, domain, duplicate, out-of-order.
+                assert caller.post("/api/v1/measurements", content="{").status_code == 400
+                assert legacy.send({**payload, "humidity_pct": 101.0}).status_code == 422
+                assert legacy.send({**payload, "sequence_number": samples}).status_code == 409
+                assert legacy.send(payload).status_code == 409
+        rows = query.get("/api/v1/measurements?limit=100").json()["items"]
+        expected_rows = 0 if storage_failure else samples
+        assert len(rows) == expected_rows
+        assert len(delivery_ms) == samples
+        assert len(attempts) == len(requests) == (3 if storage_failure else samples)
+        assert [size for size, _ in attempts] == [len(body) for _, _, body in requests]
+        if storage_failure:
+            assert requests[0] == requests[1] == requests[2]
+        else:
+            assert {row["sequence_number"] for row in rows} == set(range(1, 101))
+            assert all(row["temperature_c"] == 22.5 and row["humidity_pct"] == 44.0 for row in rows)
+        assert statuses == ([503] if storage_failure else [202] * samples + [400, 422, 409, 409])
+
+    with sqlite3.connect(database_path) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM measurements").fetchone()[0] == expected_rows
+
+    def summary(values):
+        return {"count": len(values), "min": min(values), "mean": mean(values), "max": max(values)}
+
+    report = {
+        "scenario": "sqlite_query_only" if storage_failure else "healthy_with_rejection_controls",
+        "environment": {"python": platform.python_version(), "os": platform.system(),
+                        "machine": platform.machine(), "sqlite": sqlite3.sqlite_version},
+        "security_mode": "classical", "failure_mode": "none",
+        "cloud_max_retries": 2, "cloud_timeout_seconds": 5, "legacy_max_retries": 0,
+        "legacy_requests": len(statuses), "accepted": statuses.count(202),
+        "rejected": sum(400 <= status < 500 for status in statuses),
+        "failed": sum(status >= 500 for status in statuses),
+        "cloud_attempts": len(attempts), "cloud_retries": len(attempts) - len(delivery_ms),
+        "persisted_rows": expected_rows,
+        "gateway_request_ms": summary(gateway_ms),
+        "gateway_accepted_request_ms": summary(gateway_ms[:samples]) if not storage_failure else None,
+        "cloud_delivery_ms": summary(delivery_ms),
+        "cloud_attempt_ms": summary([elapsed for _, elapsed in attempts]),
+        "canonical_payload_bytes_per_attempt": summary([size for size, _ in attempts]),
+    }
+    print("M2-18 " + json.dumps(report, sort_keys=True))

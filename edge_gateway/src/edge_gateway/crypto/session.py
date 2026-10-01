@@ -2,7 +2,8 @@
 
 The session key stays in process memory. Establishment uses the public-key
 client, ML-KEM encapsulation, and HKDF, then POST /api/v1/crypto/sessions.
-This module does not send measurements or perform AES-GCM.
+This module does not send measurements or perform AES-GCM. Python does not
+guarantee secure memory zeroization.
 """
 
 from __future__ import annotations
@@ -106,10 +107,16 @@ class SessionManager:
         self._injector = injector or CryptoFailureInjector.disabled()
         self._lock = asyncio.Lock()
         self._session: SecureSession | None = None
+        self._closed = False
 
     async def get_or_establish(self) -> SecureSession:
         """Return the active session, establishing one handshake if needed."""
         async with self._lock:
+            if self._closed:
+                raise SessionEstablishmentError(
+                    "Gateway session manager is closed.",
+                    retryable=False,
+                )
             self._apply_session_fault()
             current = self._usable_session()
             if current is not None:
@@ -125,6 +132,15 @@ class SessionManager:
             except SessionEstablishmentError:
                 self._fail_current()
                 raise
+            if self._closed:
+                session.clear(SessionState.CLOSED)
+                if self._session is session:
+                    self._session = None
+                self._metrics.set_active_session(False)
+                raise SessionEstablishmentError(
+                    "Gateway session manager is closed.",
+                    retryable=False,
+                )
             self._session = session
             self._metrics.set_active_session(True)
             return session
@@ -145,7 +161,12 @@ class SessionManager:
             self._metrics.set_active_session(False)
 
     def close(self) -> None:
-        """Drop the current session and wipe its key."""
+        """Drop the current session and wipe its key.
+
+        Later handshakes are refused. Python does not guarantee that every
+        copy of the key is gone from process memory.
+        """
+        self._closed = True
         session = self._session
         if session is not None:
             log_security(
@@ -217,9 +238,26 @@ class SessionManager:
             self._session = None
             self._metrics.set_active_session(False)
 
+    def _clear_replaced_session(self) -> None:
+        """Wipe a session that is still held when a new handshake starts."""
+        session = self._session
+        if session is None:
+            return
+        log_security(
+            "session_invalidated",
+            session_id=session.session_id,
+            gateway_id=session.gateway_id,
+            reason="replaced",
+            level=logging.WARNING,
+        )
+        session.clear(SessionState.FAILED)
+        self._session = None
+        self._metrics.set_active_session(False)
+
     def _establish(self) -> SecureSession:
         """Run the handshake. The caller holds the establishment lock."""
         started = time.perf_counter()
+        self._clear_replaced_session()
         log_security("mlkem_handshake_started", gateway_id=self._gateway_id)
         if self._injector.handshake_failure():
             duration = time.perf_counter() - started

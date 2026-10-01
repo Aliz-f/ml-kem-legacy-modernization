@@ -227,6 +227,14 @@ Significant crypto changes follow the repository AI-history workflow: start,
 implementation, tests, output, human review, and a separate final verification.
 Details are in [docs/ai-history.md](docs/ai-history.md).
 
+## Crypto review checklist (M3-65)
+
+Generated Gateway crypto stays untrusted until a human reviews it. A passing
+test suite does not replace this checklist. The checks cover the maintained
+ML-KEM library, HKDF, sessions, AES-GCM, retry, the missing replay window,
+fail-closed behavior, and the Legacy boundary. Details are in
+[docs/crypto-review-checklist.md](docs/crypto-review-checklist.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

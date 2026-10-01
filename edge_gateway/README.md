@@ -413,6 +413,12 @@ One review of Member 4's Cloud crypto compares the implementation with the
 frozen session-key contract. It does not change the Cloud protocol.
 Details are in [docs/cloud-crypto-review.md](docs/cloud-crypto-review.md).
 
+## Member 2 integration review (M3-75)
+
+One review of the Gateway integration checks modernized dispatch, request
+correlation, fail-closed delivery, and session recovery. It does not change the Gateway protocol.
+Details are in [docs/member2-integration-review.md](docs/member2-integration-review.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

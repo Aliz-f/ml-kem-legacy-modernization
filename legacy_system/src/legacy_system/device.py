@@ -4,7 +4,6 @@ from collections.abc import Callable, Mapping
 import logging
 import signal
 import threading
-import time
 from types import FrameType
 
 from legacy_system.client import GatewayClient
@@ -24,7 +23,7 @@ class DeviceController:
         sensor: Sensor | None = None,
         failure_injector: FailureInjector | None = None,
         client: GatewayClient | None = None,
-        sleeper: Callable[[float], None] = time.sleep,
+        sleeper: Callable[[float], None] | None = None,
         stop_event: threading.Event | None = None,
     ) -> None:
         self._config = config
@@ -47,10 +46,10 @@ class DeviceController:
                 max_retries=config.max_retries,
             )
         )
-        self._sleeper = sleeper
         self._stop_event = (
             stop_event if stop_event is not None else threading.Event()
         )
+        self._sleeper = sleeper if sleeper is not None else self._stop_event.wait
 
     def run(self) -> None:
         """Run the device loop until :meth:`stop` is called."""
@@ -68,7 +67,8 @@ class DeviceController:
                 payload = measurement.to_payload()
                 outgoing = self._failure_injector.apply(payload)
                 self._send_with_logging(outgoing, measurement.sequence_number)
-                self._sleeper(self._config.send_interval_seconds)
+                if not self._stop_event.is_set():
+                    self._sleeper(self._config.send_interval_seconds)
         finally:
             self._restore_signal_handlers(previous_handlers)
             self._close_client()
@@ -91,7 +91,7 @@ class DeviceController:
                 sequence_number,
                 type(exc).__name__,
             )
-            raise
+            return
 
         success = result if isinstance(result, bool) else bool(getattr(result, "success", False))
         status_code = 202 if result is True else (None if isinstance(result, bool) else getattr(result, "status_code", None))

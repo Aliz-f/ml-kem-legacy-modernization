@@ -234,18 +234,51 @@ def test_falsey_injected_dependencies_are_preserved() -> None:
     assert client.closed is True
 
 
-def test_client_is_closed_when_send_raises() -> None:
+def test_client_exception_is_logged_then_loop_continues_and_closes() -> None:
     client = RaisingClient([])
+    stop_event = threading.Event()
+    waits: list[float] = []
+
+    def wait_then_stop(interval: float) -> None:
+        waits.append(interval)
+        stop_event.set()
+
     controller = DeviceController(
         make_config(),
         sensor=FakeSensor(),
         client=client,
-        sleeper=lambda _interval: pytest.fail("sleep should not be called"),
+        sleeper=wait_then_stop,
+        stop_event=stop_event,
     )
 
-    with pytest.raises(RuntimeError, match="delivery failed"):
-        controller.run()
+    controller.run()
 
+    assert len(client.events) == 1
+    assert waits == [5]
+    assert client.closed is True
+
+
+def test_stop_during_delivery_skips_interval_wait() -> None:
+    stop_event = threading.Event()
+
+    class StoppingClient(RecordingClient):
+        def send(self, payload: Mapping[str, object]) -> bool:
+            result = super().send(payload)
+            stop_event.set()
+            return result
+
+    client = StoppingClient([])
+    controller = DeviceController(
+        make_config(),
+        sensor=FakeSensor(),
+        client=client,
+        sleeper=lambda _interval: pytest.fail("shutdown must skip interval wait"),
+        stop_event=stop_event,
+    )
+
+    controller.run()
+
+    assert len(client.events) == 1
     assert client.closed is True
 
 

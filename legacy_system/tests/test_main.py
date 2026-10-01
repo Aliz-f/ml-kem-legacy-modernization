@@ -1,4 +1,6 @@
-from legacy_system.config import Config, FailureMode
+import logging
+
+from legacy_system.config import Config, ConfigurationError, FailureMode
 from legacy_system.main import main
 
 
@@ -36,8 +38,21 @@ def test_main_loads_configuration_and_runs_controller(monkeypatch) -> None:
 
     monkeypatch.setattr("legacy_system.main.load_config", lambda: config)
 
-    main(factory)
+    assert main(factory) == 0
 
     assert len(controllers) == 1
     assert controllers[0].config is config
     assert controllers[0].ran is True
+
+
+def test_main_logs_invalid_configuration_and_returns_nonzero(
+    caplog,
+) -> None:
+    caplog.set_level(logging.ERROR, logger="legacy_system.main")
+
+    def invalid_config() -> Config:
+        raise ConfigurationError("SEND_INTERVAL_SECONDS must be greater than zero")
+
+    assert main(config_loader=invalid_config) == 1
+    assert "event=invalid_configuration" in caplog.text
+    assert "SEND_INTERVAL_SECONDS" in caplog.text

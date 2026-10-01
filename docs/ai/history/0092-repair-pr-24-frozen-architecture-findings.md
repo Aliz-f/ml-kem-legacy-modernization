@@ -1,4 +1,4 @@
-# AI Task 0089 — Repair PR 24 frozen-architecture findings
+# AI Task 0092 — Repair PR 24 frozen-architecture findings
 
 **Status:** Complete
 

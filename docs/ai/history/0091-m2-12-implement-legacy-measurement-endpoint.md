@@ -1,4 +1,4 @@
-# AI Task 0088 — M2-12 implement Legacy measurement endpoint
+# AI Task 0091 — M2-12 implement Legacy measurement endpoint
 
 **Status:** Complete
 

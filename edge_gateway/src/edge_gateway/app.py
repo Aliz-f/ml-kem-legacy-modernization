@@ -1,6 +1,7 @@
-"""Gateway HTTP application with Legacy syntax, schema, and domain validation."""
+"""Gateway HTTP application and synchronous Legacy measurement endpoint."""
 
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 import logging
 from typing import Annotated
 
@@ -8,7 +9,10 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
 from edge_gateway.config import ConfigurationError, GatewayConfig, load_config
+from edge_gateway.crypto.secure_transport import SecureTransport
+from edge_gateway.dispatch import BaselineTransport, CloudDispatch
 from edge_gateway.errors import GatewayError, GatewayErrorCode
+from edge_gateway.measurements import MeasurementProcessor, ProcessingHook, UnavailableBaseline
 from edge_gateway.models import LegacyMeasurementSchemaError
 from edge_gateway.validation import (
     LegacyJSONError,
@@ -26,15 +30,30 @@ def get_config(request: Request) -> GatewayConfig:
     return request.app.state.config
 
 
-def create_app(config: GatewayConfig | None = None, *, pqc_metrics: PqcMetrics | None = None) -> FastAPI:
+def create_app(
+    config: GatewayConfig | None = None, *, pqc_metrics: PqcMetrics | None = None,
+    baseline_transport: BaselineTransport | None = None,
+    secure_transport: SecureTransport | None = None,
+    processing_hook: ProcessingHook | None = None,
+) -> FastAPI:
     """Build an isolated app; importing this module has no startup side effects.
 
     Tests and Gateway composition inject the one process-wide PQC registry through
-    ``pqc_metrics``. No Cloud client or crypto session exists yet.
+    ``pqc_metrics``. Transport construction belongs to composition; missing
+    transport dependencies fail closed. No client/session is created implicitly.
     """
     settings = load_config() if config is None else config
     level = _logging_level(settings)
     registry = pqc_metrics or PqcMetrics()
+    dispatch = None
+    if settings.security_mode == "classical" or secure_transport is not None:
+        dispatch = CloudDispatch(
+            settings, baseline=baseline_transport or UnavailableBaseline(),
+            secure=secure_transport, pqc_metrics=registry,
+        )
+    processor = MeasurementProcessor(
+        gateway_id=settings.gateway_id, dispatch=dispatch, processing_hook=processing_hook,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -59,6 +78,7 @@ def create_app(config: GatewayConfig | None = None, *, pqc_metrics: PqcMetrics |
     app.state.config = settings
     app.state.pqc_metrics = registry
     app.state.running = False
+    app.state.secure_transport = secure_transport
 
     @app.exception_handler(LegacyJSONError)
     async def invalid_json(request: Request, error: LegacyJSONError):
@@ -87,15 +107,16 @@ def create_app(config: GatewayConfig | None = None, *, pqc_metrics: PqcMetrics |
 
     @app.get("/ready")
     async def ready():
-        # Processing/transport is absent, irrespective of secure-session state.
+        # Operational readiness is a later Member 2 task.
         return _unavailable()
 
     @app.post("/api/v1/measurements")
     async def measurements(request: Request):
+        received_at = datetime.now(UTC)
         measurement = parse_legacy_measurement(await request.body())
         validate_legacy_measurement(measurement)
-        # Downstream delivery is not implemented yet.
-        return _unavailable()
+        await processor.process(measurement, received_at=received_at)
+        return JSONResponse(status_code=202, content={"status": "accepted"})
 
     @app.get("/metrics")
     async def metrics(config: Annotated[GatewayConfig, Depends(get_config)]) -> Response:

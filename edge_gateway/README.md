@@ -387,6 +387,13 @@ mode and in mlkem mode. The first secure request is reported separately. The
 sample does not rank the modes. Details are in
 [docs/mode-evaluation.md](docs/mode-evaluation.md).
 
+## PQC observability (M3-71)
+
+One local run shows the handshake counter move from 0 to 1, stay at 1 while
+later measurements reuse the session, and move to 2 after the session expires.
+The scrape does not include a session identifier. Details are in
+[docs/pqc-observability.md](docs/pqc-observability.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

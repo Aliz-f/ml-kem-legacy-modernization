@@ -14,4 +14,16 @@ jobs:
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run pytest
+      - name: Run Gateway crypto checks
+        run: >-
+          uv run pytest
+          edge_gateway/tests/test_mlkem.py
+          edge_gateway/tests/test_kdf.py
+          edge_gateway/tests/test_symmetric.py
+          edge_gateway/tests/test_secure_envelope.py
+          edge_gateway/tests/test_transport_trust.py
+          edge_gateway/tests/test_security_logging.py
+          edge_gateway/tests/test_secure_transport.py
+          tests/integration/test_secure_message_tamper.py
+          tests/integration/test_gateway_cloud_secure.py
       - run: uv run ai-history check

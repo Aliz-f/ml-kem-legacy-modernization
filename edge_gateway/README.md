@@ -394,6 +394,12 @@ later measurements reuse the session, and move to 2 after the session expires.
 The scrape does not include a session identifier. Details are in
 [docs/pqc-observability.md](docs/pqc-observability.md).
 
+## Corrupted ciphertext (M3-72)
+
+One local run seals a valid measurement, corrupts the outgoing ciphertext copy,
+and records Cloud's authentication rejection. It does not store the rejected measurement.
+Details are in [docs/corrupt-ciphertext.md](docs/corrupt-ciphertext.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

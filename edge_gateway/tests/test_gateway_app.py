@@ -26,7 +26,9 @@ def test_lifecycle_and_health(caplog):
 
 @pytest.mark.parametrize("mode", ["classical", "mlkem"])
 def test_registered_routes_never_claim_readiness_or_acceptance(mode):
-    config = load_config({"SECURITY_MODE": mode, "CLOUD_URL": "http://unreachable.invalid"})
+    config = load_config({
+        "SECURITY_MODE": mode, "CLOUD_URL": "http://unreachable.invalid", "CLOUD_MAX_RETRIES": "0",
+    })
     with TestClient(create_app(config)) as client:
         assert client.get("/health").status_code == 200
         for response, code, message in [

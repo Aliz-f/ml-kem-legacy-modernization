@@ -287,14 +287,16 @@ puts the separately created request ID only in `X-Request-ID`. A successful
 Cloud `202` response is normalized to `BaselineAcceptance(status, record_id)`;
 only `accepted` and `already_accepted` with a non-empty record ID qualify.
 
-The client sends one attempt in M2-13 and classifies failures for M2-14:
-timeouts, connection/protocol errors, and `500`, `502`, `503`, or `504` are
-retryable; redirects, other HTTP responses, and malformed/unexpected `202`
-payloads are not. It never follows redirects and never changes the request body
-or inserts `request_id` into it. The route converts classified failures to the
-existing Legacy-safe `503 CLOUD_UNAVAILABLE`; M2-14 will make retry exhaustion
-the normal path to that result. ML-KEM mode never creates or calls this client
-after a secure failure.
+The M2-14 retry policy treats timeouts, connection/protocol errors, and `500`,
+`502`, `503`, or `504` as retryable. Redirects, other HTTP responses, and
+malformed/unexpected `202` payloads are permanent. `CLOUD_MAX_RETRIES` is the
+number of additional ordinary transport attempts, defaulting to `2` for at most
+three sends. The frozen backoff is one second before the second attempt and two
+seconds before the third; no delay follows the final failure. Each retry uses
+the exact same already-serialized body and `X-Request-ID`. The route converts
+exhausted or permanent delivery failures to existing Legacy-safe `503
+CLOUD_UNAVAILABLE`. ML-KEM mode never creates or calls this client after a
+secure failure; its bounded session recovery remains separate.
 
 ```bash
 uv run pytest edge_gateway/tests/test_baseline_client.py

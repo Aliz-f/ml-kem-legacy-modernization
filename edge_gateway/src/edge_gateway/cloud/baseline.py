@@ -6,8 +6,10 @@ import asyncio
 import http.client
 import json
 import math
+import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass
 from urllib.parse import urljoin, urlparse
 
@@ -45,13 +47,12 @@ class BaselineAcceptance:
 
 
 class BaselineCloudClient:
-    """Send one canonical measurement in explicitly configured classical mode.
+    """Send one canonical measurement with bounded ordinary transport retries."""
 
-    This task sends exactly one request and classifies retryability. M2-14 adds
-    bounded retries while preserving this body and request ID on each attempt.
-    """
-
-    def __init__(self, *, cloud_url: str, timeout_seconds: float) -> None:
+    def __init__(
+        self, *, cloud_url: str, timeout_seconds: float, max_retries: int,
+        sleep: Callable[[float], None] = time.sleep,
+    ) -> None:
         if (
             isinstance(timeout_seconds, bool)
             or not isinstance(timeout_seconds, (int, float))
@@ -59,8 +60,12 @@ class BaselineCloudClient:
             or timeout_seconds <= 0
         ):
             raise ValueError("timeout_seconds must be greater than zero.")
+        if isinstance(max_retries, bool) or not isinstance(max_retries, int) or max_retries < 0:
+            raise ValueError("max_retries must be a non-negative integer.")
         self._endpoint = _endpoint(cloud_url)
         self._timeout_seconds = float(timeout_seconds)
+        self._max_retries = max_retries
+        self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
 
     async def send(
@@ -75,7 +80,7 @@ class BaselineCloudClient:
         sequence_number: int,
         received_at: str,
     ) -> BaselineAcceptance:
-        """Serialize and send the seven-field canonical body once."""
+        """Serialize once, then retry only classified transient delivery failures."""
         body = _dump(
             gateway_id=gateway_id,
             device_id=device_id,
@@ -85,7 +90,24 @@ class BaselineCloudClient:
             sequence_number=sequence_number,
             received_at=received_at,
         )
-        return await asyncio.to_thread(self._post, body, request_id)
+        return await asyncio.to_thread(self._deliver, body, request_id)
+
+    def _deliver(self, body: bytes, request_id: str) -> BaselineAcceptance:
+        """Retry the same logical baseline request at most ``max_retries`` times."""
+        failure: BaselineCloudError | None = None
+        for attempt in range(self._max_retries + 1):
+            try:
+                return self._post(body, request_id)
+            except BaselineCloudError as exc:
+                if not exc.retryable:
+                    raise
+                failure = exc
+                if attempt < self._max_retries:
+                    # Frozen Gateway backoff: 1 second before retry two, then 2.
+                    self._sleep(2.0**attempt)
+        if failure is None:  # Defensive: every exhausted iteration is retryable.
+            raise RuntimeError("baseline delivery exhausted without a failure")
+        raise failure
 
     def _post(self, body: bytes, request_id: str) -> BaselineAcceptance:
         request = urllib.request.Request(

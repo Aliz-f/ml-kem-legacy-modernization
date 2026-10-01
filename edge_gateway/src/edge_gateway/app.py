@@ -139,7 +139,9 @@ def _baseline_transport(config: GatewayConfig) -> BaselineTransport:
     """Construct the baseline client only for explicit classical-mode dispatch."""
     if config.security_mode == "classical":
         return BaselineCloudClient(
-            cloud_url=config.cloud_url, timeout_seconds=config.cloud_timeout_seconds,
+            cloud_url=config.cloud_url,
+            timeout_seconds=config.cloud_timeout_seconds,
+            max_retries=config.cloud_max_retries,
         )
     return UnavailableBaseline()
 

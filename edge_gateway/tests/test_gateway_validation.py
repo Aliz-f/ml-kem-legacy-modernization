@@ -29,7 +29,7 @@ def client(request, monkeypatch):
     def forbidden_network(*args, **kwargs):
         pytest.fail("Schema validation attempted an outbound network connection")
 
-    config = load_config({"SECURITY_MODE": request.param})
+    config = load_config({"SECURITY_MODE": request.param, "CLOUD_MAX_RETRIES": "0"})
     with TestClient(create_app(config)) as client:
         monkeypatch.setattr(socket.socket, "connect", forbidden_network)
         monkeypatch.setattr(socket.socket, "connect_ex", forbidden_network)

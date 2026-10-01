@@ -77,9 +77,15 @@ def _send(client: BaselineCloudClient, **overrides: object) -> BaselineAcceptanc
     return asyncio.run(client.send(**fields))  # type: ignore[arg-type]
 
 
+def _client(url: str, *, max_retries: int = 2, sleep=time.sleep) -> BaselineCloudClient:
+    return BaselineCloudClient(
+        cloud_url=url, timeout_seconds=1, max_retries=max_retries, sleep=sleep,
+    )
+
+
 def test_client_posts_exact_canonical_body_and_request_header(cloud):
     url, script = cloud
-    result = _send(BaselineCloudClient(cloud_url=url, timeout_seconds=1))
+    result = _send(_client(url))
     assert result == BaselineAcceptance(status="accepted", record_id="rec-1")
     path, body, headers = script.requests[0]
     assert path == "/api/v1/baseline/measurements"
@@ -97,14 +103,14 @@ def test_client_posts_exact_canonical_body_and_request_header(cloud):
 def test_client_normalizes_idempotent_acceptance(cloud):
     url, script = cloud
     script.responses = [(202, {"status": "already_accepted", "record_id": "rec-existing"})]
-    assert _send(BaselineCloudClient(cloud_url=url, timeout_seconds=1)) == BaselineAcceptance(
+    assert _send(_client(url)) == BaselineAcceptance(
         status="already_accepted", record_id="rec-existing",
     )
 
 
 def test_classical_app_constructs_and_uses_baseline_client(cloud):
     url, script = cloud
-    config = load_config({"CLOUD_URL": url, "SECURITY_MODE": "classical"})
+    config = load_config({"CLOUD_URL": url, "SECURITY_MODE": "classical", "CLOUD_MAX_RETRIES": "0"})
     payload = {
         "device_id": "sensor-001", "temperature_c": 21.7, "humidity_pct": 42.5,
         "timestamp": "2026-09-21T13:45:31Z", "sequence_number": 184,
@@ -123,7 +129,7 @@ def test_http_failures_are_classified_without_retry(cloud, status, retryable):
     url, script = cloud
     script.responses = [(status, {"error": {"code": "PRIVATE_REMOTE_DETAIL", "message": "private"}})]
     with pytest.raises(BaselineCloudError) as caught:
-        _send(BaselineCloudClient(cloud_url=url, timeout_seconds=1))
+        _send(_client(url, max_retries=0))
     assert caught.value.retryable is retryable
     assert caught.value.code == "PRIVATE_REMOTE_DETAIL"
     assert len(script.requests) == 1
@@ -138,7 +144,7 @@ def test_untrusted_success_response_is_rejected_without_retry(cloud, payload):
     url, script = cloud
     script.responses = [(202, payload)]
     with pytest.raises(BaselineCloudError) as caught:
-        _send(BaselineCloudClient(cloud_url=url, timeout_seconds=1))
+        _send(_client(url, max_retries=0))
     assert caught.value.retryable is False
     assert len(script.requests) == 1
 
@@ -147,10 +153,12 @@ def test_timeout_and_connection_failures_are_retryable(cloud):
     url, script = cloud
     script.delay_seconds = 0.2
     with pytest.raises(BaselineCloudError) as timeout:
-        _send(BaselineCloudClient(cloud_url=url, timeout_seconds=0.01))
+        _send(BaselineCloudClient(cloud_url=url, timeout_seconds=0.01, max_retries=0))
     assert timeout.value.retryable is True
     with pytest.raises(BaselineCloudError) as connection:
-        _send(BaselineCloudClient(cloud_url="http://127.0.0.1:9", timeout_seconds=1))
+        _send(BaselineCloudClient(
+            cloud_url="http://127.0.0.1:9", timeout_seconds=1, max_retries=0,
+        ))
     assert connection.value.retryable is True
 
 
@@ -158,11 +166,74 @@ def test_redirect_is_rejected_and_constructor_validates_inputs(cloud):
     url, script = cloud
     script.redirect_to = url + "/redirected"
     with pytest.raises(BaselineCloudError) as redirect:
-        _send(BaselineCloudClient(cloud_url=url, timeout_seconds=1))
+        _send(_client(url, max_retries=0))
     assert redirect.value.retryable is False
     with pytest.raises(ValueError):
-        BaselineCloudClient(cloud_url="not-a-url", timeout_seconds=1)
+        BaselineCloudClient(cloud_url="not-a-url", timeout_seconds=1, max_retries=0)
     with pytest.raises(ValueError):
-        BaselineCloudClient(cloud_url=url, timeout_seconds=0)
+        BaselineCloudClient(cloud_url=url, timeout_seconds=0, max_retries=0)
     with pytest.raises(ValueError):
-        BaselineCloudClient(cloud_url=url, timeout_seconds=True)  # type: ignore[arg-type]
+        BaselineCloudClient(cloud_url=url, timeout_seconds=True, max_retries=0)  # type: ignore[arg-type]
+
+
+def test_retryable_responses_retry_same_body_and_id_with_frozen_backoff(cloud):
+    url, script = cloud
+    script.responses = [
+        (503, {"error": {"code": "STORAGE_UNAVAILABLE"}}),
+        (504, {"error": {"code": "SERVICE_UNAVAILABLE"}}),
+        (202, {"status": "already_accepted", "record_id": "rec-existing"}),
+    ]
+    delays: list[float] = []
+    result = _send(_client(url, max_retries=2, sleep=delays.append))
+    assert result == BaselineAcceptance(status="already_accepted", record_id="rec-existing")
+    assert delays == [1.0, 2.0]
+    assert len(script.requests) == 3
+    bodies = [body for _, body, _ in script.requests]
+    assert bodies[0] == bodies[1] == bodies[2]
+    assert {headers["X-Request-Id"] for _, _, headers in script.requests} == {"req-baseline-1"}
+
+
+def test_retry_exhaustion_stays_retryable_without_an_extra_sleep(cloud):
+    url, script = cloud
+    script.responses = [(503, {"error": {"code": "SERVICE_UNAVAILABLE"}})] * 3
+    delays: list[float] = []
+    with pytest.raises(BaselineCloudError) as caught:
+        _send(_client(url, max_retries=2, sleep=delays.append))
+    assert caught.value.retryable is True
+    assert len(script.requests) == 3
+    assert delays == [1.0, 2.0]
+
+
+@pytest.mark.parametrize("failure", ["timeout", "connection"])
+def test_retryable_transport_failure_reuses_same_prepared_request(monkeypatch, failure):
+    client = _client("http://cloud.invalid", max_retries=2, sleep=lambda _: None)
+    calls: list[tuple[bytes, str]] = []
+
+    def post(body: bytes, request_id: str) -> BaselineAcceptance:
+        calls.append((body, request_id))
+        if len(calls) < 3:
+            raise BaselineCloudError(failure, retryable=True)
+        return BaselineAcceptance(status="accepted", record_id="rec-1")
+
+    monkeypatch.setattr(client, "_post", post)
+    assert _send(client) == BaselineAcceptance(status="accepted", record_id="rec-1")
+    assert len(calls) == 3
+    assert calls[0] == calls[1] == calls[2]
+
+
+def test_permanent_failure_stops_without_sleep_or_second_request(cloud):
+    url, script = cloud
+    script.responses = [(422, {"error": {"code": "INVALID_MEASUREMENT"}})]
+    delays: list[float] = []
+    with pytest.raises(BaselineCloudError) as caught:
+        _send(_client(url, max_retries=2, sleep=delays.append))
+    assert caught.value.retryable is False
+    assert len(script.requests) == 1
+    assert delays == []
+
+
+@pytest.mark.parametrize("invalid", [-1, True, 1.5])
+def test_retry_count_must_be_a_non_negative_integer(cloud, invalid):
+    url, _ = cloud
+    with pytest.raises(ValueError):
+        BaselineCloudClient(cloud_url=url, timeout_seconds=1, max_retries=invalid)  # type: ignore[arg-type]

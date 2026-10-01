@@ -147,6 +147,32 @@ secure failure. Tests exercise the complete table with transport doubles.
 uv run pytest edge_gateway/tests/test_gateway_response_mapping.py
 ```
 
+## Baseline Gateway–Cloud integration (M2-16)
+
+The integration test sends the M2-16 canonical fixture through the production
+`BaselineCloudClient` to a live loopback Cloud server in `SECURITY_MODE=classical`
+with a temporary file-backed SQLite database. It verifies the exact seven-field
+JSON body, `X-Request-ID: req-test-001` in the received request and Cloud logs,
+unchanged measurement values, `received_at` mapping to `gateway_received_at`,
+and Cloud-generated `cloud_received_at` and `record_id`. List/detail queries and
+a fresh SQLite connection after Cloud shutdown confirm persistence.
+
+Repeated delivery returns `already_accepted` with the original record ID and
+one row. Real Cloud validation rejection is non-retryable; a SQLite write failure
+exhausts the configured two retries with identical requests and no stored row.
+The test replaces only retry sleeping, so failures do not add backoff delays.
+
+Run from the workspace root (requires permission to bind loopback sockets):
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -q
+```
+
+This covers the Member 2 client boundary and complements the Cloud-local
+serializer harness. Full Legacy→Gateway→Cloud E2E remains M2-17 / Member 5 work.
+Cloud health is checked; readiness currently returns the documented `503`
+placeholder pending its owning readiness task.
+
 ## Canonical measurement model (M2-07)
 
 `edge_gateway.models.CanonicalMeasurement` is an immutable Gateway-owned model

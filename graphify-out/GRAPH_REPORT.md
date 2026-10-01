@@ -4,330 +4,412 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 1609 nodes · 4001 edges · 76 communities (51 shown, 25 thin omitted)
-- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 579 edges (avg confidence: 0.93)
+- 1827 nodes · 4519 edges · 109 communities (65 shown, 44 thin omitted)
+- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 639 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
+- FailureMode
+- test_gateway_cloud_secure.py
 - cli.py
-- json
-- FailureMode
-- test_cloud_secure.py
-- LegacyMeasurement
-- test_session.py
-- test_client.py
+- load_config
 - GatewayErrorCode
-- test_failure_injection.py
-- measure_baseline.py
-- test_sensor.py
-- derive_session_key
-- SecureTransport
-- cloud_service/app.py
-- MeasurementRepository
-- load_config
-- test_public_key_client.py
-- create_app
-- SecureSession
-- secure_transport.py
-- PqcMetrics
-- test_dispatch.py
-- test_secure_transport.py
-- FailureMode
-- CanonicalMeasurement
-- SessionManager
-- SecureEnvelope
-- load_config
-- repository.py
-- test_cloud_failure_injection.py
-- encapsulate
-- validate_measurement
-- test_cloud_session_api.py
-- CryptoFailureInjector
-- edge_gateway/app.py
-- decode_binary
-- test_cloud_baseline.py
-- cloud_service/crypto/mlkem.py
-- secure.py
-- test_cloud_kdf.py
-- test_cloud_queries.py
-- parse_public_key_response
-- test_gateway_validation.py
-- _fixture
-- edge_gateway/crypto/encoding.py
-- test_cloud_mlkem.py
-- test_cloud_config.py
 - test_cloud_public_key.py
+- GatewayClient
+- FailureMode
+- test_sensor.py
+- cloud_service/app.py
+- SessionManager
+- create_app
+- SecureTransport
+- edge_gateway/crypto/session.py
+- MeasurementRepository
+- test_security_logging.py
+- test_gateway_validation.py
+- LegacyMeasurement
+- test_cloud_secure.py
+- SessionManager
+- load_config
+- CanonicalMeasurement
+- test_dispatch.py
+- PqcMetrics
+- datetime
+- SecureEnvelope
+- session_client.py
+- test_secure_message_tamper.py
+- validate_measurement
+- SecureTransportError
+- test_cloud_session_api.py
+- encapsulate
+- test_gateway_canonical_model.py
+- test_secure_shutdown.py
+- test_legacy_compatibility.py
+- decode_binary
+- edge_gateway/crypto/envelope.py
+- test_cloud_baseline.py
+- encode_binary
+- test_session.py
+- fields
+- plaintext.py
+- measure_baseline.py
+- secure.py
+- test_cloud_queries.py
+- edge_gateway/crypto/symmetric.py
+- encrypt
+- test_crypto_failures.py
+- parse_public_key_response
+- CryptoFailureInjector
+- StorageError
+- test_cloud_mlkem.py
+- clean_container_crypto.py
+- SecureSession
+- test_gateway_normalization.py
+- _Clock
+- test_gateway_crypto_image.py
+- test_gateway_correlation.py
 - envelope_validation.py
-- sessions.py
-- keys.py
-- .__init__
-- GatewayConfig
+- derive_session_key
+- dispatch.py
+- test_secure_envelope.py
+- _Clock
+- test_clean_container_crypto.py
+- refresh_graphify.py
+- edge_gateway/crypto/kdf.py
+- _HandshakeHandler
+- _DroppedResponse
+- KdfError
 - pytest
 - test_refresh_graphify.py
 - test_repository_hygiene.py
 - cloud_service/crypto/aad.py
+- TimedRepository
+- test_injected_handshake_failure_leaves_no_session_and_skips_baseline
+- SessionEstablishmentError
 - _Handler
-- _unavailable
-- _DroppedResponse
+- _Handler
+- test_shared_integration_assets.py
+- KeyService
+- public_key
+- _Gateway
+- crypto/failure.py
+- _Sessions
 - _Handler
 - _Handler
+- _Handler
+- _Cloud
 - cloud-service
 - edge-gateway
 - legacy-system
 - ml-kem-legacy-modernization
 
 ## God Nodes (most connected - your core abstractions)
-1. `load_config()` - 46 edges
-2. `create_app()` - 39 edges
-3. `FailureMode` - 38 edges
-4. `SecureTransport` - 36 edges
-5. `load_config()` - 35 edges
-6. `create_app()` - 34 edges
-7. `FailureMode` - 33 edges
-8. `MeasurementRepository` - 32 edges
-9. `PqcMetrics` - 32 edges
-10. `FailureInjector` - 31 edges
+1. `load_config()` - 47 edges
+2. `FailureMode` - 44 edges
+3. `SecureTransport` - 42 edges
+4. `create_app()` - 42 edges
+5. `load_config()` - 38 edges
+6. `SessionManager` - 37 edges
+7. `create_app()` - 36 edges
+8. `FailureMode` - 33 edges
+9. `CloudHarness` - 33 edges
+10. `SecureTransportError` - 33 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `settings()` --indirect_call--> `config()`  [INFERRED]
+  edge_gateway/tests/test_gateway_app.py → cloud_service/tests/test_cloud_failure_injection.py
 - `test_device_filter_and_limit_preserve_insertion_order()` --calls--> `replace()`  [INFERRED]
   cloud_service/tests/test_cloud_queries.py → edge_gateway/tests/test_session.py
 - `test_filter_is_parameterized()` --calls--> `replace()`  [INFERRED]
   cloud_service/tests/test_cloud_queries.py → edge_gateway/tests/test_session.py
 - `test_limits_default_and_maximum_are_applied()` --calls--> `replace()`  [INFERRED]
   cloud_service/tests/test_cloud_queries.py → edge_gateway/tests/test_session.py
-- `test_existing_gateway_session_client_over_real_http()` --uses--> `SessionManager`  [INFERRED]
-  cloud_service/tests/test_cloud_session_api.py → edge_gateway/src/edge_gateway/crypto/session.py
-- `test_exact_protocol_fields_and_json_serialization()` --calls--> `fields()`  [INFERRED]
-  edge_gateway/tests/test_gateway_canonical_model.py → cloud_service/tests/test_cloud_aead.py
+- `CloudHarness` --uses--> `FailureMode`  [INFERRED]
+  tests/integration/test_gateway_cloud_secure.py → cloud_service/src/cloud_service/config.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (76 total, 25 thin omitted)
+## Communities (109 total, 44 thin omitted)
 
-### Community 0 - "cli.py"
-Cohesion: 0.06
-Nodes (44): clear_incremental_state(), normalize_artifacts(), refresh_graph(), _without_section(), main(), parser(), record_work(), recorded_changes() (+36 more)
-
-### Community 1 - "json"
-Cohesion: 0.05
-Nodes (50): fields(), test_aad_is_byte_identical(), test_crypto_tampering_rejected(), test_each_modified_aad_field_fails_authentication(), test_gateway_encryption_cloud_decryption(), test_invalid_identifiers(), test_invalid_inputs_before_vendor(), test_unsupported_version() (+42 more)
-
-### Community 2 - "FailureMode"
+### Community 0 - "FailureMode"
 Cohesion: 0.07
 Nodes (46): Config, ConfigurationError, FailureMode, _integer(), load_config(), _number(), _required_text(), _value() (+38 more)
 
-### Community 3 - "test_cloud_secure.py"
-Cohesion: 0.06
-Nodes (36): SecureSession, SessionAccessError, SessionManager, SessionState, canonical(), envelope(), establish(), forbid() (+28 more)
+### Community 1 - "test_gateway_cloud_secure.py"
+Cohesion: 0.05
+Nodes (33): BaselineSpy, Clock, cloud(), CloudHarness, _deliver(), _flip(), _install_trace(), _measurement() (+25 more)
 
-### Community 4 - "LegacyMeasurement"
-Cohesion: 0.08
-Nodes (30): CanonicalMeasurement, CanonicalMeasurementSchemaError, LegacyMeasurement, LegacyMeasurementSchemaError, _timestamp(), normalize(), test_all_fields_are_required(), test_exact_protocol_fields_and_json_serialization() (+22 more)
+### Community 2 - "cli.py"
+Cohesion: 0.13
+Nodes (40): main(), parser(), record_work(), recorded_changes(), require_active(), resolve_merge_conflict(), details(), review() (+32 more)
 
-### Community 5 - "test_session.py"
-Cohesion: 0.06
-Nodes (23): _endpoint(), _parse_expires_at(), parse_session_response(), post_session(), _RejectRedirect, _request(), SessionRejected, SessionResponse (+15 more)
+### Community 3 - "load_config"
+Cohesion: 0.07
+Nodes (36): create_app(), health(), ready(), main(), _unavailable(), Config, ConfigurationError, load_config() (+28 more)
 
-### Community 6 - "test_client.py"
-Cohesion: 0.09
-Nodes (20): ErrorCategory, GatewayClient, GatewayResult, FakeResponse, ScriptedOpener, test_default_retry_count_allows_two_retries(), test_http_error_is_classified_without_leaking_exception(), test_http_statuses_are_classified_by_retryability() (+12 more)
-
-### Community 7 - "GatewayErrorCode"
+### Community 4 - "GatewayErrorCode"
 Cohesion: 0.08
 Nodes (19): GatewayError, GatewayErrorCode, SequenceTracker, client(), test_application_errors_have_stable_http_contract(), fail(), test_exception_details_are_not_exposed(), test_internal_failure_outside_measurement_route_is_sanitized() (+11 more)
 
-### Community 8 - "test_failure_injection.py"
-Cohesion: 0.07
-Nodes (22): clock(), _aad(), _Clock, handshake_url(), _HandshakeCloud, _HandshakeHandler, _injector(), measurement_url() (+14 more)
+### Community 5 - "test_cloud_public_key.py"
+Cohesion: 0.06
+Nodes (17): decapsulate(), generate_keypair(), MlKemError, PrivateKey, test_exact_library_parameters(), test_gateway_cloud_mlkem_and_kdf_interoperability(), test_invalid_secret_rejected_before_hkdf(), test_invalid_vendor_output_rejected() (+9 more)
 
-### Community 9 - "measure_baseline.py"
-Cohesion: 0.08
-Nodes (19): canonical(), Capture, distribution(), live_cloud(), lifespan(), require(), run(), post() (+11 more)
+### Community 6 - "GatewayClient"
+Cohesion: 0.10
+Nodes (20): ErrorCategory, GatewayClient, GatewayResult, FakeResponse, ScriptedOpener, test_default_retry_count_allows_two_retries(), test_http_error_is_classified_without_leaking_exception(), test_http_statuses_are_classified_by_retryability() (+12 more)
 
-### Community 10 - "test_sensor.py"
+### Community 7 - "FailureMode"
+Cohesion: 0.11
+Nodes (23): FailureMode, FailureInjector, FailureSelection, canonical(), config(), envelope(), handshake(), secure_client() (+15 more)
+
+### Community 8 - "test_sensor.py"
 Cohesion: 0.08
 Nodes (18): Measurement, Sensor, _validate_number(), FalseyClock, FalseyRandomSource, make_measurement(), test_measurement_accepts_valid_internal_state(), test_measurement_rejects_invalid_domain_values() (+10 more)
 
-### Community 11 - "derive_session_key"
-Cohesion: 0.08
-Nodes (15): KdfError, derive_session_key(), KdfError, _independent(), test_different_secret_derives_a_different_session_key(), test_same_secret_derives_the_same_session_key(), test_session_key_is_32_bytes_and_info_is_exact(), test_session_key_is_not_logged() (+7 more)
+### Community 9 - "cloud_service/app.py"
+Cohesion: 0.11
+Nodes (8): SecurityMode, derive_session_key(), baseline_measurement(), _error(), _error(), _establish(), establish_session(), session_access_error_handler()
+
+### Community 10 - "SessionManager"
+Cohesion: 0.09
+Nodes (12): SecureSession, SessionAccessError, SessionManager, SessionState, clock(), test_clock_failure_never_publishes(), test_invalid_creation_never_publishes(), test_ownership_before_expiry_and_exact_boundary() (+4 more)
+
+### Community 11 - "create_app"
+Cohesion: 0.10
+Nodes (23): create_app(), application_error(), health(), internal_error(), invalid_json(), invalid_measurement(), measurements(), ready() (+15 more)
 
 ### Community 12 - "SecureTransport"
-Cohesion: 0.11
-Nodes (11): SecureEnvelope, _dump(), _endpoint(), _error_code(), _Measurement, _parse_acceptance(), _RetryableTransport, SecureAcceptance (+3 more)
+Cohesion: 0.09
+Nodes (10): SecureEnvelope, _dump(), _endpoint(), _error_code(), _Measurement, _parse_acceptance(), _RetryableTransport, SecureAcceptance (+2 more)
 
-### Community 13 - "cloud_service/app.py"
+### Community 13 - "edge_gateway/crypto/session.py"
 Cohesion: 0.11
-Nodes (8): SecurityMode, public_key(), _unavailable(), _error(), get_measurement(), list_measurements(), baseline_measurement(), _error()
+Nodes (17): _endpoint(), fetch_public_key(), PublicKeyTransportError, _RejectRedirect, CloudPublicKey, PublicKeyRejected, _body(), _public_key() (+9 more)
 
 ### Community 14 - "MeasurementRepository"
+Cohesion: 0.11
+Nodes (23): lifespan(), StartupError, Database, MeasurementRepository, test_concurrent_duplicates_across_connections(), save(), database(), measurement() (+15 more)
+
+### Community 15 - "test_security_logging.py"
+Cohesion: 0.09
+Nodes (14): _Baseline, _Clock, _Cloud, cloud_url(), _measurement(), test_handshake_and_delivery_omit_secrets_and_separate_timings(), _send(), test_injected_handshake_failure_stays_fail_closed() (+6 more)
+
+### Community 16 - "test_gateway_validation.py"
 Cohesion: 0.12
-Nodes (22): Database, StorageConflictError, StorageError, MeasurementRepository, test_concurrent_duplicates_across_connections(), save(), test_closed_database_errors_are_safe(), test_concurrent_repository_access() (+14 more)
+Nodes (19): LegacyJSONError, LegacyMeasurementDomainError, parse_legacy_measurement(), _reject_constant(), validate_legacy_measurement(), assert_rejection(), client(), payload() (+11 more)
 
-### Community 15 - "load_config"
-Cohesion: 0.13
-Nodes (21): create_app(), main(), ConfigurationError, load_config(), integer(), number(), text(), value() (+13 more)
-
-### Community 16 - "test_public_key_client.py"
-Cohesion: 0.11
-Nodes (17): _endpoint(), fetch_public_key(), PublicKeyTransportError, _RejectRedirect, _body(), cloud_server(), _public_key(), _Response (+9 more)
-
-### Community 17 - "create_app"
-Cohesion: 0.11
-Nodes (21): create_app(), application_error(), health(), internal_error(), invalid_json(), invalid_measurement(), ready(), _error_response() (+13 more)
-
-### Community 18 - "SecureSession"
-Cohesion: 0.10
-Nodes (12): _Sessions, SecureSession, _Baseline, _measurement(), test_handshake_and_delivery_omit_secrets_and_separate_timings(), _send(), test_injected_handshake_failure_stays_fail_closed(), test_seal_failure_is_counted_without_the_session_key() (+4 more)
-
-### Community 20 - "PqcMetrics"
-Cohesion: 0.08
-Nodes (3): _Duration, PqcMetrics, test_rendered_metrics_keep_bounded_labels_and_zero_fallback()
-
-### Community 21 - "test_dispatch.py"
-Cohesion: 0.17
-Nodes (13): CloudDispatch, _Baseline, _config(), _measurement(), _Secure, _Sessions, test_classical_mode_uses_only_the_baseline_transport(), test_encryption_failure_does_not_call_baseline() (+5 more)
-
-### Community 22 - "test_secure_transport.py"
-Cohesion: 0.20
-Nodes (18): _error(), _Handler, _send(), _session(), _Sessions, test_a_second_session_conflict_is_not_recovered_again(), test_application_rejection_is_not_retried(), test_exhausted_transport_retries_stay_retryable() (+10 more)
-
-### Community 23 - "FailureMode"
-Cohesion: 0.13
-Nodes (8): Config, FailureMode, FailureInjector, FailureSelection, test_enabled_injection_logs_safe_warning(), test_random_rate_one_selects_one_applicable_fault_for_request(), test_random_rate_zero_never_injects(), test_random_seed_is_reproducible_and_selects_only_allowed_modes()
-
-### Community 24 - "CanonicalMeasurement"
+### Community 17 - "LegacyMeasurement"
 Cohesion: 0.16
-Nodes (11): CanonicalMeasurement, MeasurementSchemaError, _timestamp(), test_direct_construction_checks_schema(), test_invalid_timestamps(), test_missing_fields(), test_noncanonical_fields_rejected(), test_nonobject_payload() (+3 more)
+Nodes (16): LegacyMeasurement, LegacyMeasurementSchemaError, _timestamp(), payload(), test_canonical_field_name_cannot_replace_legacy_timestamp(), test_direct_construction_checks_types_and_model_is_immutable(), test_domain_validation_is_a_separate_stage(), test_each_required_field_is_required() (+8 more)
 
-### Community 25 - "SessionManager"
-Cohesion: 0.13
-Nodes (5): _RejectRedirect, log_security(), _token(), SessionEstablishmentError, SessionManager
+### Community 18 - "test_cloud_secure.py"
+Cohesion: 0.16
+Nodes (25): canonical(), envelope(), establish(), forbid(), test_authenticated_invalid_measurement_is_not_stored(), test_authentication_failure_never_parses_or_stores(), test_classical_accepts_only_baseline_and_secure_unavailable(), test_correctly_padded_base64url_is_accepted() (+17 more)
 
-### Community 26 - "SecureEnvelope"
+### Community 19 - "SessionManager"
+Cohesion: 0.11
+Nodes (5): lifespan(), _RejectRedirect, log_security(), _token(), SessionManager
+
+### Community 20 - "load_config"
+Cohesion: 0.15
+Nodes (18): _allowed_value(), ConfigurationError, _failure_rate(), _fixed_session_ttl(), _integer(), load_config(), _non_negative_int(), _positive_float() (+10 more)
+
+### Community 21 - "CanonicalMeasurement"
+Cohesion: 0.14
+Nodes (12): CanonicalMeasurement, MeasurementSchemaError, _timestamp(), payload(), test_direct_construction_checks_schema(), test_invalid_timestamps(), test_missing_fields(), test_noncanonical_fields_rejected() (+4 more)
+
+### Community 22 - "test_dispatch.py"
+Cohesion: 0.17
+Nodes (14): CloudDispatch, _Baseline, cloud(), _config(), _measurement(), _Secure, _Sessions, test_classical_mode_uses_only_the_baseline_transport() (+6 more)
+
+### Community 24 - "datetime"
+Cohesion: 0.12
+Nodes (6): StoredMeasurement, SaveResult, _stored(), test_exact_stored_model_mapping(), test_generated_metadata(), test_invalid_metadata_and_domain_are_rejected()
+
+### Community 25 - "SecureEnvelope"
 Cohesion: 0.17
 Nodes (10): EnvelopeSchemaError, SecureEnvelope, payload(), test_exact_fields_immutable_and_independent_dictionary(), test_existing_gateway_builder_wire_round_trip(), test_extra_fields_rejected_without_echo(), test_missing_field_rejected(), test_model_preserves_strings_without_claiming_security_validation() (+2 more)
 
-### Community 27 - "load_config"
-Cohesion: 0.21
-Nodes (15): _allowed_value(), ConfigurationError, _failure_rate(), _fixed_session_ttl(), _integer(), load_config(), _non_negative_int(), _positive_float() (+7 more)
-
-### Community 28 - "repository.py"
-Cohesion: 0.14
-Nodes (5): StoredMeasurement, SaveResult, _stored(), test_exact_stored_model_mapping(), test_generated_metadata()
-
-### Community 29 - "test_cloud_failure_injection.py"
-Cohesion: 0.20
-Nodes (17): canonical(), config(), envelope(), handshake(), secure_client(), test_decryption_failure_prevents_plaintext_and_storage(), test_drop_response_commits_then_same_envelope_retries_idempotently(), test_injected_session_failures_are_frozen_409s() (+9 more)
-
-### Community 30 - "encapsulate"
+### Community 26 - "session_client.py"
 Cohesion: 0.16
+Nodes (10): _endpoint(), _parse_expires_at(), parse_session_response(), post_session(), _RejectRedirect, _request(), SessionRejected, SessionResponse (+2 more)
+
+### Community 27 - "test_secure_message_tamper.py"
+Cohesion: 0.17
+Nodes (11): DecryptSpy, _envelope(), _establish(), _receive(), _reject(), _require_envelope(), SecureRejection, test_authentic_envelope_is_stored_once() (+3 more)
+
+### Community 28 - "validate_measurement"
+Cohesion: 0.18
+Nodes (12): MeasurementValidationError, validate_measurement(), payload(), test_errors_and_logs_do_not_echo_payload(), test_gateway_identity_requires_exact_match(), test_inclusive_domain_boundaries(), test_invalid_domains_and_schema(), test_invalid_timestamps_through_validator() (+4 more)
+
+### Community 29 - "SecureTransportError"
+Cohesion: 0.29
+Nodes (17): SecureTransportError, _error(), _send(), _Sessions, test_a_second_session_conflict_is_not_recovered_again(), test_application_rejection_is_not_retried(), test_exhausted_transport_retries_stay_retryable(), test_invalid_measurement_and_session_failure_do_not_post() (+9 more)
+
+### Community 30 - "test_cloud_session_api.py"
+Cohesion: 0.15
+Nodes (11): client(), handshake(), test_expiry_http_mapping_and_replacement(), test_extra_field_and_malformed_json(), test_handshake_wire_contract_and_no_secret_leak(), test_missing_fields_or_nonobject(), test_operational_failure_never_leaves_usable_session(), fail() (+3 more)
+
+### Community 31 - "encapsulate"
+Cohesion: 0.17
 Nodes (10): encapsulate(), MlKemError, validate_public_key(), _raw_public_key(), test_encapsulation_is_fresh(), test_invalid_public_key_length_is_rejected(), test_library_rejected_public_key_is_translated(), test_shared_secret_is_not_logged() (+2 more)
 
-### Community 31 - "validate_measurement"
-Cohesion: 0.19
-Nodes (11): MeasurementValidationError, validate_measurement(), test_errors_and_logs_do_not_echo_payload(), test_gateway_identity_requires_exact_match(), test_inclusive_domain_boundaries(), test_invalid_domains_and_schema(), test_invalid_timestamps_through_validator(), test_invalid_trusted_identity_is_not_ignored() (+3 more)
-
-### Community 32 - "test_cloud_session_api.py"
-Cohesion: 0.15
-Nodes (11): lifespan(), StartupError, handshake(), test_expiry_http_mapping_and_replacement(), test_extra_field_and_malformed_json(), test_handshake_wire_contract_and_no_secret_leak(), test_missing_fields_or_nonobject(), test_operational_failure_never_leaves_usable_session() (+3 more)
-
-### Community 34 - "edge_gateway/app.py"
+### Community 32 - "test_gateway_canonical_model.py"
 Cohesion: 0.17
-Nodes (8): measurements(), LegacyJSONError, LegacyMeasurementDomainError, parse_legacy_measurement(), _reject_constant(), validate_legacy_measurement(), test_domain_bounds_remain_a_separate_stage(), test_valid_measurement_parses_but_is_not_accepted_before_delivery()
+Nodes (11): CanonicalMeasurement, CanonicalMeasurementSchemaError, test_all_fields_are_required(), test_exact_protocol_fields_and_json_serialization(), test_internal_error_does_not_echo_supplied_values(), test_invalid_types_are_not_coerced(), test_noncanonical_fields_cannot_be_added(), test_nonfinite_or_unrepresentable_numbers_are_rejected() (+3 more)
+
+### Community 33 - "test_secure_shutdown.py"
+Cohesion: 0.15
+Nodes (8): _Baseline, _measurement(), _Opener, _Sessions, test_dispatch_after_shutdown_does_not_call_baseline(), test_shutdown_closes_the_client_before_clearing_the_session(), test_shutdown_send_fails_closed_without_a_new_handshake(), _transport()
+
+### Community 34 - "test_legacy_compatibility.py"
+Cohesion: 0.19
+Nodes (13): _assert_legacy_post(), _assert_no_crypto_terms(), _exchange(), _fixture(), PostedRequest, _recording_opener(), opener(), _send() (+5 more)
 
 ### Community 35 - "decode_binary"
-Cohesion: 0.22
-Nodes (7): decode_binary(), encode_binary(), EncodingError, test_binary_round_trip_padded_and_unpadded(), test_encoding_requires_nonempty_bytes(), test_invalid_encoding_rejected_without_echo(), test_urlsafe_alphabet()
+Cohesion: 0.18
+Nodes (8): decode_binary(), encode_binary(), EncodingError, _decode_ciphertext(), test_binary_round_trip_padded_and_unpadded(), test_encoding_requires_nonempty_bytes(), test_invalid_encoding_rejected_without_echo(), test_urlsafe_alphabet()
 
-### Community 36 - "test_cloud_baseline.py"
-Cohesion: 0.14
-Nodes (8): test_acceptance_is_committed_and_correlated(), test_distinct_logical_identity_creates_second_row(), test_invalid_canonical_data_is_422(), test_malformed_body_is_400_and_not_stored(), test_missing_fields_and_wrong_json_shape(), test_secure_body_never_falls_back_to_baseline(), test_unexpected_repository_error_is_safe_500(), test_unrelated_record_id_collision_is_not_idempotent_success()
-
-### Community 37 - "cloud_service/crypto/mlkem.py"
+### Community 36 - "edge_gateway/crypto/envelope.py"
 Cohesion: 0.16
-Nodes (4): decapsulate(), generate_keypair(), MlKemError, PrivateKey
+Nodes (9): AadError, build_aad(), _require_id(), build_secure_envelope(), _independent(), test_each_authenticated_field_changes_the_aad_bytes(), test_gateway_and_independent_aad_bytes_match_the_contract(), test_invalid_aad_fields_are_rejected() (+1 more)
 
-### Community 38 - "secure.py"
+### Community 37 - "test_cloud_baseline.py"
+Cohesion: 0.13
+Nodes (8): payload(), test_acceptance_is_committed_and_correlated(), test_distinct_logical_identity_creates_second_row(), test_invalid_canonical_data_is_422(), test_malformed_body_is_400_and_not_stored(), test_missing_fields_and_wrong_json_shape(), test_secure_body_never_falls_back_to_baseline(), test_unexpected_repository_error_is_safe_500()
+
+### Community 38 - "encode_binary"
+Cohesion: 0.20
+Nodes (8): decode_binary(), encode_binary(), EncodingError, test_invalid_alphabet_whitespace_and_empty_are_rejected(), test_padded_and_unpadded_forms_decode_equally(), test_round_trip_omits_padding(), _different_nonce(), _tamper()
+
+### Community 39 - "test_session.py"
+Cohesion: 0.18
+Nodes (9): SessionState, _manager(), test_close_refuses_a_later_handshake(), test_close_wipes_the_session_key(), test_concurrent_callers_share_one_handshake(), test_establishment_stores_one_active_session_with_matching_key(), test_expired_session_is_replaced(), test_replacement_clears_a_held_session_before_the_new_handshake() (+1 more)
+
+### Community 40 - "fields"
+Cohesion: 0.22
+Nodes (11): fields(), test_aad_is_byte_identical(), test_crypto_tampering_rejected(), test_each_modified_aad_field_fails_authentication(), test_gateway_encryption_cloud_decryption(), test_invalid_identifiers(), test_invalid_inputs_before_vendor(), test_unsupported_version() (+3 more)
+
+### Community 41 - "plaintext.py"
+Cohesion: 0.22
+Nodes (10): PlaintextError, _require_id(), _require_number(), _require_sequence(), _require_utc_timestamp(), serialize_canonical_measurement(), _measurement(), test_explicit_utc_offsets_are_preserved() (+2 more)
+
+### Community 42 - "measure_baseline.py"
+Cohesion: 0.19
+Nodes (7): canonical(), Capture, distribution(), live_cloud(), require(), run(), post()
+
+### Community 43 - "secure.py"
 Cohesion: 0.21
 Nodes (6): AeadError, decrypt(), _error(), _ingest(), secure_measurement(), fail()
 
-### Community 39 - "test_cloud_kdf.py"
-Cohesion: 0.14
-Nodes (5): test_exact_library_parameters(), test_gateway_cloud_mlkem_and_kdf_interoperability(), test_invalid_secret_rejected_before_hkdf(), test_invalid_vendor_output_rejected(), test_vendor_failures_are_sanitized()
-
-### Community 40 - "test_cloud_queries.py"
+### Community 44 - "test_cloud_queries.py"
 Cohesion: 0.16
-Nodes (10): client(), measurement(), test_closed_storage_is_503_not_empty_or_not_found(), test_device_filter_and_limit_preserve_insertion_order(), test_filter_is_parameterized(), test_invalid_limits_rejected_before_storage(), fail(), test_limits_default_and_maximum_are_applied() (+2 more)
+Nodes (9): measurement(), test_closed_storage_is_503_not_empty_or_not_found(), test_device_filter_and_limit_preserve_insertion_order(), test_filter_is_parameterized(), test_invalid_limits_rejected_before_storage(), fail(), test_limits_default_and_maximum_are_applied(), test_missing_repository_is_503() (+1 more)
 
-### Community 41 - "parse_public_key_response"
-Cohesion: 0.21
-Nodes (8): CloudPublicKey, parse_public_key_response(), PublicKeyRejected, _payload(), _public_key(), test_contract_violations_are_rejected(), test_missing_fields_and_non_object_are_rejected(), test_valid_response_returns_raw_public_key()
+### Community 45 - "edge_gateway/crypto/symmetric.py"
+Cohesion: 0.20
+Nodes (7): main(), AeadError, decrypt(), _require_bytes(), _require_key(), _require_nonce(), test_corrupt_ciphertext_mutates_only_the_outgoing_copy()
 
-### Community 42 - "test_gateway_validation.py"
-Cohesion: 0.27
-Nodes (11): assert_rejection(), client(), test_domain_invalid_values_are_422_before_cloud(), test_domain_timestamp_contract_is_enforced_by_model(), test_domain_valid_values_are_preserved(), test_extra_field_is_422(), test_malformed_json_is_400(), test_missing_required_fields_are_422() (+3 more)
+### Community 46 - "encrypt"
+Cohesion: 0.37
+Nodes (12): encrypt(), _aad(), _key(), _plaintext(), test_authentication_failure_does_not_return_plaintext(), test_independent_cloud_aad_authenticates_and_each_field_change_fails(), test_invalid_key_and_nonce_lengths_are_rejected(), test_keys_and_plaintext_are_not_logged() (+4 more)
 
-### Community 43 - "_fixture"
-Cohesion: 0.14
-Nodes (13): client(), payload(), payload(), client(), database(), measurement(), payload(), cloud() (+5 more)
+### Community 47 - "test_crypto_failures.py"
+Cohesion: 0.19
+Nodes (11): _aad(), _injector(), _plaintext(), test_disabled_ciphertext_injection_still_authenticates(), test_disabled_injection_reuses_one_handshake(), test_disabled_modes_never_select_a_crypto_fault(), test_invalid_failure_rate_is_rejected(), test_rate_one_selects_only_the_configured_mode() (+3 more)
 
-### Community 44 - "edge_gateway/crypto/encoding.py"
-Cohesion: 0.24
-Nodes (6): decode_binary(), encode_binary(), EncodingError, test_invalid_alphabet_whitespace_and_empty_are_rejected(), test_padded_and_unpadded_forms_decode_equally(), test_round_trip_omits_padding()
+### Community 48 - "parse_public_key_response"
+Cohesion: 0.20
+Nodes (8): parse_public_key_response(), _payload(), _public_key(), test_contract_violations_are_rejected(), test_missing_fields_and_non_object_are_rejected(), test_valid_response_returns_raw_public_key(), test_protocol_version_999_is_rejected_before_secure_processing(), reject_public_key()
 
-### Community 45 - "test_cloud_mlkem.py"
+### Community 51 - "StorageError"
+Cohesion: 0.23
+Nodes (5): _error(), get_measurement(), list_measurements(), StorageConflictError, StorageError
+
+### Community 52 - "test_cloud_mlkem.py"
 Cohesion: 0.18
 Nodes (5): test_bad_vendor_secret_rejected(), test_gateway_ciphertext_decapsulates_and_secrets_are_not_logged(), test_key_services_are_independent_and_close_is_idempotent(), test_malformed_ciphertext_rejected(), test_vendor_failures_are_safe()
 
-### Community 46 - "test_cloud_config.py"
+### Community 53 - "clean_container_crypto.py"
+Cohesion: 0.21
+Nodes (3): _install(), main(), _serve()
+
+### Community 54 - "SecureSession"
+Cohesion: 0.18
+Nodes (3): _Sessions, SecureSession, _session()
+
+### Community 55 - "test_gateway_normalization.py"
+Cohesion: 0.22
+Nodes (5): normalize(), canonical(), test_invalid_receipt_time_is_rejected_by_canonical_model(), test_normalization_preserves_values_and_input(), test_parsed_measurement_normalizes_to_exact_canonical_wire_contract()
+
+### Community 56 - "_Clock"
+Cohesion: 0.17
+Nodes (5): _Clock, handshake_url(), _HandshakeCloud, measurement_url(), _MeasurementCloud
+
+### Community 57 - "test_gateway_crypto_image.py"
+Cohesion: 0.22
+Nodes (4): _install(), _locked_version(), _site_packages(), test_frozen_gateway_install_uses_linux_wheels()
+
+### Community 58 - "test_gateway_correlation.py"
 Cohesion: 0.24
-Nodes (9): test_custom_environment(), test_defaults_do_not_create_database(), test_errors_do_not_echo_invalid_values(), test_inclusive_boundaries(), test_invalid_configuration(), test_invalid_database_url(), test_process_environment_and_explicit_mapping(), test_sqlite_paths() (+1 more)
+Nodes (5): baseline_headers(), create_request_id(), test_baseline_request_carries_id_in_header_and_keeps_body_unchanged(), test_gateway_logs_generated_id_without_measurement_data(), test_independent_requests_get_distinct_uuid4_ids()
 
-### Community 47 - "test_cloud_public_key.py"
-Cohesion: 0.27
-Nodes (8): secure_app(), test_endpoint_without_lifespan_is_unavailable(), test_exceptional_shutdown_releases_keys_and_storage(), test_key_failure_aborts_startup_and_closes_storage(), fail(), test_public_key_contract_gateway_interop_and_secret_boundary(), test_public_response_failure_is_sanitized(), test_restart_rotates_keys_and_id()
-
-### Community 48 - "envelope_validation.py"
+### Community 59 - "envelope_validation.py"
 Cohesion: 0.27
 Nodes (6): _constant(), EnvelopeValidationError, _object(), parse_json(), validate_envelope(), ValidatedEnvelope
 
-### Community 49 - "sessions.py"
-Cohesion: 0.36
-Nodes (6): derive_session_key(), _decode_ciphertext(), _error(), _establish(), establish_session(), session_access_error_handler()
+### Community 61 - "derive_session_key"
+Cohesion: 0.29
+Nodes (7): derive_session_key(), _independent(), test_different_secret_derives_a_different_session_key(), test_same_secret_derives_the_same_session_key(), test_session_key_is_32_bytes_and_info_is_exact(), test_session_key_is_not_logged(), test_shared_secret_length_is_rejected()
 
-### Community 52 - "GatewayConfig"
+### Community 63 - "test_secure_envelope.py"
+Cohesion: 0.35
+Nodes (8): _build(), _key(), test_each_logical_message_gets_a_new_nonce_and_keeps_the_request_id(), test_envelope_does_not_log_the_key_or_plaintext(), test_envelope_has_exactly_the_protocol_fields(), test_invalid_measurement_identity_and_key_build_no_envelope(), test_nonce_is_12_bytes_and_ciphertext_decrypts_to_the_measurement(), test_plaintext_measurement_does_not_appear_in_the_envelope()
+
+### Community 64 - "_Clock"
+Cohesion: 0.22
+Nodes (4): _Clock, _Cloud, cloud_url(), _stamp()
+
+### Community 65 - "test_clean_container_crypto.py"
+Cohesion: 0.18
+Nodes (3): test_clean_container_image_runs_when_docker_is_available(), test_clean_container_script_stores_one_secure_measurement(), test_verification_image_runs_when_docker_is_available()
+
+### Community 66 - "refresh_graphify.py"
+Cohesion: 0.31
+Nodes (4): clear_incremental_state(), normalize_artifacts(), refresh_graph(), _without_section()
+
+### Community 69 - "_DroppedResponse"
 Cohesion: 0.25
-Nodes (3): get_config(), GatewayConfig, test_from_config_uses_gateway_failure_settings()
+Nodes (3): _DroppedResponse, cloud_server(), _Response
 
-### Community 54 - "test_refresh_graphify.py"
+### Community 70 - "KdfError"
+Cohesion: 0.29
+Nodes (4): KdfError, test_crypto_failure_is_classified_and_recorded(), fail_derivation(), fail_encapsulation()
+
+### Community 72 - "test_refresh_graphify.py"
 Cohesion: 0.43
 Nodes (4): test_clear_incremental_state_removes_all_prior_graphify_output(), test_normalize_artifacts_removes_checkout_specific_metadata(), test_refresh_uses_a_stable_hash_seed(), test_report_is_identical_across_local_and_ci_dates()
 
-### Community 58 - "_unavailable"
-Cohesion: 0.50
-Nodes (3): health(), ready(), _unavailable()
-
 ## Knowledge Gaps
 - **4 isolated node(s):** `cloud-service`, `edge-gateway`, `legacy-system`, `ml-kem-legacy-modernization`
-  These have ≤1 connection - possible missing edges. (Counts symbols only; 498 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges. (Counts symbols only; 594 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `PqcMetrics` connect `PqcMetrics` to `CryptoFailureInjector`, `edge_gateway/app.py`, `SecureTransport`, `create_app`, `SecureSession`, `secure_transport.py`, `.__init__`, `test_dispatch.py`, `SessionManager`?**
-  _High betweenness centrality (0.076) - this node is a cross-community bridge._
-- **Why does `FailureMode` connect `FailureMode` to `secure.py`, `cloud_service/app.py`, `test_cloud_config.py`, `load_config`, `sessions.py`, `test_cloud_failure_injection.py`?**
-  _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `CryptoFailureInjector` connect `CryptoFailureInjector` to `test_failure_injection.py`, `SecureTransport`, `SecureSession`, `secure_transport.py`, `GatewayConfig`, `SessionManager`?**
-  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `PqcMetrics` connect `PqcMetrics` to `create_app`, `SecureTransport`, `edge_gateway/crypto/session.py`, `test_security_logging.py`, `secure_transport.py`, `SessionManager`, `load_config`, `.__init__`, `test_dispatch.py`, `dispatch.py`?**
+  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `SessionManager` connect `SessionManager` to `test_gateway_cloud_secure.py`, `load_config`, `KdfError`, `test_session.py`, `test_injected_handshake_failure_leaves_no_session_and_skips_baseline`, `edge_gateway/crypto/session.py`, `SecureTransport`, `test_crypto_failures.py`, `test_security_logging.py`, `parse_public_key_response`, `CryptoFailureInjector`, `load_config`, `clean_container_crypto.py`, `.__init__`, `PqcMetrics`, `session_client.py`, `encapsulate`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **Why does `GatewayErrorCode` connect `GatewayErrorCode` to `create_app`, `GatewayClient`?**
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+- **Are the 30 inferred relationships involving `FailureMode` (e.g. with `FailureInjector` and `FailureSelection`) actually correct?**
+  _`FailureMode` has 30 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 25 inferred relationships involving `SecureTransport` (e.g. with `main()` and `AadError`) actually correct?**
+  _`SecureTransport` has 25 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 6 inferred relationships involving `create_app()` (e.g. with `lifespan()` and `Config`) actually correct?**
   _`create_app()` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 25 inferred relationships involving `FailureMode` (e.g. with `FailureInjector` and `FailureSelection`) actually correct?**
-  _`FailureMode` has 25 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `cloud-service`, `edge-gateway`, `legacy-system` to the rest of the system?**
   _4 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `cli.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.05570175438596491 - nodes in this community are weakly interconnected._

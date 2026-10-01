@@ -19,14 +19,14 @@ def test_normalize_artifacts_removes_checkout_specific_metadata(tmp_path: Path) 
     )
     report_path = tmp_path / "GRAPH_REPORT.md"
     report_path.write_text(
-        "# Report\n\n## Graph Freshness\nBuilt from commit.\n\n## Nodes\nNone.\n",
+        "# Graph Report - project  (2026-10-01)\n\n## Graph Freshness\nBuilt from commit.\n\n## Nodes\nNone.\n",
         encoding="utf-8",
     )
 
     refresh_graphify.normalize_artifacts(tmp_path)
 
     assert json.loads(graph_path.read_text(encoding="utf-8")) == {"nodes": []}
-    assert report_path.read_text(encoding="utf-8") == "# Report\n\n## Nodes\nNone.\n"
+    assert report_path.read_text(encoding="utf-8") == "# Graph Report - project\n\n## Nodes\nNone.\n"
 
 
 def test_clear_incremental_state_removes_all_prior_graphify_output(

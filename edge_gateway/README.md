@@ -236,6 +236,41 @@ equal/different sequences, alongside the M2-10 policy cases. These are component
 tests using delivery stubs, not HTTP integration tests. M2-12 will wire the shared
 tracker into the route; actual route/Cloud timing verification and application
 metrics remain later work. The current HTTP placeholder is unchanged.
+## Transport trust (M3-54)
+
+Docker and the course test environment may use HTTP for Gateway-to-Cloud
+communication. Modernized mode demonstrates application-layer ML-KEM-768 key
+establishment and AES-256-GCM payload protection. That is a documented
+trust-model limitation: ML-KEM does not authenticate the Cloud, and production
+TLS, mTLS, PKI, public-key pinning, and signed key distribution are outside
+this implementation. Details are in
+[docs/transport-trust.md](docs/transport-trust.md).
+
+## Session memory (M3-55)
+
+The Gateway session key stays in process memory. Replacing a session clears the old key buffer and drops that object. Python does not guarantee secure memory zeroization, so that overwrite is not a claim that every copy is gone. Details are in
+[docs/session-memory.md](docs/session-memory.md).
+
+## Secure shutdown (M3-56)
+
+When a secure transport is attached, Gateway shutdown stops accepting work, closes that transport's HTTP client, and then clears the in-memory session. The cleanup does not print key material. Process signals and Docker stop stay with the application lifecycle. Details are in
+[docs/secure-shutdown.md](docs/secure-shutdown.md).
+
+## Crypto image install (M3-61)
+
+The Gateway crypto dependencies install from the frozen lock as Linux wheels.
+`edge_gateway/docker/crypto-image.Dockerfile` is a Python 3.12 bookworm image
+with no compiler. It runs `uv sync --frozen --package edge-gateway --no-dev`
+and then checks ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. The service image
+`edge_gateway/Dockerfile` remains Member 2's task. Details are in
+[docs/crypto-image.md](docs/crypto-image.md).
+
+## Clean-container crypto test (M3-62)
+
+`edge_gateway/docker/clean-container.Dockerfile` installs Gateway and Cloud
+from the frozen lock, starts Cloud, establishes one ML-KEM session, and stores
+one secure measurement. The receiver exists only in that container process.
+Details are in [docs/clean-container.md](docs/clean-container.md).
 
 ## Configuration
 

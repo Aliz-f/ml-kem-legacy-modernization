@@ -8,6 +8,7 @@ import logging
 import threading
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pytest
 from cryptography.hazmat.primitives.asymmetric.mlkem import MLKEM768PrivateKey
@@ -386,6 +387,20 @@ def _aad() -> bytes:
         session_id="sess-1",
         request_id="req-8fb2",
     )
+
+
+def test_crypto_unit_modules_use_the_recommended_names() -> None:
+    root = Path(__file__).parent
+    for name in (
+        "test_mlkem.py",
+        "test_kdf.py",
+        "test_session.py",
+        "test_symmetric.py",
+        "test_secure_envelope.py",
+        "test_secure_transport.py",
+        "test_crypto_failures.py",
+    ):
+        assert (root / name).is_file()
 
 
 def test_invalid_failure_rate_is_rejected():

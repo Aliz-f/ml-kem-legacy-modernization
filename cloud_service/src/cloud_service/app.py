@@ -1,4 +1,8 @@
-"""Cloud baseline and authenticated secure ingestion with managed lifecycle."""
+"""Cloud baseline and authenticated secure ingestion with managed lifecycle.
+
+Routes are assembled by ``create_app`` so every application instance has the
+same protocol surface.
+"""
 
 from contextlib import asynccontextmanager
 import logging

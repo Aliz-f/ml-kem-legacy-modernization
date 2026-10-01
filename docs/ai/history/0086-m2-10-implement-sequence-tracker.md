@@ -1,4 +1,4 @@
-# AI Task 0075 — M2-10 implement sequence tracker
+# AI Task 0086 — M2-10 implement sequence tracker
 
 **Status:** Complete
 

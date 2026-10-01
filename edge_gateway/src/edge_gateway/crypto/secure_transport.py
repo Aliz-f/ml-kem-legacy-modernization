@@ -132,6 +132,24 @@ class SecureTransport:
         )
         self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
+        self._closed = False
+
+    def shutdown(self) -> None:
+        """Stop secure work, close the HTTP client, then clear the session.
+
+        Gateway design section 53 orders the client close before the session
+        is destroyed. A second call does nothing. No key material is logged.
+        """
+        if self._closed:
+            return
+        self._closed = True
+        opener = self._opener
+        self._opener = None
+        if opener is not None:
+            opener.close()
+        close = getattr(self._sessions, "close", None)
+        if close is not None:
+            close()
 
     @property
     def metrics(self) -> PqcMetrics:
@@ -150,6 +168,14 @@ class SecureTransport:
         received_at: str,
     ) -> SecureAcceptance:
         """Encrypt and deliver one measurement. Does not call the baseline API."""
+        if self._closed:
+            log_security(
+                "secure_delivery_rejected",
+                logging.WARNING,
+                request_id=request_id,
+                reason="closed",
+            )
+            raise SecureTransportError("Secure transport is closed.", retryable=False)
         measurement = _Measurement(
             device_id=device_id,
             temperature_c=temperature_c,

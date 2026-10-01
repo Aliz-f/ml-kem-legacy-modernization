@@ -63,7 +63,7 @@ Measured one equivalent four-measurement workload in classical mode and mlkem mo
 
 ## AI Notes
 
-The sample is edge_gateway/docs/mode-evaluation.md and tests/integration/test_mode_evaluation.py. The production Legacy route still stops before delivery, so the measurement uses CloudDispatch. The classical post is the baseline transport used by that dispatch. M3-71 was not started. This branch is feat/gateway-mode-evaluation from c9c6f81 and has no upstream. This work is not committed.
+The sample is edge_gateway/docs/mode-evaluation.md and tests/integration/test_mode_evaluation.py. The production Legacy route validates, commits sequence state, dispatches through the selected Cloud transport, and returns `202` only after Cloud acceptance. The evaluation calls `CloudDispatch` directly to measure that transport path. The classical post is the baseline transport used by that dispatch. M3-71 was not started. This branch is feat/gateway-mode-evaluation from c9c6f81 and has no upstream. This work is not committed.
 
 ---
 

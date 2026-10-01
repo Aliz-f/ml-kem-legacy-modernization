@@ -71,7 +71,7 @@ def main() -> None:
     app = create_app(
         load_config(
             {
-                "DATABASE_URL": f"sqlite:///{database}",
+                "DATABASE_URL": f"sqlite:///{database.as_posix()}",
                 "SECURITY_MODE": "mlkem",
                 "LOG_LEVEL": "WARNING",
             }

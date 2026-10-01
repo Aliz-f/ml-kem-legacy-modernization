@@ -142,7 +142,7 @@ def _exchange(base_url: str, body: bytes, *, method: str = "POST", path: str = "
         method=method,
     )
     try:
-        with urlopen(request, timeout=5) as response:
+        with urlopen(request, timeout=15) as response:
             return response.status, response.read()
     except HTTPError as error:
         return error.code, error.read()

@@ -118,6 +118,35 @@ exceptions receive a generic JSON `500`; the application handler logs only
 uv run pytest edge_gateway/tests/test_gateway_errors.py edge_gateway/tests/test_gateway_validation.py
 ```
 
+## Gateway response mapping (M2-15)
+
+The Legacy endpoint has one frozen outcome-to-response mapping. It does not
+pass through Cloud HTTP statuses, Cloud error codes, secure-session details, or
+Python exception text. Cloud and secure delivery failures are intentionally
+reduced to the same Legacy-safe unavailable result.
+
+| Gateway outcome | Legacy HTTP response | Stable code |
+| --- | ---: | --- |
+| Confirmed Cloud acceptance, including Cloud idempotent acceptance | `202` | `{"status":"accepted"}` |
+| Malformed or unparseable Legacy body | `400` | `INVALID_JSON` |
+| Parsed Legacy schema/domain failure | `422` | `INVALID_MEASUREMENT` |
+| Duplicate sequence | `409` | `DUPLICATE_SEQUENCE` |
+| Lower sequence | `409` | `OUT_OF_ORDER_SEQUENCE` |
+| Baseline retry exhaustion, baseline rejection, timeout, connection failure, secure session/PQC failure | `503` | `CLOUD_UNAVAILABLE` |
+| Unexpected Gateway error | `500` | `INTERNAL_ERROR` |
+
+The route returns `202` only after its selected Cloud transport confirms either
+`accepted` or `already_accepted` with a record ID. `already_accepted` remains a
+Cloud idempotency detail; Legacy receives the unchanged accepted response.
+Baseline and secure errors both become `503` because the Legacy interface does
+not expose the Gateway-to-Cloud transport or cryptographic boundary. Secure
+mode remains fail closed: this mapping does not send a baseline request after a
+secure failure. Tests exercise the complete table with transport doubles.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_response_mapping.py
+```
+
 ## Canonical measurement model (M2-07)
 
 `edge_gateway.models.CanonicalMeasurement` is an immutable Gateway-owned model

@@ -169,9 +169,45 @@ uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -q
 ```
 
 This covers the Member 2 client boundary and complements the Cloud-local
-serializer harness. Full Legacy→Gateway→Cloud E2E remains M2-17 / Member 5 work.
+serializer harness. The M2-17 tests below extend it through the Legacy boundary.
 Cloud health is checked; readiness currently returns the documented `503`
 placeholder pending its owning readiness task.
+
+## First full baseline E2E support (M2-17)
+
+The same test module now sends a deterministic Legacy `Measurement` through its
+production serializer and `GatewayClient`, a live Gateway configured with
+`SECURITY_MODE=classical`, the production baseline Cloud client, and a live Cloud
+with temporary file-backed SQLite. Both HTTP boundaries use loopback sockets;
+the Gateway creates its own transport, sequence tracker, and request IDs.
+
+The roadmap fixture (`sensor-test`, sequence `1`, `22.5` °C, `44.0` %,
+`2026-09-21T12:00:00Z`) and domain-boundary cases verify unchanged values,
+`timestamp` → `measured_at`, added Gateway ID and receipt time, and exact
+`received_at` → `gateway_received_at` mapping. Fractional timestamp precision is
+preserved. Correlation reaches Cloud through `X-Request-ID` and its acceptance
+log, outside the seven-field canonical body. Cloud list/detail queries immediately
+after Legacy `202`, plus a fresh SQLite connection after shutdown, verify storage.
+
+Negative coverage verifies that invalid Legacy data returns `422` without
+forwarding, a real SQLite write failure returns `503` rather than acceptance,
+and duplicate/out-of-order sequences return `409` even after failed delivery.
+A subsequent valid sequence gap succeeds. Retries are disabled in these E2E
+cases to isolate the response and sequence policy; M2-14/M2-16 cover bounded
+Cloud retries.
+
+Run the M2-17 cases from the workspace root:
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -k 'legacy_to_sqlite or baseline_e2e' -q
+```
+
+This is Member 2's transformation evidence for the Phase 5 baseline milestone.
+Member 5 retains ownership of shared E2E orchestration, deployment, and baseline
+freeze coordination. These tests use the deterministic send path, not the
+continuous sensor loop or Docker Compose. Both services' `/health` endpoints
+return `200`; `/ready` remains a `503` placeholder. Compose currently has no
+service definitions, so this does not establish container deployment readiness.
 
 ## Canonical measurement model (M2-07)
 

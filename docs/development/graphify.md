@@ -37,6 +37,12 @@ and fails if the committed graph or report is stale. It does not write to pull
 request branches. Graphify's local `manifest.json` is intentionally ignored
 because it contains machine-specific filesystem timestamps.
 
+The refresh script removes the report title's generation date and checkout
+freshness metadata. Graphify uses the machine's local calendar date, which can
+differ from CI's UTC date. Omitting that volatile metadata keeps identical
+sources stable across timezones and later rebuild days; dates in report content
+are preserved.
+
 Do not run Graphify installers, Graphify hook installers, or hand-edit generated
 artifacts. If CI reports that an artifact is stale, have the agent run the
 repository refresh command, then commit its generated changes. The report's

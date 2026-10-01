@@ -1,4 +1,4 @@
-# AI Task 0072 — Gateway secure shutdown cleanup
+# AI Task 0078 — Gateway secure shutdown cleanup
 
 **Status:** Complete
 

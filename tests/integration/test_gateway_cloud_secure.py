@@ -1,8 +1,7 @@
 """Gateway-to-Cloud secure integration for protocol version 1.
 
-The measurement receiver in this module is mounted only on the test
-application. It is not a Cloud production route. Cloud's public-key and
-session routes are the real ones.
+Every request exercises Cloud's production public-key, session, and
+secure-ingest routes.
 
 A valid-length ML-KEM ciphertext change is not required to raise, because
 ML-KEM may use implicit rejection. Protocol version 1 has no cryptographic
@@ -28,26 +27,22 @@ from pathlib import Path
 import pytest
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 
 from cloud_service.app import create_app
-from cloud_service.config import load_config
-from cloud_service.crypto.aad import AadError as CloudAadError
+from cloud_service.config import FailureMode, load_config
 from cloud_service.crypto.aad import build_aad as cloud_build_aad
 from cloud_service.crypto.kdf import SESSION_KEY_INFO as CLOUD_SESSION_KEY_INFO
 from cloud_service.crypto.kdf import SESSION_KEY_LENGTH as CLOUD_SESSION_KEY_LENGTH
 from cloud_service.crypto.kdf import derive_session_key as cloud_derive_session_key
-from cloud_service.crypto.session import SessionAccessError
-from cloud_service.crypto.symmetric import AeadError
-from cloud_service.crypto.symmetric import decrypt as cloud_decrypt
+from cloud_service.failure import FailureInjector
+from cloud_service.gateway.secure import router as secure_router
 from cloud_service.storage.models import StoredMeasurement
-from cloud_service.validation import MeasurementValidationError, validate_measurement
 from edge_gateway.config import load_config as load_gateway_config
 from edge_gateway.normalization import normalize
 from edge_gateway.validation import parse_legacy_measurement, validate_legacy_measurement
 from legacy_system.sensor import Sensor
 from edge_gateway.crypto.aad import build_aad as gateway_build_aad
-from edge_gateway.crypto.encoding import EncodingError, decode_binary, encode_binary
+from edge_gateway.crypto.encoding import decode_binary, encode_binary
 from edge_gateway.crypto.envelope import build_secure_envelope
 from edge_gateway.crypto.kdf import SESSION_KEY_INFO as GATEWAY_SESSION_KEY_INFO
 from edge_gateway.crypto.kdf import SESSION_KEY_LENGTH as GATEWAY_SESSION_KEY_LENGTH
@@ -79,28 +74,15 @@ _MEASUREMENT = {
 }
 
 
-class SecureRejection(Exception):
-    """One test-receiver rejection. The message is the error code only."""
-
-    def __init__(self, status_code: int, code: str) -> None:
-        super().__init__(code)
-        self.status_code = status_code
-        self.code = code
-
-
-class Policy:
-    """Per-test controls for the test-only measurement receiver."""
+class Trace:
+    """Passive observations of requests handled by Cloud's production routes."""
 
     def __init__(self) -> None:
         self.bodies: list[bytes] = []
-        self.results: list[tuple[int, str]] = []
+        self.secure_statuses: list[int] = []
         self.handshakes = 0
         self.baseline_posts = 0
-        self.decrypt_calls = 0
-        self.last_aad: bytes | None = None
-        self.force_status: int | None = None
-        self.force_code = "SECURE_MESSAGE_REJECTED"
-        self.ambiguous_remaining = 0
+        self.disable_failure_after_secure_response = False
 
 
 class Clock:
@@ -125,12 +107,12 @@ class BaselineSpy:
 
 
 class CloudHarness:
-    """One live Cloud process and the Gateway clients pointed at it."""
+    """One live Cloud process and Gateway clients using its real secure route."""
 
-    def __init__(self, app: FastAPI, base_url: str, policy: Policy) -> None:
+    def __init__(self, app: FastAPI, base_url: str, trace: Trace) -> None:
         self.app = app
         self.base_url = base_url
-        self.policy = policy
+        self.trace = trace
 
     def gateway_sessions(
         self,
@@ -158,6 +140,12 @@ class CloudHarness:
     def rows(self) -> list[StoredMeasurement]:
         return self.app.state.repository.list()
 
+    def set_failure(self, mode: FailureMode) -> None:
+        self.app.state.failure_injector = FailureInjector(mode, 1.0, 7, 0)
+
+    def clear_failure(self) -> None:
+        self.app.state.failure_injector = FailureInjector(FailureMode.NONE, 0.0, None, 0)
+
     def post_json(self, path: str, payload: dict[str, object]) -> tuple[int, dict[str, object]]:
         request = urllib.request.Request(
             self.base_url + path,
@@ -178,113 +166,25 @@ class CloudHarness:
         return status, parsed
 
 
-def _install(app: FastAPI, policy: Policy) -> None:
-    """Mount the test-only receiver. Production routers stay unchanged."""
+def _install_trace(app: FastAPI, trace: Trace) -> None:
+    """Observe production-route requests without replacing any Cloud handler."""
 
     @app.middleware("http")
     async def count_posts(request: Request, call_next):
+        body = await request.body()
         response = await call_next(request)
         if request.method == "POST" and request.url.path == "/api/v1/crypto/sessions":
             if response.status_code == 200:
-                policy.handshakes += 1
+                trace.handshakes += 1
         if request.method == "POST" and request.url.path == "/api/v1/baseline/measurements":
-            policy.baseline_posts += 1
+            trace.baseline_posts += 1
+        if request.method == "POST" and request.url.path == "/api/v1/secure/measurements":
+            trace.bodies.append(body)
+            trace.secure_statuses.append(response.status_code)
+            if trace.disable_failure_after_secure_response:
+                trace.disable_failure_after_secure_response = False
+                app.state.failure_injector = FailureInjector(FailureMode.NONE, 0.0, None, 0)
         return response
-
-    @app.post("/api/v1/secure/measurements")
-    async def secure_measurements(request: Request) -> JSONResponse:
-        policy.bodies.append(await request.body())
-        try:
-            payload = json.loads(policy.bodies[-1])
-            checked = _require_envelope(payload)
-        except (json.JSONDecodeError, UnicodeError):
-            return _reject(policy, 400, "SECURE_MESSAGE_REJECTED")
-        except SecureRejection as reject:
-            return _reject(policy, reject.status_code, reject.code)
-        if policy.force_status is not None:
-            return _reject(policy, policy.force_status, policy.force_code)
-        try:
-            saved = _accept(app, checked, policy)
-        except SecureRejection as reject:
-            return _reject(policy, reject.status_code, reject.code)
-        if policy.ambiguous_remaining > 0:
-            policy.ambiguous_remaining -= 1
-            return _reject(policy, 503, "SERVICE_UNAVAILABLE")
-        marker = "accepted" if saved.created else "already_accepted"
-        policy.results.append((202, marker))
-        return JSONResponse(
-            status_code=202,
-            content={"status": marker, "record_id": saved.measurement.record_id},
-        )
-
-
-def _reject(policy: Policy, status_code: int, code: str) -> JSONResponse:
-    policy.results.append((status_code, code))
-    messages = {
-        "SESSION_INVALID": "secure session is invalid",
-        "SESSION_EXPIRED": "secure session has expired",
-        "SERVICE_UNAVAILABLE": "service is not ready",
-        "UNSUPPORTED_PROTOCOL_VERSION": "unsupported protocol version",
-        "INVALID_MEASUREMENT": "measurement is invalid",
-    }
-    return JSONResponse(
-        status_code=status_code,
-        content={"error": {"code": code, "message": messages.get(code, "secure message rejected")}},
-    )
-
-
-def _require_envelope(payload: object) -> dict[str, str]:
-    if not isinstance(payload, dict) or set(payload) != set(_ENVELOPE_FIELDS):
-        raise SecureRejection(400, "SECURE_MESSAGE_REJECTED")
-    if any(not isinstance(payload[name], str) or payload[name] == "" for name in _ENVELOPE_FIELDS):
-        raise SecureRejection(400, "SECURE_MESSAGE_REJECTED")
-    return payload
-
-
-def _accept(app: FastAPI, checked: dict[str, str], policy: Policy):
-    if checked["protocol_version"] != "1":
-        try:
-            cloud_build_aad(
-                protocol_version=checked["protocol_version"],
-                gateway_id=checked["gateway_id"],
-                session_id=checked["session_id"],
-                request_id=checked["request_id"],
-            )
-        except CloudAadError:
-            raise SecureRejection(400, "UNSUPPORTED_PROTOCOL_VERSION") from None
-        raise SecureRejection(400, "UNSUPPORTED_PROTOCOL_VERSION")
-    try:
-        session = app.state.sessions.get(checked["session_id"], checked["gateway_id"])
-    except SessionAccessError as exc:
-        raise SecureRejection(exc.status_code, exc.code) from None
-    try:
-        associated = cloud_build_aad(
-            protocol_version=checked["protocol_version"],
-            gateway_id=checked["gateway_id"],
-            session_id=checked["session_id"],
-            request_id=checked["request_id"],
-        )
-    except CloudAadError:
-        raise SecureRejection(400, "SECURE_MESSAGE_REJECTED") from None
-    policy.last_aad = associated
-    try:
-        nonce = decode_binary(checked["nonce"])
-        ciphertext = decode_binary(checked["ciphertext"])
-    except EncodingError:
-        raise SecureRejection(400, "SECURE_MESSAGE_REJECTED") from None
-    policy.decrypt_calls += 1
-    try:
-        plaintext = cloud_decrypt(session.session_key, nonce, ciphertext, associated)
-    except AeadError:
-        raise SecureRejection(400, "SECURE_MESSAGE_REJECTED") from None
-    try:
-        measurement = validate_measurement(
-            json.loads(plaintext),
-            expected_gateway_id=checked["gateway_id"],
-        )
-    except (json.JSONDecodeError, MeasurementValidationError):
-        raise SecureRejection(422, "INVALID_MEASUREMENT") from None
-    return app.state.repository.save_idempotent(measurement)
 
 
 def _measurement(**overrides: object) -> dict[str, object]:
@@ -346,8 +246,8 @@ def cloud(tmp_path: Path):
             }
         )
     )
-    policy = Policy()
-    _install(app, policy)
+    trace = Trace()
+    _install_trace(app, trace)
     server = uvicorn.Server(
         uvicorn.Config(app, host="127.0.0.1", port=0, log_level="warning", access_log=False)
     )
@@ -367,13 +267,13 @@ def cloud(tmp_path: Path):
         raise RuntimeError("Cloud test server has no socket")
     port = sockets[0].getsockname()[1]
     try:
-        yield CloudHarness(app, f"http://127.0.0.1:{port}", policy)
+        yield CloudHarness(app, f"http://127.0.0.1:{port}", trace)
     finally:
         server.should_exit = True
         thread.join(timeout=5)
 
 
-def test_production_cloud_app_has_no_secure_measurement_route(tmp_path: Path) -> None:
+def test_production_cloud_app_has_secure_measurement_route(tmp_path: Path) -> None:
     app = create_app(
         load_config(
             {
@@ -382,8 +282,10 @@ def test_production_cloud_app_has_no_secure_measurement_route(tmp_path: Path) ->
             }
         )
     )
-    paths = {route.path for route in app.routes if hasattr(route, "path")}
-    assert "/api/v1/secure/measurements" not in paths
+    assert any(
+        getattr(route, "original_router", None) is secure_router
+        for route in app.router.routes
+    )
 
 
 def test_versioned_public_key_retrieval(cloud: CloudHarness) -> None:
@@ -439,7 +341,7 @@ def test_valid_encapsulation_matches_shared_secret_and_hkdf(
     assert "salt=None" in inspect.getsource(cloud_derive_session_key)
     assert session.state is SessionState.ACTIVE
     assert session.expires_at > datetime.now(timezone.utc)
-    assert cloud.policy.handshakes == 1
+    assert cloud.trace.handshakes == 1
     leaked = captured["secret"].hex() in caplog.text or gateway_key.hex() in caplog.text
     assert not leaked
 
@@ -456,7 +358,7 @@ def test_secure_envelope_round_trip_stores_canonical_measurement(cloud: CloudHar
     assert stored.sequence_number == 1
     assert stored.device_id == "sensor-001"
     assert stored.gateway_id == "gateway-001"
-    envelope = json.loads(cloud.policy.bodies[-1])
+    envelope = json.loads(cloud.trace.bodies[-1])
     assert set(envelope) == set(_ENVELOPE_FIELDS)
     assert "message_counter" not in envelope
     assert len(decode_binary(envelope["nonce"])) == 12
@@ -474,7 +376,7 @@ def test_secure_envelope_round_trip_stores_canonical_measurement(cloud: CloudHar
         session_id=envelope["session_id"],
         request_id="req-round",
     )
-    same_aad = gateway_aad == cloud_aad == cloud.policy.last_aad
+    same_aad = gateway_aad == cloud_aad
     assert same_aad
     assert set(json.loads(gateway_aad)) == {
         "protocol_version",
@@ -482,8 +384,8 @@ def test_secure_envelope_round_trip_stores_canonical_measurement(cloud: CloudHar
         "session_id",
         "request_id",
     }
-    assert cloud.policy.handshakes == 1
-    assert cloud.policy.baseline_posts == 0
+    assert cloud.trace.handshakes == 1
+    assert cloud.trace.baseline_posts == 0
     assert len(cloud.rows()) == 1
 
 
@@ -498,9 +400,9 @@ def test_one_handshake_is_reused_for_three_measurements(cloud: CloudHarness) -> 
 
     accepted = asyncio.run(send_three())
     assert [item.status for item in accepted] == ["accepted", "accepted", "accepted"]
-    assert cloud.policy.handshakes == 1
+    assert cloud.trace.handshakes == 1
     assert len(cloud.rows()) == 3
-    assert len({json.loads(body)["session_id"] for body in cloud.policy.bodies}) == 1
+    assert len({json.loads(body)["session_id"] for body in cloud.trace.bodies}) == 1
 
 
 def test_local_session_expiry_reestablishes_before_the_next_send(cloud: CloudHarness) -> None:
@@ -513,11 +415,11 @@ def test_local_session_expiry_reestablishes_before_the_next_send(cloud: CloudHar
     # than this instant, so the new handshake is still in the future.
     clock.now = current.expires_at
     acceptance = _deliver(transport, request_id="req-local-expiry")
-    delivered = json.loads(cloud.policy.bodies[-1])["session_id"]
+    delivered = json.loads(cloud.trace.bodies[-1])["session_id"]
     assert acceptance.status == "accepted"
     assert delivered != original
-    assert cloud.policy.handshakes == 2
-    assert len(cloud.policy.bodies) == 1
+    assert cloud.trace.handshakes == 2
+    assert len(cloud.trace.bodies) == 1
     assert len(cloud.rows()) == 1
 
 
@@ -527,14 +429,13 @@ def test_expired_session_returns_409_and_recovers_once(cloud: CloudHarness) -> N
     stored = cloud.app.state.sessions._sessions[current.session_id]
     object.__setattr__(stored, "expires_at", datetime.now(timezone.utc) - timedelta(seconds=5))
     acceptance = _deliver(cloud.transport(sessions), request_id="req-expired")
-    assert cloud.policy.results[0] == (409, "SESSION_EXPIRED")
-    assert cloud.policy.results[1] == (202, "accepted")
+    assert cloud.trace.secure_statuses == [409, 202]
     assert acceptance.status == "accepted"
     assert current.session_id not in cloud.app.state.sessions._sessions
-    assert cloud.policy.handshakes == 2
+    assert cloud.trace.handshakes == 2
     assert len(cloud.rows()) == 1
-    first = json.loads(cloud.policy.bodies[0])
-    second = json.loads(cloud.policy.bodies[1])
+    first = json.loads(cloud.trace.bodies[0])
+    second = json.loads(cloud.trace.bodies[1])
     assert first["request_id"] == second["request_id"] == "req-expired"
     assert first["session_id"] != second["session_id"]
 
@@ -544,27 +445,25 @@ def test_invalid_session_returns_409_and_recovers_once(cloud: CloudHarness) -> N
     current = asyncio.run(sessions.get_or_establish())
     cloud.app.state.sessions.invalidate(current.session_id)
     acceptance = _deliver(cloud.transport(sessions), request_id="req-invalid")
-    assert cloud.policy.results[0] == (409, "SESSION_INVALID")
-    assert cloud.policy.results[1] == (202, "accepted")
+    assert cloud.trace.secure_statuses == [409, 202]
     assert acceptance.status == "accepted"
-    assert cloud.policy.handshakes == 2
+    assert cloud.trace.handshakes == 2
     assert len(cloud.rows()) == 1
 
 
 def test_a_second_session_rejection_is_not_recovered(cloud: CloudHarness) -> None:
-    cloud.policy.force_status = 409
-    cloud.policy.force_code = "SESSION_INVALID"
+    cloud.set_failure(FailureMode.SESSION_NOT_FOUND)
     sessions = cloud.gateway_sessions()
     transport = cloud.transport(sessions, max_retries=2)
     with pytest.raises(SecureTransportError) as caught:
         _deliver(transport, request_id="req-bound")
     assert caught.value.retryable is False
     assert caught.value.code == "SESSION_INVALID"
-    assert cloud.policy.handshakes == 2
-    assert cloud.policy.results == [(409, "SESSION_INVALID"), (409, "SESSION_INVALID")]
+    assert cloud.trace.handshakes == 2
+    assert cloud.trace.secure_statuses == [409, 409]
     assert cloud.rows() == []
-    first = json.loads(cloud.policy.bodies[0])
-    second = json.loads(cloud.policy.bodies[1])
+    first = json.loads(cloud.trace.bodies[0])
+    second = json.loads(cloud.trace.bodies[1])
     assert first["request_id"] == second["request_id"] == "req-bound"
     assert first["session_id"] != second["session_id"]
 
@@ -599,7 +498,6 @@ def test_tampered_secure_message_is_rejected(cloud: CloudHarness, field: str, co
     status, body = cloud.post_json("/api/v1/secure/measurements", changed)
     assert status == 400
     assert body["error"]["code"] == code
-    assert cloud.policy.decrypt_calls == 1
     assert cloud.rows() == []
 
 
@@ -624,7 +522,6 @@ def test_wrong_session_is_rejected_without_storage(cloud: CloudHarness) -> None:
     status, body = cloud.post_json("/api/v1/secure/measurements", foreign.as_dict())
     assert status == 400
     assert body["error"]["code"] == "SECURE_MESSAGE_REJECTED"
-    assert cloud.policy.decrypt_calls == 1
     assert len(cloud.app.state.sessions) == 2
     assert cloud.rows() == []
 
@@ -637,7 +534,6 @@ def test_wrong_gateway_ownership_is_rejected_before_decrypt(cloud: CloudHarness)
     status, body = cloud.post_json("/api/v1/secure/measurements", changed)
     assert status == 400
     assert body["error"]["code"] == "SECURE_MESSAGE_REJECTED"
-    assert cloud.policy.decrypt_calls == 0
     assert len(cloud.app.state.sessions) == 1
     assert cloud.rows() == []
 
@@ -650,7 +546,6 @@ def test_unsupported_protocol_version_is_rejected(cloud: CloudHarness) -> None:
     status, body = cloud.post_json("/api/v1/secure/measurements", changed)
     assert status == 400
     assert body["error"]["code"] == "UNSUPPORTED_PROTOCOL_VERSION"
-    assert cloud.policy.decrypt_calls == 0
     assert cloud.rows() == []
 
     def unreachable(_ciphertext: bytes) -> bytes:
@@ -711,7 +606,7 @@ def test_simulated_decapsulation_failure_leaves_no_session(cloud: CloudHarness) 
     assert status == 503
     assert body["error"]["code"] == "SERVICE_UNAVAILABLE"
     assert len(cloud.app.state.sessions) == 0
-    assert cloud.policy.handshakes == 0
+    assert cloud.trace.handshakes == 0
 
 
 def test_valid_length_mlkem_mutation_is_not_required_to_raise(cloud: CloudHarness) -> None:
@@ -736,8 +631,7 @@ def test_valid_length_mlkem_mutation_is_not_required_to_raise(cloud: CloudHarnes
 
 def test_secure_failure_does_not_call_baseline(cloud: CloudHarness, caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.INFO)
-    cloud.policy.force_status = 400
-    cloud.policy.force_code = "SECURE_MESSAGE_REJECTED"
+    cloud.set_failure(FailureMode.DECRYPTION_FAILURE)
     sessions = cloud.gateway_sessions()
     transport = cloud.transport(sessions)
     baseline = BaselineSpy()
@@ -749,7 +643,7 @@ def test_secure_failure_does_not_call_baseline(cloud: CloudHarness, caplog: pyte
     with pytest.raises(SecureTransportError):
         _deliver(dispatch, request_id="req-closed")
     assert baseline.calls == 0
-    assert cloud.policy.baseline_posts == 0
+    assert cloud.trace.baseline_posts == 0
     assert dispatch.metrics.secure_failures_total == 1
     assert dispatch.pqc_metrics.pqc_fallback_total == 0
     assert any("event=pqc_fail_closed" in record.message for record in caplog.records)
@@ -757,19 +651,19 @@ def test_secure_failure_does_not_call_baseline(cloud: CloudHarness, caplog: pyte
 
 def test_ambiguous_transport_retries_the_same_envelope(cloud: CloudHarness) -> None:
     delays: list[float] = []
-    cloud.policy.ambiguous_remaining = 1
+    cloud.set_failure(FailureMode.DROP_RESPONSE)
+    cloud.trace.disable_failure_after_secure_response = True
     sessions = cloud.gateway_sessions()
     transport = cloud.transport(sessions, max_retries=1, sleep=delays.append)
     acceptance = _deliver(transport, request_id="req-retry")
-    same_body = cloud.policy.bodies[0] == cloud.policy.bodies[1]
+    same_body = cloud.trace.bodies[0] == cloud.trace.bodies[1]
     assert same_body
     assert delays == [1.0]
-    assert cloud.policy.results == [(503, "SERVICE_UNAVAILABLE"), (202, "already_accepted")]
     assert acceptance.status == "already_accepted"
-    assert cloud.policy.handshakes == 1
+    assert cloud.trace.handshakes == 1
     assert len(cloud.rows()) == 1
-    first = json.loads(cloud.policy.bodies[0])
-    second = json.loads(cloud.policy.bodies[1])
+    first = json.loads(cloud.trace.bodies[0])
+    second = json.loads(cloud.trace.bodies[1])
     same_envelope = first == second
     assert same_envelope
     assert first["request_id"] == "req-retry"
@@ -795,16 +689,14 @@ def test_duplicate_sequence_is_stored_once(cloud: CloudHarness) -> None:
     assert first.record_id == second.record_id == stored.record_id
     assert stored.temperature_c == 22.5
     assert len(cloud.rows()) == 1
-    assert cloud.policy.handshakes == 1
-    assert "REPLAY" not in {code for _status, code in cloud.policy.results}
+    assert cloud.trace.handshakes == 1
 
 
 def test_legacy_values_survive_secure_delivery(cloud: CloudHarness) -> None:
     """Legacy temperature, humidity, and sequence survive secure delivery.
 
-    The production measurements route still stops before delivery. This test
-    starts from Legacy serialization, then uses Gateway validation,
-    normalization, and secure dispatch. Cloud storage is the test receiver.
+    This test starts from Legacy serialization, then uses Gateway validation,
+    normalization, secure dispatch, and Cloud's production secure-ingest route.
     """
     fixture = json.loads(
         (Path(__file__).parents[1] / "fixtures" / "valid_legacy_measurement.json").read_text(
@@ -857,8 +749,8 @@ def test_legacy_values_survive_secure_delivery(cloud: CloudHarness) -> None:
     accepted = asyncio.run(deliver_all())
     assert [item.status for item in accepted] == ["accepted", "accepted"]
     assert baseline.calls == 0
-    assert cloud.policy.baseline_posts == 0
-    assert cloud.policy.handshakes == 1
+    assert cloud.trace.baseline_posts == 0
+    assert cloud.trace.handshakes == 1
     for payload, canonical in zip(payloads, prepared, strict=True):
         stored = cloud.app.state.repository.find_by_device_sequence(
             str(payload["device_id"]),

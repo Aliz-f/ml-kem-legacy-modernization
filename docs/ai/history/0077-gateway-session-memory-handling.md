@@ -1,4 +1,4 @@
-# AI Task 0071 — Gateway session memory handling
+# AI Task 0077 — Gateway session memory handling
 
 **Status:** Complete
 

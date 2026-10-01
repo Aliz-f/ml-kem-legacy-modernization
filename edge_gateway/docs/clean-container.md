@@ -21,7 +21,7 @@ docker run --rm gateway-clean-container
 
 The expected output is `clean-container-ok`.
 
-The secure measurement receiver exists only in that container process. Cloud's
-production application still has no secure-ingest route. Gateway's service
-image remains `edge_gateway/Dockerfile`, and Compose services stay empty.
-The check does not print keys or shared secrets.
+The check exercises Cloud's production secure-ingest route directly. Gateway's
+service image remains `edge_gateway/Dockerfile`; this verification image is
+separate from normal service and Compose configuration. The check does not
+print keys or shared secrets.

@@ -1,4 +1,4 @@
-# AI Task 0073 — Gateway crypto unit-test structure
+# AI Task 0079 — Gateway crypto unit-test structure
 
 **Status:** Complete
 

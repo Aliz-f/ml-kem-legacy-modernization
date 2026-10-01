@@ -1,4 +1,4 @@
-# AI Task 0077 — Gateway crypto image install
+# AI Task 0083 — Gateway crypto image install
 
 **Status:** Complete
 

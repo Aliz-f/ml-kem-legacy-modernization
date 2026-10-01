@@ -1,4 +1,4 @@
-# AI Task 0076 — Legacy contract across security modes
+# AI Task 0082 — Legacy contract across security modes
 
 **Status:** Complete
 

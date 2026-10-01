@@ -1,14 +1,12 @@
 """Start Cloud and deliver one secure measurement from a clean install.
 
-The secure measurement receiver is mounted only on this process. It is not a
-Cloud production route. The script prints one success line and does not print
-keys or shared secrets.
+The production secure-ingest route is exercised directly. The script prints
+one success line and does not print keys or shared secrets.
 """
 
 from __future__ import annotations
 
 import asyncio
-import json
 import tempfile
 import threading
 import time
@@ -16,29 +14,13 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 
 from cloud_service.app import create_app
 from cloud_service.config import load_config
-from cloud_service.crypto.aad import AadError
-from cloud_service.crypto.aad import build_aad as cloud_build_aad
-from cloud_service.crypto.session import SessionAccessError
-from cloud_service.crypto.symmetric import AeadError as CloudAeadError
-from cloud_service.crypto.symmetric import decrypt as cloud_decrypt
-from cloud_service.validation import MeasurementValidationError, validate_measurement
-from edge_gateway.crypto.encoding import EncodingError, decode_binary
 from edge_gateway.crypto.secure_transport import SecureTransport
 from edge_gateway.crypto.session import SessionManager
 
 
-_ENVELOPE_FIELDS = (
-    "protocol_version",
-    "gateway_id",
-    "session_id",
-    "request_id",
-    "nonce",
-    "ciphertext",
-)
 _MEASUREMENT = {
     "device_id": "sensor-001",
     "temperature_c": 22.5,
@@ -50,7 +32,7 @@ _MEASUREMENT = {
 
 
 def _install(app: FastAPI, counts: dict[str, int]) -> None:
-    """Mount the test-only receiver. Production routers stay unchanged."""
+    """Observe production Cloud routes without changing their behavior."""
 
     @app.middleware("http")
     async def count_posts(request: Request, call_next):
@@ -61,52 +43,6 @@ def _install(app: FastAPI, counts: dict[str, int]) -> None:
         if request.method == "POST" and request.url.path == "/api/v1/baseline/measurements":
             counts["baseline"] += 1
         return response
-
-    @app.post("/api/v1/secure/measurements")
-    async def secure_measurements(request: Request) -> JSONResponse:
-        try:
-            payload = json.loads(await request.body())
-        except (json.JSONDecodeError, UnicodeError):
-            return _rejected()
-        if not isinstance(payload, dict) or set(payload) != set(_ENVELOPE_FIELDS):
-            return _rejected()
-        if any(not isinstance(payload[name], str) or payload[name] == "" for name in _ENVELOPE_FIELDS):
-            return _rejected()
-        if payload["protocol_version"] != "1":
-            return _rejected()
-        try:
-            session = app.state.sessions.get(payload["session_id"], payload["gateway_id"])
-            associated = cloud_build_aad(
-                protocol_version=payload["protocol_version"],
-                gateway_id=payload["gateway_id"],
-                session_id=payload["session_id"],
-                request_id=payload["request_id"],
-            )
-            plaintext = cloud_decrypt(
-                session.session_key,
-                decode_binary(payload["nonce"]),
-                decode_binary(payload["ciphertext"]),
-                associated,
-            )
-            measurement = validate_measurement(
-                json.loads(plaintext),
-                expected_gateway_id=payload["gateway_id"],
-            )
-        except (SessionAccessError, AadError, EncodingError, CloudAeadError, MeasurementValidationError, json.JSONDecodeError):
-            return _rejected()
-        saved = app.state.repository.save_idempotent(measurement)
-        return JSONResponse(
-            status_code=202,
-            content={"status": "accepted", "record_id": saved.measurement.record_id},
-        )
-
-
-def _rejected() -> JSONResponse:
-    return JSONResponse(
-        status_code=400,
-        content={"error": {"code": "SECURE_MESSAGE_REJECTED", "message": "secure message rejected"}},
-    )
-
 
 def _serve(app: FastAPI) -> tuple[uvicorn.Server, threading.Thread, str]:
     server = uvicorn.Server(

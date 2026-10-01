@@ -12,9 +12,6 @@ import subprocess
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 GRAPH_OUTPUT = REPOSITORY_ROOT / "graphify-out"
-_REPORT_DATE = re.compile(r"  \(\d{4}-\d{2}-\d{2}\)$")
-
-
 def refresh_graph(root: Path) -> None:
     """Build the local code-only graph and its report."""
     clear_incremental_state(root / "graphify-out")
@@ -46,7 +43,7 @@ def clear_incremental_state(output_directory: Path) -> None:
 
 
 def normalize_artifacts(output_directory: Path) -> None:
-    """Remove metadata that follows the local checkout or the machine clock."""
+    """Remove checkout and wall-clock metadata from the shared artifacts."""
     graph_path = output_directory / "graph.json"
     graph = json.loads(graph_path.read_text(encoding="utf-8"))
     graph.pop("built_at_commit", None)
@@ -58,16 +55,18 @@ def normalize_artifacts(output_directory: Path) -> None:
     report = _without_section(
         report_path.read_text(encoding="utf-8"), "## Graph Freshness\n"
     )
-    report_path.write_text(_without_report_date(report), encoding="utf-8")
-
-
-def _without_report_date(content: str) -> str:
-    """Drop the title date. It follows the machine clock, not the graph."""
-    newline = "\n" if content.endswith("\n") else ""
-    lines = content.splitlines()
-    if lines:
-        lines[0] = _REPORT_DATE.sub("", lines[0])
-    return "\n".join(lines) + newline
+    # Graphify uses date.today() here. UTC alone would still drift next day.
+    # Match only the title suffix; dates in source-derived content are retained.
+    report = re.sub(
+        r"\A(# Graph Report - [^\n]+?)  \(\d{4}-\d{2}-\d{2}\)(?=\n|\Z)",
+        r"\1",
+        report,
+        count=1,
+    )
+    report_path.write_text(
+        report,
+        encoding="utf-8",
+    )
 
 
 def _without_section(content: str, heading: str) -> str:

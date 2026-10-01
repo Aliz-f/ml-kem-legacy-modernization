@@ -1,4 +1,4 @@
-# AI Task 0069 — Gateway tamper and ownership tests
+# AI Task 0075 — Gateway tamper and ownership tests
 
 **Status:** Complete
 

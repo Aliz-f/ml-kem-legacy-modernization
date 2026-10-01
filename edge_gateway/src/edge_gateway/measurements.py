@@ -4,6 +4,7 @@ from collections.abc import Awaitable, Callable
 from datetime import datetime
 
 from edge_gateway.correlation import create_request_id
+from edge_gateway.cloud.baseline import BaselineCloudError
 from edge_gateway.crypto.secure_transport import SecureTransportError
 from edge_gateway.dispatch import CloudDispatch
 from edge_gateway.errors import GatewayError, GatewayErrorCode
@@ -53,7 +54,7 @@ class MeasurementProcessor:
         fields.pop("gateway_id")
         try:
             result = await self._dispatch.send(request_id=request_id, **fields)
-        except (SecureTransportError, TimeoutError, ConnectionError):
+        except (BaselineCloudError, SecureTransportError, TimeoutError, ConnectionError):
             raise GatewayError(GatewayErrorCode.CLOUD_UNAVAILABLE) from None
         if (
             getattr(result, "status", None) not in ("accepted", "already_accepted")

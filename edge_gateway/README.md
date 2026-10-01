@@ -24,12 +24,12 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
 
 M2-12 connects validation, sequence tracking, normalization, correlation, and
-selected transport delivery for roadmap Phase 3 / Member 2 Gate A. Baseline HTTP
-client construction and retries remain M2-13/M2-14. The CLI does not construct a
-Cloud transport yet, so valid requests return `503 CLOUD_UNAVAILABLE` and commit
-sequence state. `create_app` accepts transport dependencies for composition and
-tests. Readiness remains unavailable pending M2-30/M2-31; it does not depend on
-an active secure session. There is no plaintext fallback.
+selected transport delivery for roadmap Phase 3 / Member 2 Gate A. M2-13 now
+constructs the baseline HTTP client automatically for explicit
+`SECURITY_MODE=classical`; M2-14 adds its bounded retry loop. `create_app` still
+accepts transport dependencies for tests and secure-mode composition. Readiness
+remains unavailable pending M2-30/M2-31; it does not depend on an active secure
+session. There is no plaintext fallback.
 
 `create_app(load_config(mapping))` supports isolated test configuration.
 Routes obtain settings through `get_config`, which tests can replace with
@@ -275,6 +275,29 @@ They do not claim real baseline Cloud persistence or baseline E2E readiness.
 
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_measurements.py
+```
+
+## Baseline Cloud client (M2-13)
+
+`edge_gateway.cloud.baseline.BaselineCloudClient` is used only when
+`SECURITY_MODE=classical` is explicitly configured. It serializes the exact
+seven-field `CanonicalMeasurement` as compact JSON, posts it to
+`{CLOUD_URL}/api/v1/baseline/measurements`, applies `CLOUD_TIMEOUT_SECONDS`, and
+puts the separately created request ID only in `X-Request-ID`. A successful
+Cloud `202` response is normalized to `BaselineAcceptance(status, record_id)`;
+only `accepted` and `already_accepted` with a non-empty record ID qualify.
+
+The client sends one attempt in M2-13 and classifies failures for M2-14:
+timeouts, connection/protocol errors, and `500`, `502`, `503`, or `504` are
+retryable; redirects, other HTTP responses, and malformed/unexpected `202`
+payloads are not. It never follows redirects and never changes the request body
+or inserts `request_id` into it. The route converts classified failures to the
+existing Legacy-safe `503 CLOUD_UNAVAILABLE`; M2-14 will make retry exhaustion
+the normal path to that result. ML-KEM mode never creates or calls this client
+after a secure failure.
+
+```bash
+uv run pytest edge_gateway/tests/test_baseline_client.py
 ```
 
 ## Transport trust (M3-54)

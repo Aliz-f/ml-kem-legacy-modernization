@@ -9,6 +9,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
 from edge_gateway.config import ConfigurationError, GatewayConfig, load_config
+from edge_gateway.cloud.baseline import BaselineCloudClient
 from edge_gateway.crypto.secure_transport import SecureTransport
 from edge_gateway.dispatch import BaselineTransport, CloudDispatch
 from edge_gateway.errors import GatewayError, GatewayErrorCode
@@ -48,7 +49,8 @@ def create_app(
     dispatch = None
     if settings.security_mode == "classical" or secure_transport is not None:
         dispatch = CloudDispatch(
-            settings, baseline=baseline_transport or UnavailableBaseline(),
+            settings,
+            baseline=baseline_transport or _baseline_transport(settings),
             secure=secure_transport, pqc_metrics=registry,
         )
     processor = MeasurementProcessor(
@@ -131,6 +133,15 @@ def create_app(
         )
 
     return app
+
+
+def _baseline_transport(config: GatewayConfig) -> BaselineTransport:
+    """Construct the baseline client only for explicit classical-mode dispatch."""
+    if config.security_mode == "classical":
+        return BaselineCloudClient(
+            cloud_url=config.cloud_url, timeout_seconds=config.cloud_timeout_seconds,
+        )
+    return UnavailableBaseline()
 
 
 def _unavailable() -> JSONResponse:

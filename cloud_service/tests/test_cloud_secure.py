@@ -227,6 +227,24 @@ def test_storage_failure_real_sqlite_and_safe_internal_failure(client, monkeypat
     assert "sensitive-marker" not in caplog.text + response.text
 
 
+def test_secure_rejection_and_storage_failure_events_are_safe_and_consistent(client, caplog):
+    with caplog.at_level(logging.WARNING, logger="cloud_service"):
+        rejected = client.post(PATH, content=b"{}", headers={"Content-Type": "text/plain"})
+        assert rejected.status_code == 400
+        with client.app.state.database.transaction() as connection:
+            connection.execute("PRAGMA query_only = ON")
+        try:
+            failed = client.post(PATH, json=envelope(client))
+            assert failed.status_code == 503
+        finally:
+            with client.app.state.database.transaction() as connection:
+                connection.execute("PRAGMA query_only = OFF")
+
+    assert "event=secure_envelope_rejected component=cloud_service code=INVALID_CONTENT_TYPE" in caplog.text
+    assert "event=storage_failed component=cloud_service" in caplog.text
+    assert "secure_storage_failed" not in caplog.text
+
+
 def test_plaintext_never_falls_back(client, monkeypatch):
     monkeypatch.setattr(client.app.state.sessions, "get", forbid)
     monkeypatch.setattr(client.app.state.repository, "save_idempotent", forbid)

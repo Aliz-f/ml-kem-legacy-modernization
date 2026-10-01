@@ -46,7 +46,9 @@ def test_public_key_contract_gateway_interop_and_secret_boundary(tmp_path, caplo
             seed = keys._private_key._key.private_bytes_raw()
             assert client.get(PATH).json() == payload
             assert client.get("/health").status_code == 200
-            assert client.get("/ready").status_code == 503
+            ready = client.get("/ready")
+            assert ready.status_code == 200
+            assert ready.json() == {"status": "ready", "storage": "ok", "mlkem": "available"}
             assert client.post("/api/v1/baseline/measurements", json={}).status_code == 503
             assert client.post("/api/v1/crypto/sessions", json={}).status_code == 400
             assert client.post("/api/v1/secure/measurements", json={}).status_code == 400

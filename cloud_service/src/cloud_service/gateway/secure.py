@@ -43,14 +43,28 @@ def _error(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse(status_code=status, content={"error": {"code": code, "message": message}})
 
 
-def _ingest(body: bytes, sessions, repository, failure) -> JSONResponse:
+class _NoMetrics:
+    """Compatibility no-op for direct internal test-harness calls."""
+
+    def increment(self, _name: str, /, **_labels: str) -> None:
+        return None
+
+
+def _ingest(body: bytes, sessions, repository, failure, metrics=None) -> JSONResponse:
+    if metrics is None:
+        metrics = _NoMetrics()
     try:
         validated = validate_envelope(body)
     except EnvelopeValidationError as exc:
+        logger.warning("event=secure_envelope_rejected component=cloud_service code=%s", exc.code)
         if exc.code == "UNSUPPORTED_PROTOCOL_VERSION":
             return _error(400, exc.code, "unsupported protocol version")
         return _error(400, exc.code, "secure message could not be processed")
     envelope = validated.envelope
+    logger.info(
+        "event=secure_measurement_received component=cloud_service request_id=%r gateway_id=%r session_id=%r",
+        envelope.request_id[:256], envelope.gateway_id[:256], envelope.session_id[:256],
+    )
     try:
         # Manager enforces lookup -> ownership -> expiry, with no extension.
         session = sessions.get(envelope.session_id, envelope.gateway_id)
@@ -65,9 +79,18 @@ def _ingest(body: bytes, sessions, repository, failure) -> JSONResponse:
         if failure.apply(FailureMode.DECRYPTION_FAILURE):
             raise AeadError("injected decryption failure")
         plaintext = decrypt(session.session_key, validated.nonce, validated.ciphertext, aad)
+        metrics.increment("cloud_authenticated_messages_total")
+        logger.info(
+            "event=decryption_succeeded component=cloud_service request_id=%r gateway_id=%r",
+            envelope.request_id[:256], envelope.gateway_id[:256],
+        )
         try:
             measurement = validate_measurement(parse_json(plaintext), expected_gateway_id=envelope.gateway_id)
         except (ValueError, MeasurementValidationError, RecursionError):
+            logger.info(
+                "event=measurement_validation_failed component=cloud_service request_id=%r gateway_id=%r",
+                envelope.request_id[:256], envelope.gateway_id[:256],
+            )
             return _error(422, "INVALID_MEASUREMENT", "measurement validation failed")
         if failure.apply(FailureMode.STORAGE_FAILURE):
             raise StorageError("injected storage failure")
@@ -75,9 +98,15 @@ def _ingest(body: bytes, sessions, repository, failure) -> JSONResponse:
     except SessionAccessError:
         raise  # Existing frozen HTTP handler handles 409/ownership errors.
     except AeadError:
+        metrics.increment("cloud_decryption_failures_total")
+        logger.warning(
+            "event=decryption_failed component=cloud_service request_id=%r gateway_id=%r",
+            envelope.request_id[:256], envelope.gateway_id[:256],
+        )
         return _error(400, "SECURE_MESSAGE_REJECTED", "secure message could not be processed")
     except StorageError:
-        logger.warning("event=secure_storage_failed component=cloud_service request_id=%r gateway_id=%r",
+        metrics.increment("cloud_storage_failures_total")
+        logger.warning("event=storage_failed component=cloud_service request_id=%r gateway_id=%r",
                        envelope.request_id[:256], envelope.gateway_id[:256])
         return _error(503, "STORAGE_UNAVAILABLE", "storage is unavailable")
     except Exception:
@@ -85,9 +114,14 @@ def _ingest(body: bytes, sessions, repository, failure) -> JSONResponse:
                      envelope.request_id[:256], envelope.gateway_id[:256])
         return _error(500, "INTERNAL_ERROR", "internal error")
     status = "accepted" if result.created else "already_accepted"
-    logger.info("event=secure_measurement_accepted component=cloud_service request_id=%r gateway_id=%r device_id=%r sequence_number=%s status=%s record_id=%s",
-                envelope.request_id[:256], envelope.gateway_id[:256], measurement.device_id[:256],
-                measurement.sequence_number, status, result.measurement.record_id)
+    metric = "cloud_measurements_stored_total" if result.created else "cloud_duplicate_measurements_total"
+    metrics.increment(metric)
+    event = "measurement_stored" if result.created else "measurement_duplicate"
+    logger.info(
+        "event=%s component=cloud_service request_id=%r gateway_id=%r device_id=%r sequence_number=%s status=%s record_id=%s",
+        event, envelope.request_id[:256], envelope.gateway_id[:256], measurement.device_id[:256],
+        measurement.sequence_number, status, result.measurement.record_id,
+    )
     if failure.apply(FailureMode.DROP_RESPONSE):
         # The record is committed, but the Gateway receives no completed HTTP
         # response.  Its ordinary retry must retain the already-built envelope
@@ -117,6 +151,7 @@ async def secure_measurement(request: Request) -> JSONResponse:
     if failure.apply(FailureMode.PROCESSING_DELAY):
         await asyncio.sleep(injector.delay_seconds)
     if request.headers.get("content-type", "").split(";", 1)[0].strip().lower() != "application/json":
+        logger.warning("event=secure_envelope_rejected component=cloud_service code=INVALID_CONTENT_TYPE")
         return _error(400, "SECURE_MESSAGE_REJECTED", "secure message could not be processed")
     body = bytearray()
     try:
@@ -128,5 +163,6 @@ async def secure_measurement(request: Request) -> JSONResponse:
                 raise ValueError
             body.extend(chunk)
     except (ValueError, ClientDisconnect):
+        logger.warning("event=secure_envelope_rejected component=cloud_service code=INVALID_ENVELOPE_BODY")
         return _error(400, "SECURE_MESSAGE_REJECTED", "secure message could not be processed")
-    return await run_in_threadpool(_ingest, bytes(body), sessions, repository, failure)
+    return await run_in_threadpool(_ingest, bytes(body), sessions, repository, failure, request.app.state.metrics)

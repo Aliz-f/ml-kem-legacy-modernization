@@ -248,6 +248,13 @@ The Gateway security facts stay in the frozen Edge Gateway design and the
 shared protocol specification. This note points at those sections. It does not replace the frozen architecture. Details are in
 [docs/security.md](docs/security.md).
 
+## Security technical debt (M3-68)
+
+The course system keeps simplified public-key trust, in-memory sessions, an
+ephemeral Cloud key, and no cryptographic replay window. The register records
+those limits and their future improvements. It does not add those future controls.
+Details are in [docs/technical-debt.md](docs/technical-debt.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

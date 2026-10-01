@@ -407,6 +407,12 @@ The Gateway returns failure and the handshake-failure counter increments.
 It does not call the baseline endpoint.
 Details are in [docs/mlkem-handshake-failure.md](docs/mlkem-handshake-failure.md).
 
+## Cloud crypto review (M3-74)
+
+One review of Member 4's Cloud crypto compares the implementation with the
+frozen session-key contract. It does not change the Cloud protocol.
+Details are in [docs/cloud-crypto-review.md](docs/cloud-crypto-review.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

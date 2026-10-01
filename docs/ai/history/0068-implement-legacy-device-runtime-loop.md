@@ -1,4 +1,4 @@
-# AI Task 0062 — Implement Legacy Device runtime loop
+# AI Task 0068 — Implement Legacy Device runtime loop
 
 **Status:** Complete
 

@@ -1,4 +1,4 @@
-# AI Task 0064 — M1-09 Implement Legacy Device logging
+# AI Task 0071 — M1-09 Implement Legacy Device logging
 
 **Status:** Complete
 

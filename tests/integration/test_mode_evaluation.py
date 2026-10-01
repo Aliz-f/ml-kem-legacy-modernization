@@ -1,9 +1,10 @@
 """Measure one equivalent workload in classical mode and in mlkem mode.
 
-The production Legacy route still stops before delivery, so this evaluation
-calls CloudDispatch. Classical mode posts the canonical measurement to Cloud's
-baseline route. Modernized mode uses the real secure transport. The first
-secure request is timed separately because it includes session establishment.
+The production Legacy route dispatches through CloudDispatch before 202. This
+evaluation still calls CloudDispatch directly, so the timings are that dispatch
+path. Classical mode posts the canonical measurement to Cloud's baseline route.
+Modernized mode uses the real secure transport. The first secure request is
+timed separately because it includes session establishment.
 This module records measurements. It does not rank the modes.
 """
 

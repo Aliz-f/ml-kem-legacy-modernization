@@ -1,4 +1,4 @@
-# AI Task 0096 — Gateway threat model
+# AI Task 0101 — Gateway threat model
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Documented the Gateway threat model for tampered ciphertext, a wrong or expired 
 
 ## Files Created
 
-- docs/ai/history/0096-gateway-threat-model.md
+- docs/ai/history/0101-gateway-threat-model.md
 - edge_gateway/docs/threat-model.md
 - edge_gateway/tests/test_threat_model.py
 

@@ -2,9 +2,9 @@
 
 This note records one local sample. It does not rank the modes, and it does not set a performance limit.
 
-The production Legacy route still stops before delivery, so the sample calls `CloudDispatch` rather than that route. Both modes send the same four measurements: device `sensor-001`, temperature 22.5, humidity 44.0, and sequence numbers 1 through 4. Classical mode posts the canonical JSON to Cloud's baseline route. Modernized mode uses `SecureTransport` against Cloud's production public-key, session, and secure-measurement routes. The first secure request is reported separately because it includes session establishment.
+The production Legacy route validates the measurement, tracks its sequence, and dispatches it through `CloudDispatch` before it returns 202. This sample still calls `CloudDispatch` directly, so the timings are that dispatch path. Both modes send the same four measurements: device `sensor-001`, temperature 22.5, humidity 44.0, and sequence numbers 1 through 4. Classical mode posts the canonical JSON to Cloud's baseline route. Modernized mode uses `SecureTransport` against Cloud's production public-key, session, and secure-measurement routes. The first secure request is reported separately because it includes session establishment.
 
-The Gateway does not yet have its own baseline HTTP client. The classical timing is the `CloudDispatch` call that posts the canonical measurement. A fifth modernized measurement is sent only after Cloud invalidates the session, so the re-establishment count is separate from the four-message workload.
+The classical timing is the `CloudDispatch` call that posts the canonical measurement through the Gateway baseline client. A fifth modernized measurement is sent only after Cloud invalidates the session, so the re-establishment count is separate from the four-message workload.
 
 ## One local sample
 

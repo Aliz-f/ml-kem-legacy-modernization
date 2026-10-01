@@ -1,4 +1,4 @@
-# AI Task 0093 — Gateway crypto AI decisions
+# AI Task 0098 — Gateway crypto AI decisions
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded the accepted, modified, and rejected Gateway crypto decisions. ML-KEM i
 
 ## Files Created
 
-- docs/ai/history/0093-gateway-crypto-ai-decisions.md
+- docs/ai/history/0098-gateway-crypto-ai-decisions.md
 - edge_gateway/docs/ai-decisions.md
 - edge_gateway/tests/test_ai_decisions.py
 

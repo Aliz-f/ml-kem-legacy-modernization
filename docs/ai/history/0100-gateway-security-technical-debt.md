@@ -1,4 +1,4 @@
-# AI Task 0095 — Gateway security technical debt
+# AI Task 0100 — Gateway security technical debt
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded the Gateway security technical-debt register. It lists simplified publi
 
 ## Files Created
 
-- docs/ai/history/0095-gateway-security-technical-debt.md
+- docs/ai/history/0100-gateway-security-technical-debt.md
 - edge_gateway/docs/technical-debt.md
 - edge_gateway/tests/test_security_debt.py
 

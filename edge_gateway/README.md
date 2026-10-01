@@ -16,22 +16,20 @@ graceful-shutdown timeout. Importing the module does not load configuration or
 start a server. Invalid configuration prevents startup with a sanitized error.
 `LOG_LEVEL` must be a recognized Python logging level at application startup.
 
-| Route | Current skeleton behavior |
+| Route | Current behavior |
 | --- | --- |
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
-| `GET /ready` | `503 SERVICE_UNAVAILABLE` until processing and transport exist |
-| `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema/domain values → `422`; valid requests → `503` pending delivery |
+| `GET /ready` | `503 SERVICE_UNAVAILABLE` pending the operational readiness task |
+| `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema/domain values → `422`; duplicate/out-of-order → `409`; `202` only after confirmed Cloud acceptance; unavailable delivery → `503` |
 | `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
 
-This is roadmap Phase 3 / G2 scaffolding with G3 syntax/schema and domain validation.
-Normalization and correlation helpers are available, but their route orchestration,
-sequencing, Cloud delivery, and application metrics remain later tasks. This is not
-the completed Legacy API; `202` will be returned only after Cloud acceptance.
-
-Both configured security modes expose the skeleton. Neither performs Cloud
-requests or establishes sessions. Readiness is unavailable because processing
-and transport are absent, not because an active secure session is missing.
-There is no plaintext fallback.
+M2-12 connects validation, sequence tracking, normalization, correlation, and
+selected transport delivery for roadmap Phase 3 / Member 2 Gate A. M2-13 now
+constructs the baseline HTTP client automatically for explicit
+`SECURITY_MODE=classical`; M2-14 adds its bounded retry loop. `create_app` still
+accepts transport dependencies for tests and secure-mode composition. Readiness
+remains unavailable pending M2-30/M2-31; it does not depend on an active secure
+session. There is no plaintext fallback.
 
 `create_app(load_config(mapping))` supports isolated test configuration.
 Routes obtain settings through `get_config`, which tests can replace with
@@ -59,7 +57,7 @@ The model is immutable and independently owned by Gateway, with no imports from
 Legacy or Cloud. It checks schema only: non-empty device IDs, sensor ranges,
 and nonnegative sequences are checked separately by M2-05 domain validation. Parsing a model does
 not mean a measurement has been accepted. M2-04 integrates this schema at the
-HTTP boundary; requests passing schema and domain validation still return `503` pending delivery.
+HTTP boundary; valid input proceeds through the M2-12 pipeline described below.
 Timestamp serialization uses Python datetime microsecond precision.
 
 ## Schema validation (M2-04)
@@ -71,8 +69,8 @@ with missing/extra fields, wrong types, or an invalid timestamp produces
 `422 INVALID_MEASUREMENT`. Both responses use the shared structured error body
 and omit payload values and parser details. Invalid requests make no Cloud calls.
 
-Domain bounds are checked separately by M2-05; sequencing, normalization, and
-delivery remain later stages. No measurement is accepted or forwarded yet.
+Domain bounds are checked separately by M2-05; M2-12 then performs sequencing,
+normalization, and delivery through the selected transport.
 
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_validation.py
@@ -90,7 +88,8 @@ The existing model enforces ISO-8601 timestamps with an explicit UTC timezone;
 invalid dates, timezone-less timestamps, and non-UTC offsets return `422`.
 Domain failures raise `LegacyMeasurementDomainError` and map to the same sanitized
 `422 INVALID_MEASUREMENT` response as schema failures, before any Cloud call.
-Sequence ordering and duplicate detection remain later tasks.
+Sequence ordering and duplicate detection use the M2-10 tracker shared across
+requests by the M2-12 processor.
 
 ## Application errors (M2-06)
 
@@ -106,7 +105,7 @@ codes. Application exception handlers always return
 | `OUT_OF_ORDER_SEQUENCE` | 409 | Older sequence rejected |
 | `CLOUD_UNAVAILABLE` | 503 | Cloud/secure delivery unavailable after its retry policy |
 | `INTERNAL_ERROR` | 500 | Unexpected application failure |
-| `SERVICE_UNAVAILABLE` | 503 | Existing readiness/unfinished-delivery placeholder |
+| `SERVICE_UNAVAILABLE` | 503 | Operational readiness placeholder |
 
 Later sequence and transport stages can raise `GatewayError(code)` once their
 own policies determine a failure. M2-06 defines their error contracts only;
@@ -153,9 +152,8 @@ The caller supplies `config.gateway_id` and the Gateway current UTC receipt time
 as `received_at`. Explicit inputs keep the mapping deterministic and avoid
 environment or clock access inside normalization. Canonical model validation
 rejects invalid metadata types and timestamps without an explicit UTC timezone.
-Call after schema/domain validation and sequence-policy acceptance. Route
-orchestration remains M2-12; the existing route still returns `503` for valid
-measurements until Cloud delivery is implemented.
+The M2-12 processor calls normalization after schema/domain validation and
+sequence-policy acceptance, with the UTC receipt time captured by the route.
 
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_normalization.py
@@ -175,13 +173,133 @@ baseline Cloud request. Pass the same ID separately to the existing secure
 envelope builder, which authenticates it through AAD. Canonical measurement
 serialization remains unchanged and contains no request ID.
 
-These helpers are ready for M2-12 route orchestration and M2-13 Cloud forwarding;
-the current placeholder route does not yet accept measurements or create IDs.
+M2-12 now creates the ID once and passes it separately to the processing hook
+and selected transport. The baseline HTTP header remains M2-13 responsibility.
 Tests construct baseline HTTP requests without sending them and exercise the
 existing secure envelope to verify context propagation and authentication.
 
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_correlation.py
+```
+
+## Sequence tracker (M2-10)
+
+`edge_gateway.sequence.SequenceTracker.check_and_update(device_id, sequence_number)`
+tracks the last valid sequence accepted per device in memory. Share one tracker
+across requests and call it after schema/domain validation, before Cloud delivery.
+The check and update use one lock. First values (including zero) and increments
+are accepted; gaps advance state and emit `sequence_gap_detected` with device and
+sequence context. Equal values raise `GatewayError(DUPLICATE_SEQUENCE)` and lower
+values raise `GatewayError(OUT_OF_ORDER_SEQUENCE)`, using the existing `409`
+error definitions. Rejections leave state unchanged.
+
+State describes Gateway acceptance, not Cloud persistence. There is no rollback
+operation; restarting the process loses history. M2-10 provides the standalone
+tracker; M2-11 documents and tests its state lifetime and delivery boundary below.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_sequence.py
+```
+
+## Sequence-state design (M2-11)
+
+One Gateway process should own one `SequenceTracker`, shared across its requests.
+Its private dictionary stores the last valid accepted sequence for each device;
+creating a tracker for every request would lose duplicate protection. A fresh
+process starts with empty history. There is no disk persistence or coordination
+between workers, so this design assumes a single Gateway process.
+
+The caller must apply this order:
+
+1. Parse and validate the Legacy measurement's schema and domain values.
+2. Call `check_and_update(device_id, sequence_number)` to check and commit state.
+3. Continue processing and attempt Cloud delivery after the method returns.
+
+For example, accepting sequence `10` immediately commits `10`. A later Cloud
+timeout or connection failure leaves that value unchanged. A Legacy retry of
+`10` then raises `409 DUPLICATE_SEQUENCE`. Gateway-to-Cloud retries and Cloud
+idempotency are separate from this Legacy-side state.
+
+The existing lock covers the lookup, comparison, and update as one operation.
+It is released before downstream I/O. Concurrent equal values have exactly one
+winner. For different values, scheduling can affect which requests are accepted,
+but state never moves backward and finishes at the highest accepted value.
+A pending Cloud request does not block another sequence update, and its failure
+must not undo a newer accepted value.
+
+The sequence tests cover restart-equivalent instance isolation, simulated Cloud
+failures after commit, another update during pending delivery, and concurrent
+equal/different sequences, alongside the M2-10 policy cases. These are component
+tests using delivery stubs. M2-12 adds HTTP route tests with transport stubs that
+verify commit timing, concurrent requests, and failure retention. Real Cloud
+integration and application metrics remain separate tasks.
+## Legacy measurement endpoint (M2-12)
+
+`POST /api/v1/measurements` captures UTC receipt time, parses JSON, validates
+schema and domain, then delegates to `MeasurementProcessor`. Each application
+owns one processor and one in-memory `SequenceTracker`. Processing order is:
+
+```text
+validate → check/commit sequence → normalize → create request_id
+→ optional processing hook → selected Cloud transport → interpret acceptance
+```
+
+Composition supplies `baseline_transport` and/or `secure_transport` to
+`create_app`. The existing `CloudDispatch` selects using `SECURITY_MODE`.
+Transports expose async `send` with the existing dispatch keyword arguments.
+They own retries and return an object with `status` (`accepted` or
+`already_accepted`) and a non-empty string `record_id` after confirmed Cloud
+acceptance. The secure transport already returns this shape. Missing transport,
+invalid acceptance, timeout/connection failures, and classified secure delivery
+failures return `503 CLOUD_UNAVAILABLE`; baseline adapters can raise
+`GatewayError(CLOUD_UNAVAILABLE)` after bounded retries. Unexpected errors return
+sanitized `500 INTERNAL_ERROR`. The route performs no extra retry loop.
+
+Only confirmed delivery returns `202 {"status":"accepted"}`. Cloud record IDs
+and transport details are not exposed to Legacy. The optional async
+`processing_hook(canonical, request_id)` runs after sequence commit and before
+Cloud delivery; no hook is active by default. Concrete processing fault modes
+remain M2-19 onward. Exceptions from the hook use the existing safe error mapping.
+
+A failed delivery or processing hook never rolls sequence state back. For
+example, sequence `10` followed by a Cloud failure returns `503`; resending `10`
+returns `409 DUPLICATE_SEQUENCE` without another Cloud call. This can lose a
+measurement during an outage because the Gateway has no delivery queue. Cloud
+idempotency separately protects Gateway-to-Cloud retransmissions. Restart loses
+Gateway sequence history. Pending Cloud I/O does not hold the sequence lock.
+
+Tests use injected transports, including a blocked asynchronous delivery, and
+verify both modes, exact canonical fields, separate unique IDs, invalid input
+without side effects, sequence errors/gaps, safe failures, and no fallback.
+They do not claim real baseline Cloud persistence or baseline E2E readiness.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_measurements.py
+```
+
+## Baseline Cloud client (M2-13)
+
+`edge_gateway.cloud.baseline.BaselineCloudClient` is used only when
+`SECURITY_MODE=classical` is explicitly configured. It serializes the exact
+seven-field `CanonicalMeasurement` as compact JSON, posts it to
+`{CLOUD_URL}/api/v1/baseline/measurements`, applies `CLOUD_TIMEOUT_SECONDS`, and
+puts the separately created request ID only in `X-Request-ID`. A successful
+Cloud `202` response is normalized to `BaselineAcceptance(status, record_id)`;
+only `accepted` and `already_accepted` with a non-empty record ID qualify.
+
+The M2-14 retry policy treats timeouts, connection/protocol errors, and `500`,
+`502`, `503`, or `504` as retryable. Redirects, other HTTP responses, and
+malformed/unexpected `202` payloads are permanent. `CLOUD_MAX_RETRIES` is the
+number of additional ordinary transport attempts, defaulting to `2` for at most
+three sends. The frozen backoff is one second before the second attempt and two
+seconds before the third; no delay follows the final failure. Each retry uses
+the exact same already-serialized body and `X-Request-ID`. The route converts
+exhausted or permanent delivery failures to existing Legacy-safe `503
+CLOUD_UNAVAILABLE`. ML-KEM mode never creates or calls this client after a
+secure failure; its bounded session recovery remains separate.
+
+```bash
+uv run pytest edge_gateway/tests/test_baseline_client.py
 ```
 
 ## Transport trust (M3-54)
@@ -293,5 +411,5 @@ read its configuration directly from the environment.
 | `LOG_LEVEL` | `INFO` | Non-empty |
 
 `SECURITY_MODE=classical` is the explicitly selected baseline mode. The
-`mlkem` setting supports later secure transport work; it does not provide a
-plaintext fallback.
+`mlkem` setting selects only the supplied secure transport; missing or failed
+secure delivery returns `503` without a plaintext fallback.

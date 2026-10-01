@@ -1,4 +1,4 @@
-# AI Task 0097 — Baseline versus modernized evaluation
+# AI Task 0102 — Baseline versus modernized evaluation
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Measured one equivalent four-measurement workload in classical mode and mlkem mo
 
 ## Files Created
 
-- docs/ai/history/0097-baseline-versus-modernized-evaluation.md
+- docs/ai/history/0102-baseline-versus-modernized-evaluation.md
 - edge_gateway/docs/mode-evaluation.md
 - tests/integration/test_mode_evaluation.py
 

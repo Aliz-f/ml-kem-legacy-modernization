@@ -1,4 +1,4 @@
-# AI Task 0092 — Gateway crypto human review checklist
+# AI Task 0097 — Gateway crypto human review checklist
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Added the human review checklist for generated Gateway crypto. It covers ML-KEM,
 
 ## Files Created
 
-- docs/ai/history/0092-gateway-crypto-human-review-checklist.md
+- docs/ai/history/0097-gateway-crypto-human-review-checklist.md
 - edge_gateway/docs/crypto-review-checklist.md
 - edge_gateway/tests/test_crypto_review_checklist.py
 

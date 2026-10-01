@@ -1,7 +1,7 @@
 """Legacy Device contract stays the same in classical and mlkem modes.
 
-The production measurements route still stops before delivery. These tests do
-not add that delivery. They check that switching SECURITY_MODE does not change
+These tests start the production route without Cloud transport dependencies.
+They check that switching SECURITY_MODE does not change
 the Legacy JSON schema, response, or retry behavior, and that the Legacy
 Device does not learn Gateway-to-Cloud cryptography.
 """

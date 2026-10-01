@@ -1,4 +1,4 @@
-# AI Task 0090 — CI crypto checks
+# AI Task 0095 — CI crypto checks
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Added an explicit Gateway crypto step to the repository quality workflow. It run
 
 ## Files Created
 
-- docs/ai/history/0090-ci-crypto-checks.md
+- docs/ai/history/0095-ci-crypto-checks.md
 - tests/test_gateway_crypto_ci.py
 
 ## Files Modified

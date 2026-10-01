@@ -110,4 +110,4 @@ Look in `edge_gateway/src/edge_gateway/app.py`, `edge_gateway/src/edge_gateway/c
 - request_id remains separate request/transport context
 - no direct Legacy coupling
 
-Crypto stays in `edge_gateway.crypto`. The Legacy `POST /api/v1/measurements` handler parses and validates the Legacy JSON and does not encapsulate or encrypt. `CanonicalMeasurement` keeps the normalized measurement fields. `request_id` stays request and transport context. The Legacy Device does not learn ML-KEM, the session, the nonce, or AES-GCM.
+Crypto stays in `edge_gateway.crypto`. The Legacy `POST /api/v1/measurements` handler parses and validates the Legacy JSON, then hands delivery to `MeasurementProcessor`. The handler does not encapsulate or encrypt. `CanonicalMeasurement` keeps the normalized measurement fields. `request_id` stays request and transport context. The Legacy Device does not learn ML-KEM, the session, the nonce, or AES-GCM.

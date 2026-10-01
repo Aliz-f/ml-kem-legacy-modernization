@@ -131,4 +131,6 @@ def test_checklist_anchors_still_match_the_gateway() -> None:
     handler = app.split("async def measurements", 1)[1].split("@app.get", 1)[0]
     for term in ("encapsulate", "encrypt", "SecureEnvelope", "MLKEM"):
         assert term not in handler
-    assert "irrespective of secure-session state" in app
+    ready = app.split("async def ready", 1)[1].split("@app.post", 1)[0]
+    assert "session" not in ready
+    assert "_unavailable()" in ready

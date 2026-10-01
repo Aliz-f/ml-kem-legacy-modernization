@@ -1,4 +1,4 @@
-# AI Task 0094 — Gateway security documentation
+# AI Task 0099 — Gateway security documentation
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded the Gateway security documentation contribution. It points at the canon
 
 ## Files Created
 
-- docs/ai/history/0094-gateway-security-documentation.md
+- docs/ai/history/0099-gateway-security-documentation.md
 - edge_gateway/docs/security.md
 - edge_gateway/tests/test_security_documentation.py
 

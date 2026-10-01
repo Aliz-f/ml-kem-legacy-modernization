@@ -1,4 +1,4 @@
-# AI Task 0091 — Gateway crypto AI-history workflow
+# AI Task 0096 — Gateway crypto AI-history workflow
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Documented the Member 3 AI-history workflow for Gateway crypto. Generated crypto
 
 ## Files Created
 
-- docs/ai/history/0091-gateway-crypto-ai-history-workflow.md
+- docs/ai/history/0096-gateway-crypto-ai-history-workflow.md
 - edge_gateway/docs/ai-history.md
 - edge_gateway/tests/test_ai_history_workflow.py
 

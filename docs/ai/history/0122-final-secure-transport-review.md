@@ -1,4 +1,4 @@
-# AI Task 0121 — Final secure-transport review
+# AI Task 0122 — Final secure-transport review
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Checked every item of the frozen M3-78 final secure-transport checklist against 
 
 ## Files Created
 
-- docs/ai/history/0121-final-secure-transport-review.md
+- docs/ai/history/0122-final-secure-transport-review.md
 - edge_gateway/docs/final-secure-transport-review.md
 - edge_gateway/tests/test_final_secure_transport_review.py
 

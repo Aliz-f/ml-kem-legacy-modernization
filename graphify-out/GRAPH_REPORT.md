@@ -1,4 +1,4 @@
-# Graph Report - mlkem-pr33-fix
+# Graph Report - ml-kem-legacy-modernization
 
 ## Corpus Check
 - cluster-only mode — file stats not available

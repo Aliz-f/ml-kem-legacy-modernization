@@ -57,6 +57,7 @@ def test_random_module_is_not_a_key_or_nonce_source() -> None:
     }
     assert users == {
         "edge_gateway/src/edge_gateway/crypto/failure.py",
+        "edge_gateway/src/edge_gateway/failure/injector.py",
         "cloud_service/src/cloud_service/failure/injector.py",
         "legacy_system/src/legacy_system/sensor.py",
         "legacy_system/src/legacy_system/failure.py",

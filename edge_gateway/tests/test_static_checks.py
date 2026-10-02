@@ -7,11 +7,12 @@ from pathlib import Path
 ROOT = Path(__file__).parents[2]
 SOURCES = ("edge_gateway/src", "cloud_service/src", "legacy_system/src")
 SECRET_NAMES = ("shared_secret", "session_key", "private_key", "key_bytes", "plaintext")
-# Command-line tools whose job is to print a result. None prints key material.
+# Tools and reports whose job is to print a result. None prints key material.
 CLI_OUTPUT = {
     "cloud_service/tools/measure_baseline.py",
     "edge_gateway/docker/check_crypto.py",
     "edge_gateway/docker/clean_container_crypto.py",
+    "edge_gateway/tests/test_gateway_baseline_integration.py",
     "src/ai_history/cli.py",
 }
 

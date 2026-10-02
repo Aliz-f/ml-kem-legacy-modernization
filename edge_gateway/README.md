@@ -541,6 +541,12 @@ check, and the secure integration tests, then inspect the diff for secret
 logging, key files, debug prints, and `.env` values.
 Details are in [docs/static-checks.md](docs/static-checks.md).
 
+## Final secure-transport review (M3-78)
+
+One review checks every item of the frozen M3-78 checklist against the
+current Gateway and Cloud code, tests, and documentation before freeze.
+Details are in [docs/final-secure-transport-review.md](docs/final-secure-transport-review.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

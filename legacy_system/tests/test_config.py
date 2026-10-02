@@ -9,8 +9,8 @@ def test_default_configuration() -> None:
     assert config == Config(
         device_id="sensor-001",
         gateway_url="http://edge-gateway:8000",
-        send_interval_seconds=5,
-        request_timeout_seconds=3,
+        send_interval_seconds=5.0,
+        request_timeout_seconds=3.0,
         max_retries=2,
         failure_mode=FailureMode.NONE,
         failure_rate=0.0,
@@ -24,8 +24,8 @@ def test_valid_environment_configuration() -> None:
         {
             "DEVICE_ID": "sensor-007",
             "GATEWAY_URL": "https://gateway.example.test/api",
-            "SEND_INTERVAL_SECONDS": "10",
-            "REQUEST_TIMEOUT_SECONDS": "4",
+            "SEND_INTERVAL_SECONDS": "10.5",
+            "REQUEST_TIMEOUT_SECONDS": "4.25",
             "MAX_RETRIES": "0",
             "FAILURE_MODE": "random",
             "FAILURE_RATE": "0.25",
@@ -36,8 +36,8 @@ def test_valid_environment_configuration() -> None:
 
     assert config.device_id == "sensor-007"
     assert config.gateway_url == "https://gateway.example.test/api"
-    assert config.send_interval_seconds == 10
-    assert config.request_timeout_seconds == 4
+    assert config.send_interval_seconds == 10.5
+    assert config.request_timeout_seconds == 4.25
     assert config.max_retries == 0
     assert config.failure_mode is FailureMode.RANDOM
     assert config.failure_rate == 0.25

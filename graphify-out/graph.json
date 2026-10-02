@@ -1964,7 +1964,7 @@
       "file_type": "code",
       "norm_label": "_baseline",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L359"
+      "source_location": "L364"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_clock",
@@ -1977,7 +1977,7 @@
       "file_type": "code",
       "norm_label": "_clock",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L93"
+      "source_location": "L98"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_cloud",
@@ -1990,7 +1990,7 @@
       "file_type": "code",
       "norm_label": "_cloud",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L101"
+      "source_location": "L106"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_handler",
@@ -2003,7 +2003,7 @@
       "file_type": "code",
       "norm_label": "_handler",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L142"
+      "source_location": "L147"
     },
     {
       "id": "cloud_service_src_cloud_service_crypto_kdf_kdferror",
@@ -3667,7 +3667,7 @@
       "file_type": "code",
       "norm_label": "_baseline_transport()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L145"
+      "source_location": "L148"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_get_config",
@@ -3883,7 +3883,7 @@
       "file_type": "code",
       "norm_label": "application_error()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L102"
+      "source_location": "L105"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_create_app_health",
@@ -3895,7 +3895,7 @@
       "file_type": "code",
       "norm_label": "health()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L112"
+      "source_location": "L115"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_create_app_internal_error",
@@ -3907,7 +3907,7 @@
       "file_type": "code",
       "norm_label": "internal_error()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L106"
+      "source_location": "L109"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_create_app_invalid_json",
@@ -3919,7 +3919,7 @@
       "file_type": "code",
       "norm_label": "invalid_json()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L93"
+      "source_location": "L96"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_create_app_invalid_measurement",
@@ -3931,7 +3931,7 @@
       "file_type": "code",
       "norm_label": "invalid_measurement()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L98"
+      "source_location": "L101"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_create_app_metrics",
@@ -3943,7 +3943,7 @@
       "file_type": "code",
       "norm_label": "metrics()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L131"
+      "source_location": "L134"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_create_app_ready",
@@ -3955,7 +3955,7 @@
       "file_type": "code",
       "norm_label": "ready()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L118"
+      "source_location": "L121"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_error_response",
@@ -3967,7 +3967,7 @@
       "file_type": "code",
       "norm_label": "_error_response()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L184"
+      "source_location": "L187"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_unavailable",
@@ -3979,7 +3979,7 @@
       "file_type": "code",
       "norm_label": "_unavailable()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L180"
+      "source_location": "L183"
     },
     {
       "id": "edge_gateway_tests_test_baseline_client_test_classical_app_constructs_and_uses_baseline_client",
@@ -4747,7 +4747,7 @@
       "file_type": "code",
       "norm_label": "test_concurrent_duplicates_across_connections()",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L182"
+      "source_location": "L183"
     },
     {
       "id": "cloud_service_tests_test_cloud_baseline_test_concurrent_duplicates_across_connections_save",
@@ -4759,7 +4759,7 @@
       "file_type": "code",
       "norm_label": "save()",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L187"
+      "source_location": "L188"
     },
     {
       "id": "cloud_service_tests_test_cloud_storage_database",
@@ -5011,7 +5011,7 @@
       "file_type": "code",
       "norm_label": "log_security()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/security_log.py",
-      "source_location": "L49"
+      "source_location": "L51"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_session_securesession_repr",
@@ -5683,7 +5683,7 @@
       "file_type": "code",
       "norm_label": "test_committed_sequence_survives_later_cloud_failure()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L97"
+      "source_location": "L99"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_committed_sequence_survives_later_cloud_failure_failing_cloud_delivery",
@@ -5695,7 +5695,7 @@
       "file_type": "code",
       "norm_label": "failing_cloud_delivery()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L102"
+      "source_location": "L104"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_concurrent_different_sequences_leave_highest_accepted_state",
@@ -5707,7 +5707,7 @@
       "file_type": "code",
       "norm_label": "test_concurrent_different_sequences_leave_highest_accepted_state()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L151"
+      "source_location": "L153"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_concurrent_different_sequences_leave_highest_accepted_state_submit",
@@ -5719,7 +5719,7 @@
       "file_type": "code",
       "norm_label": "submit()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L156"
+      "source_location": "L158"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_concurrent_same_sequence_is_accepted_only_once",
@@ -5731,7 +5731,7 @@
       "file_type": "code",
       "norm_label": "test_concurrent_same_sequence_is_accepted_only_once()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L78"
+      "source_location": "L80"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_concurrent_same_sequence_is_accepted_only_once_submit",
@@ -5743,7 +5743,7 @@
       "file_type": "code",
       "norm_label": "submit()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L82"
+      "source_location": "L84"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_devices_have_independent_state",
@@ -5755,7 +5755,7 @@
       "file_type": "code",
       "norm_label": "test_devices_have_independent_state()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L61"
+      "source_location": "L63"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_first_and_next_sequence_are_accepted_without_gap",
@@ -5791,7 +5791,7 @@
       "file_type": "code",
       "norm_label": "test_new_tracker_has_no_previous_history()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L69"
+      "source_location": "L71"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_pending_cloud_failure_does_not_block_or_undo_newer_sequence",
@@ -5803,7 +5803,7 @@
       "file_type": "code",
       "norm_label": "test_pending_cloud_failure_does_not_block_or_undo_newer_sequence()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L121"
+      "source_location": "L123"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_pending_cloud_failure_does_not_block_or_undo_newer_sequence_accept_then_deliver",
@@ -5815,7 +5815,7 @@
       "file_type": "code",
       "norm_label": "accept_then_deliver()",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L126"
+      "source_location": "L128"
     },
     {
       "id": "edge_gateway_tests_test_gateway_sequence_test_rejection_has_frozen_error_and_does_not_change_state",
@@ -6283,7 +6283,7 @@
       "file_type": "code",
       "norm_label": "_secure_transport()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L157"
+      "source_location": "L160"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_failure_corrupt_ciphertext_copy",
@@ -6295,7 +6295,7 @@
       "file_type": "code",
       "norm_label": "corrupt_ciphertext_copy()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L81"
+      "source_location": "L83"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_corrupt_ciphertext",
@@ -6307,7 +6307,7 @@
       "file_type": "code",
       "norm_label": ".corrupt_ciphertext()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L61"
+      "source_location": "L63"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_disabled",
@@ -6319,7 +6319,7 @@
       "file_type": "code",
       "norm_label": ".disabled()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L48"
+      "source_location": "L50"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_from_config",
@@ -6331,7 +6331,7 @@
       "file_type": "code",
       "norm_label": ".from_config()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L53"
+      "source_location": "L55"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_handshake_failure",
@@ -6343,7 +6343,7 @@
       "file_type": "code",
       "norm_label": ".handshake_failure()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L57"
+      "source_location": "L59"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_init",
@@ -6367,7 +6367,7 @@
       "file_type": "code",
       "norm_label": "._selected()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L73"
+      "source_location": "L75"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_session_expired",
@@ -6379,7 +6379,7 @@
       "file_type": "code",
       "norm_label": ".session_expired()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L69"
+      "source_location": "L71"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_session_missing",
@@ -6391,7 +6391,7 @@
       "file_type": "code",
       "norm_label": ".session_missing()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L65"
+      "source_location": "L67"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_session_sessionestablishmenterror_init",
@@ -7063,7 +7063,7 @@
       "file_type": "code",
       "norm_label": ".from_config()",
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L60"
+      "source_location": "L63"
     },
     {
       "id": "cloud_service_tests_test_cloud_config_test_custom_environment",
@@ -8035,7 +8035,7 @@
       "file_type": "code",
       "norm_label": "baseline_headers()",
       "source_file": "edge_gateway/src/edge_gateway/correlation.py",
-      "source_location": "L22"
+      "source_location": "L26"
     },
     {
       "id": "edge_gateway_tests_test_baseline_client_test_retryable_transport_failure_reuses_same_prepared_request_post",
@@ -8251,7 +8251,7 @@
       "file_type": "code",
       "norm_label": "_dump()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L441"
+      "source_location": "L444"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_secure_transport_endpoint",
@@ -8263,7 +8263,7 @@
       "file_type": "code",
       "norm_label": "_endpoint()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L494"
+      "source_location": "L497"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_secure_transport_error_code",
@@ -8275,7 +8275,7 @@
       "file_type": "code",
       "norm_label": "_error_code()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L478"
+      "source_location": "L481"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_secure_transport_parse_acceptance",
@@ -8287,7 +8287,7 @@
       "file_type": "code",
       "norm_label": "_parse_acceptance()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L445"
+      "source_location": "L448"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_secure_transport_rejectredirect_redirect_request",
@@ -8311,7 +8311,7 @@
       "file_type": "code",
       "norm_label": "._deliver()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L347"
+      "source_location": "L350"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_secure_transport_securetransport_init",
@@ -8359,7 +8359,7 @@
       "file_type": "code",
       "norm_label": "._post()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L372"
+      "source_location": "L375"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_secure_transport_securetransport_raise_http",
@@ -8371,7 +8371,7 @@
       "file_type": "code",
       "norm_label": "._raise_http()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L420"
+      "source_location": "L423"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_secure_transport_securetransport_recover",
@@ -8455,7 +8455,7 @@
       "file_type": "code",
       "norm_label": "_token()",
       "source_file": "edge_gateway/src/edge_gateway/crypto/security_log.py",
-      "source_location": "L63"
+      "source_location": "L65"
     },
     {
       "id": "edge_gateway_tests_test_dispatch_secure_init",
@@ -9379,7 +9379,7 @@
       "file_type": "code",
       "norm_label": ".from_config()",
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L56"
+      "source_location": "L59"
     },
     {
       "id": "edge_gateway_src_edge_gateway_failure_injector_failureinjector_init",
@@ -9415,7 +9415,7 @@
       "file_type": "code",
       "norm_label": ".select()",
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L60"
+      "source_location": "L63"
     },
     {
       "id": "edge_gateway_tests_test_gateway_failure_injector_test_defaults_are_disabled",
@@ -11683,7 +11683,7 @@
       "file_type": "code",
       "norm_label": "test_repository_absent_or_closed_never_accepts()",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L175"
+      "source_location": "L176"
     },
     {
       "id": "cloud_service_tests_test_cloud_baseline_test_secure_body_never_falls_back_to_baseline",
@@ -11695,7 +11695,7 @@
       "file_type": "code",
       "norm_label": "test_secure_body_never_falls_back_to_baseline()",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L165"
+      "source_location": "L166"
     },
     {
       "id": "cloud_service_tests_test_cloud_baseline_test_unexpected_repository_error_is_safe_500",
@@ -11731,7 +11731,7 @@
       "file_type": "code",
       "norm_label": "test_unrelated_record_id_collision_is_not_idempotent_success()",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L206"
+      "source_location": "L207"
     },
     {
       "id": "cloud_service_tests_test_cloud_queries_client",
@@ -12019,7 +12019,7 @@
       "file_type": "code",
       "norm_label": "test_default_retry_count_allows_two_retries()",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L308"
+      "source_location": "L309"
     },
     {
       "id": "legacy_system_tests_test_client_test_http_error_is_classified_without_leaking_exception",
@@ -12079,7 +12079,7 @@
       "file_type": "code",
       "norm_label": "test_invalid_retry_counts_are_rejected()",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L368"
+      "source_location": "L369"
     },
     {
       "id": "legacy_system_tests_test_client_test_non_retryable_http_status_stops_immediately",
@@ -12091,7 +12091,7 @@
       "file_type": "code",
       "norm_label": "test_non_retryable_http_status_stops_immediately()",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L243"
+      "source_location": "L244"
     },
     {
       "id": "legacy_system_tests_test_client_test_retry_exhaustion_is_bounded_and_uses_deterministic_backoff",
@@ -12103,7 +12103,7 @@
       "file_type": "code",
       "norm_label": "test_retry_exhaustion_is_bounded_and_uses_deterministic_backoff()",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L285"
+      "source_location": "L286"
     },
     {
       "id": "legacy_system_tests_test_client_test_retry_logging_exposes_failed_attempts_and_retry_events",
@@ -12127,7 +12127,7 @@
       "file_type": "code",
       "norm_label": "test_retry_stops_after_non_retryable_result()",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L328"
+      "source_location": "L329"
     },
     {
       "id": "legacy_system_tests_test_client_test_retryable_http_status_retries_then_succeeds",
@@ -12139,7 +12139,7 @@
       "file_type": "code",
       "norm_label": "test_retryable_http_status_retries_then_succeeds()",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L222"
+      "source_location": "L223"
     },
     {
       "id": "legacy_system_tests_test_client_test_send_posts_prepared_payload_to_gateway",
@@ -12175,7 +12175,7 @@
       "file_type": "code",
       "norm_label": "test_transport_failure_retries_then_succeeds()",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L266"
+      "source_location": "L267"
     },
     {
       "id": "legacy_system_tests_test_client_test_transport_failures_are_stable_and_retryable",
@@ -12223,7 +12223,7 @@
       "file_type": "code",
       "norm_label": "test_zero_retries_makes_only_the_initial_request()",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L348"
+      "source_location": "L349"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_encoding_decode_binary",
@@ -13003,7 +13003,7 @@
       "file_type": "code",
       "norm_label": "._close_client()",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L124"
+      "source_location": "L130"
     },
     {
       "id": "legacy_system_src_legacy_system_device_devicecontroller_handle_signal",
@@ -13015,7 +13015,7 @@
       "file_type": "code",
       "norm_label": "._handle_signal()",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L145"
+      "source_location": "L151"
     },
     {
       "id": "legacy_system_src_legacy_system_device_devicecontroller_init",
@@ -13039,7 +13039,7 @@
       "file_type": "code",
       "norm_label": "._install_signal_handlers()",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L129"
+      "source_location": "L135"
     },
     {
       "id": "legacy_system_src_legacy_system_device_devicecontroller_restore_signal_handlers",
@@ -13051,7 +13051,7 @@
       "file_type": "code",
       "norm_label": "._restore_signal_handlers()",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L138"
+      "source_location": "L144"
     },
     {
       "id": "legacy_system_src_legacy_system_device_devicecontroller_run",
@@ -13075,7 +13075,7 @@
       "file_type": "code",
       "norm_label": "._send_with_logging()",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L81"
+      "source_location": "L87"
     },
     {
       "id": "legacy_system_src_legacy_system_device_devicecontroller_stop",
@@ -13087,7 +13087,7 @@
       "file_type": "code",
       "norm_label": ".stop()",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L120"
+      "source_location": "L126"
     },
     {
       "id": "edge_gateway_tests_test_gateway_validation_assert_rejection",
@@ -13363,7 +13363,7 @@
       "file_type": "code",
       "norm_label": ".delay_seconds()",
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L69"
+      "source_location": "L72"
     },
     {
       "id": "cloud_service_src_cloud_service_failure_injector_failureinjector_init",
@@ -13387,7 +13387,7 @@
       "file_type": "code",
       "norm_label": ".select()",
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L72"
+      "source_location": "L75"
     },
     {
       "id": "cloud_service_src_cloud_service_failure_injector_failureselection_apply",
@@ -14263,7 +14263,7 @@
       "file_type": "code",
       "norm_label": "measurements()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L123"
+      "source_location": "L126"
     },
     {
       "id": "edge_gateway_src_edge_gateway_validation_parse_legacy_measurement",
@@ -15511,7 +15511,7 @@
       "file_type": "code",
       "norm_label": "test_baseline_request_carries_id_in_header_and_keeps_body_unchanged()",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L51"
+      "source_location": "L53"
     },
     {
       "id": "edge_gateway_tests_test_gateway_correlation_test_existing_secure_envelope_authenticates_same_request_context",
@@ -15523,7 +15523,7 @@
       "file_type": "code",
       "norm_label": "test_existing_secure_envelope_authenticates_same_request_context()",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L68"
+      "source_location": "L70"
     },
     {
       "id": "edge_gateway_tests_test_gateway_correlation_test_gateway_logs_generated_id_without_measurement_data",
@@ -15619,7 +15619,7 @@
       "file_type": "code",
       "norm_label": "test_internal_failure_outside_measurement_route_is_sanitized()",
       "source_file": "edge_gateway/tests/test_gateway_errors.py",
-      "source_location": "L73"
+      "source_location": "L76"
     },
     {
       "id": "edge_gateway_tests_test_gateway_errors_test_internal_failure_outside_measurement_route_is_sanitized_fail",
@@ -15631,7 +15631,7 @@
       "file_type": "code",
       "norm_label": "fail()",
       "source_file": "edge_gateway/tests/test_gateway_errors.py",
-      "source_location": "L74"
+      "source_location": "L77"
     },
     {
       "id": "edge_gateway_tests_test_gateway_errors_test_public_error_bodies_are_independent",
@@ -15643,7 +15643,7 @@
       "file_type": "code",
       "norm_label": "test_public_error_bodies_are_independent()",
       "source_file": "edge_gateway/tests/test_gateway_errors.py",
-      "source_location": "L85"
+      "source_location": "L88"
     },
     {
       "id": "edge_gateway_tests_test_gateway_response_mapping_test_cloud_and_secure_delivery_failures_map_to_safe_503",
@@ -15847,7 +15847,7 @@
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L360"
+      "source_location": "L365"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_baseline_send",
@@ -15859,7 +15859,7 @@
       "file_type": "code",
       "norm_label": ".send()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L363"
+      "source_location": "L368"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_clock_call",
@@ -15871,7 +15871,7 @@
       "file_type": "code",
       "norm_label": ".__call__()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L97"
+      "source_location": "L102"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_clock_init",
@@ -15883,7 +15883,7 @@
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L94"
+      "source_location": "L99"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_cloud_init",
@@ -15895,7 +15895,7 @@
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L102"
+      "source_location": "L107"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_cloud_public_body",
@@ -15907,7 +15907,7 @@
       "file_type": "code",
       "norm_label": ".public_body()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L115"
+      "source_location": "L120"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_cloud_session_body",
@@ -15919,7 +15919,7 @@
       "file_type": "code",
       "norm_label": ".session_body()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L126"
+      "source_location": "L131"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_cloud_url",
@@ -15931,7 +15931,7 @@
       "file_type": "code",
       "norm_label": "cloud_url()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L169"
+      "source_location": "L174"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_handler_do_get",
@@ -15943,7 +15943,7 @@
       "file_type": "code",
       "norm_label": ".do_get()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L143"
+      "source_location": "L148"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_handler_do_post",
@@ -15955,7 +15955,7 @@
       "file_type": "code",
       "norm_label": ".do_post()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L147"
+      "source_location": "L152"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_handler_log_message",
@@ -15967,7 +15967,7 @@
       "file_type": "code",
       "norm_label": ".log_message()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L164"
+      "source_location": "L169"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_handler_send",
@@ -15979,7 +15979,7 @@
       "file_type": "code",
       "norm_label": "._send()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L157"
+      "source_location": "L162"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_measurement",
@@ -15991,7 +15991,7 @@
       "file_type": "code",
       "norm_label": "_measurement()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L185"
+      "source_location": "L190"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_gateway_security_components_share_the_metrics_registry_by_default",
@@ -16003,7 +16003,7 @@
       "file_type": "code",
       "norm_label": "test_gateway_security_components_share_the_metrics_registry_by_default()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L78"
+      "source_location": "L83"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_handshake_and_delivery_omit_secrets_and_separate_timings",
@@ -16015,7 +16015,7 @@
       "file_type": "code",
       "norm_label": "test_handshake_and_delivery_omit_secrets_and_separate_timings()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L197"
+      "source_location": "L202"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_handshake_and_delivery_omit_secrets_and_separate_timings_send",
@@ -16027,7 +16027,7 @@
       "file_type": "code",
       "norm_label": "_send()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L206"
+      "source_location": "L211"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_injected_handshake_failure_stays_fail_closed",
@@ -16039,7 +16039,7 @@
       "file_type": "code",
       "norm_label": "test_injected_handshake_failure_stays_fail_closed()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L368"
+      "source_location": "L373"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_metrics_endpoint_exposes_the_same_registry",
@@ -16051,7 +16051,7 @@
       "file_type": "code",
       "norm_label": "test_metrics_endpoint_exposes_the_same_registry()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L66"
+      "source_location": "L71"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_rendered_metrics_keep_bounded_labels_and_zero_fallback",
@@ -16075,7 +16075,7 @@
       "file_type": "code",
       "norm_label": "test_seal_failure_is_counted_without_the_session_key()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L243"
+      "source_location": "L248"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_seal_failure_is_counted_without_the_session_key_get_or_establish",
@@ -16087,7 +16087,7 @@
       "file_type": "code",
       "norm_label": "get_or_establish()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L248"
+      "source_location": "L253"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_seal_failure_is_counted_without_the_session_key_invalidate",
@@ -16099,7 +16099,7 @@
       "file_type": "code",
       "norm_label": "invalidate()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L259"
+      "source_location": "L264"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_session_recovery_is_counted",
@@ -16111,7 +16111,7 @@
       "file_type": "code",
       "norm_label": "test_session_recovery_is_counted()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L283"
+      "source_location": "L288"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_session_recovery_is_counted_do_post",
@@ -16123,7 +16123,7 @@
       "file_type": "code",
       "norm_label": "do_post()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L299"
+      "source_location": "L304"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_session_recovery_is_counted_get_or_establish",
@@ -16135,7 +16135,7 @@
       "file_type": "code",
       "norm_label": "get_or_establish()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L317"
+      "source_location": "L322"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_session_recovery_is_counted_init",
@@ -16147,7 +16147,7 @@
       "file_type": "code",
       "norm_label": "__init__()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L314"
+      "source_location": "L319"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_session_recovery_is_counted_invalidate",
@@ -16159,7 +16159,7 @@
       "file_type": "code",
       "norm_label": "invalidate()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L329"
+      "source_location": "L334"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_session_recovery_is_counted_log_message",
@@ -16171,7 +16171,7 @@
       "file_type": "code",
       "norm_label": "log_message()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L310"
+      "source_location": "L315"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_session_recovery_is_counted_pop",
@@ -16183,7 +16183,7 @@
       "file_type": "code",
       "norm_label": "pop()",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L293"
+      "source_location": "L298"
     },
     {
       "id": "edge_gateway_tests_test_security_logging_test_unsafe_log_values_are_dropped",
@@ -16387,7 +16387,7 @@
       "file_type": "code",
       "norm_label": "get_measurement()",
       "source_file": "cloud_service/src/cloud_service/gateway/queries.py",
-      "source_location": "L41"
+      "source_location": "L47"
     },
     {
       "id": "cloud_service_src_cloud_service_gateway_queries_list_measurements",
@@ -16735,7 +16735,7 @@
       "file_type": "code",
       "norm_label": "_logging_level()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L188"
+      "source_location": "L191"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_main",
@@ -16747,7 +16747,7 @@
       "file_type": "code",
       "norm_label": "main()",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L196"
+      "source_location": "L199"
     },
     {
       "id": "edge_gateway_src_edge_gateway_config_allowed_value",
@@ -18249,7 +18249,7 @@
       "source_location": "L1"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_app_rationale_146",
+      "id": "edge_gateway_src_edge_gateway_app_rationale_149",
       "label": "Construct the baseline client only for explicit classical-mode dispatch.",
       "_origin": "ast",
       "community": 11,
@@ -18257,7 +18257,7 @@
       "file_type": "rationale",
       "norm_label": "construct the baseline client only for explicit classical-mode dispatch.",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L146"
+      "source_location": "L149"
     },
     {
       "id": "edge_gateway_src_edge_gateway_app_rationale_33",
@@ -18988,12 +18988,12 @@
     },
     {
       "id": "cloud_service_src_cloud_service_gateway_crypto_rationale_1",
-      "label": "Public-key distribution only; sessions and secure ingestion follow later.",
+      "label": "Public-key distribution for the Cloud secure-ingestion protocol.",
       "_origin": "ast",
       "community": 14,
       "community_name": "cloud_service/app.py",
       "file_type": "rationale",
-      "norm_label": "public-key distribution only; sessions and secure ingestion follow later.",
+      "norm_label": "public-key distribution for the cloud secure-ingestion protocol.",
       "source_file": "cloud_service/src/cloud_service/gateway/crypto.py",
       "source_location": "L1"
     },
@@ -19010,12 +19010,12 @@
     },
     {
       "id": "cloud_service_src_cloud_service_gateway_sessions_rationale_1",
-      "label": "Validated session handshake; no secure-message processing.",
+      "label": "Validated session handshake for secure-message processing.",
       "_origin": "ast",
       "community": 14,
       "community_name": "cloud_service/app.py",
       "file_type": "rationale",
-      "norm_label": "validated session handshake; no secure-message processing.",
+      "norm_label": "validated session handshake for secure-message processing.",
       "source_file": "cloud_service/src/cloud_service/gateway/sessions.py",
       "source_location": "L1"
     },
@@ -19152,7 +19152,7 @@
       "source_location": "L77"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_crypto_security_log_rationale_50",
+      "id": "edge_gateway_src_edge_gateway_crypto_security_log_rationale_52",
       "label": "Log one security event. Unknown events and unsafe values are dropped.",
       "_origin": "ast",
       "community": 16,
@@ -19160,7 +19160,7 @@
       "file_type": "rationale",
       "norm_label": "log one security event. unknown events and unsafe values are dropped.",
       "source_file": "edge_gateway/src/edge_gateway/crypto/security_log.py",
-      "source_location": "L50"
+      "source_location": "L52"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_session_rationale_113",
@@ -19581,7 +19581,7 @@
       "source_location": "L1"
     },
     {
-      "id": "edge_gateway_tests_test_gateway_sequence_rationale_98",
+      "id": "edge_gateway_tests_test_gateway_sequence_rationale_100",
       "label": "Exercise the tracker boundary with a stub, not the future HTTP route.",
       "_origin": "ast",
       "community": 19,
@@ -19589,7 +19589,7 @@
       "file_type": "rationale",
       "norm_label": "exercise the tracker boundary with a stub, not the future http route.",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L98"
+      "source_location": "L100"
     },
     {
       "id": "argumentparser",
@@ -19779,7 +19779,7 @@
       "source_location": ""
     },
     {
-      "id": "edge_gateway_src_edge_gateway_app_rationale_160",
+      "id": "edge_gateway_src_edge_gateway_app_rationale_163",
       "label": "Compose the one fail-closed Gateway secure path for Modernized Mode.",
       "_origin": "ast",
       "community": 20,
@@ -19787,7 +19787,7 @@
       "file_type": "rationale",
       "norm_label": "compose the one fail-closed gateway secure path for modernized mode.",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L160"
+      "source_location": "L163"
     },
     {
       "id": "edge_gateway_src_edge_gateway_config_rationale_54",
@@ -19823,7 +19823,7 @@
       "source_location": "L29"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_49",
+      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_51",
       "label": "Return an injector that never changes the secure path.",
       "_origin": "ast",
       "community": 20,
@@ -19831,10 +19831,10 @@
       "file_type": "rationale",
       "norm_label": "return an injector that never changes the secure path.",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L49"
+      "source_location": "L51"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_54",
+      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_56",
       "label": "Build an injector from validated Gateway configuration.",
       "_origin": "ast",
       "community": 20,
@@ -19842,10 +19842,10 @@
       "file_type": "rationale",
       "norm_label": "build an injector from validated gateway configuration.",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L54"
+      "source_location": "L56"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_58",
+      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_60",
       "label": "Return whether this attempt should fail before a session exists.",
       "_origin": "ast",
       "community": 20,
@@ -19853,10 +19853,10 @@
       "file_type": "rationale",
       "norm_label": "return whether this attempt should fail before a session exists.",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L58"
+      "source_location": "L60"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_62",
+      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_64",
       "label": "Return whether the outgoing ciphertext copy should be mutated.",
       "_origin": "ast",
       "community": 20,
@@ -19864,10 +19864,10 @@
       "file_type": "rationale",
       "norm_label": "return whether the outgoing ciphertext copy should be mutated.",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L62"
+      "source_location": "L64"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_66",
+      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_68",
       "label": "Return whether local session state should be dropped.",
       "_origin": "ast",
       "community": 20,
@@ -19875,10 +19875,10 @@
       "file_type": "rationale",
       "norm_label": "return whether local session state should be dropped.",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L66"
+      "source_location": "L68"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_70",
+      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_72",
       "label": "Return whether the active session should be forced expired.",
       "_origin": "ast",
       "community": 20,
@@ -19886,10 +19886,10 @@
       "file_type": "rationale",
       "norm_label": "return whether the active session should be forced expired.",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L70"
+      "source_location": "L72"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_82",
+      "id": "edge_gateway_src_edge_gateway_crypto_failure_rationale_84",
       "label": "Return a mutated copy. The caller's buffer is left unchanged.",
       "_origin": "ast",
       "community": 20,
@@ -19897,7 +19897,7 @@
       "file_type": "rationale",
       "norm_label": "return a mutated copy. the caller's buffer is left unchanged.",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L82"
+      "source_location": "L84"
     },
     {
       "id": "cloud_service_src_cloud_service_app_py_fastapi",
@@ -20714,7 +20714,7 @@
       "source_location": "L98"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_correlation_rationale_23",
+      "id": "edge_gateway_src_edge_gateway_correlation_rationale_27",
       "label": "Carry the already-created ID to Cloud without modifying the JSON body. The…",
       "_origin": "ast",
       "community": 28,
@@ -20722,7 +20722,7 @@
       "file_type": "rationale",
       "norm_label": "carry the already-created id to cloud without modifying the json body. the...",
       "source_file": "edge_gateway/src/edge_gateway/correlation.py",
-      "source_location": "L23"
+      "source_location": "L27"
     },
     {
       "id": "edge_gateway_src_edge_gateway_crypto_metrics_rationale_103",
@@ -21649,7 +21649,7 @@
       "source_location": "L51"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_failure_injector_rationale_57",
+      "id": "edge_gateway_src_edge_gateway_failure_injector_rationale_60",
       "label": "Use the existing validated local configuration.",
       "_origin": "ast",
       "community": 35,
@@ -21657,10 +21657,10 @@
       "file_type": "rationale",
       "norm_label": "use the existing validated local configuration.",
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L57"
+      "source_location": "L60"
     },
     {
-      "id": "edge_gateway_src_edge_gateway_failure_injector_rationale_61",
+      "id": "edge_gateway_src_edge_gateway_failure_injector_rationale_64",
       "label": "Return an applicable fault or None, using one probability gate. Callers can…",
       "_origin": "ast",
       "community": 35,
@@ -21668,7 +21668,7 @@
       "file_type": "rationale",
       "norm_label": "return an applicable fault or none, using one probability gate. callers can...",
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L61"
+      "source_location": "L64"
     },
     {
       "id": "edge_gateway_tests_test_gateway_failure_injector_rationale_1",
@@ -23739,7 +23739,7 @@
       "source_location": ""
     },
     {
-      "id": "legacy_system_src_legacy_system_device_rationale_121",
+      "id": "legacy_system_src_legacy_system_device_rationale_127",
       "label": "Request that the loop stop before generating another measurement.",
       "_origin": "ast",
       "community": 57,
@@ -23747,7 +23747,7 @@
       "file_type": "rationale",
       "norm_label": "request that the loop stop before generating another measurement.",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L121"
+      "source_location": "L127"
     },
     {
       "id": "legacy_system_src_legacy_system_device_rationale_18",
@@ -23772,7 +23772,7 @@
       "source_location": "L55"
     },
     {
-      "id": "legacy_system_src_legacy_system_device_rationale_84",
+      "id": "legacy_system_src_legacy_system_device_rationale_90",
       "label": "Send payload and log success/failure outcomes.",
       "_origin": "ast",
       "community": 57,
@@ -23780,7 +23780,7 @@
       "file_type": "rationale",
       "norm_label": "send payload and log success/failure outcomes.",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L84"
+      "source_location": "L90"
     },
     {
       "id": "edge_gateway_tests_test_gateway_validation",
@@ -23981,7 +23981,7 @@
       "source_location": "L45"
     },
     {
-      "id": "cloud_service_src_cloud_service_failure_injector_rationale_73",
+      "id": "cloud_service_src_cloud_service_failure_injector_rationale_76",
       "label": "Choose at most one applicable fault after one rate gate. A request reuses its…",
       "_origin": "ast",
       "community": 6,
@@ -23989,7 +23989,7 @@
       "file_type": "rationale",
       "norm_label": "choose at most one applicable fault after one rate gate. a request reuses its...",
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L73"
+      "source_location": "L76"
     },
     {
       "id": "cloud_service_src_cloud_service_gateway_init_rationale_1",
@@ -25675,7 +25675,7 @@
       "source_location": ""
     },
     {
-      "id": "edge_gateway_src_edge_gateway_app_rationale_197",
+      "id": "edge_gateway_src_edge_gateway_app_rationale_200",
       "label": "Run one server process with Uvicorn managing signals and shutdown.",
       "_origin": "ast",
       "community": 9,
@@ -25683,7 +25683,7 @@
       "file_type": "rationale",
       "norm_label": "run one server process with uvicorn managing signals and shutdown.",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L197"
+      "source_location": "L200"
     },
     {
       "id": "edge_gateway_src_edge_gateway_config_rationale_1",
@@ -27269,7 +27269,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L81",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -27305,7 +27305,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "cloud_service/src/cloud_service/gateway/queries.py",
-      "source_location": "L44",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -28385,7 +28385,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L185",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -28397,7 +28397,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L188",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -28409,7 +28409,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L190",
+      "source_location": "L191",
       "weight": 1.0
     },
     {
@@ -28421,7 +28421,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L170",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -28433,7 +28433,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -30485,7 +30485,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L148",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -30497,7 +30497,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L154",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -30509,7 +30509,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L125",
+      "source_location": "L128",
       "weight": 1.0
     },
     {
@@ -30521,7 +30521,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L126",
+      "source_location": "L129",
       "weight": 1.0
     },
     {
@@ -30629,7 +30629,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L103",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -30641,7 +30641,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L114",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -30653,7 +30653,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L109",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -30665,7 +30665,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L94",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -30677,7 +30677,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L99",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -30689,7 +30689,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L125",
+      "source_location": "L128",
       "weight": 1.0
     },
     {
@@ -30701,7 +30701,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L126",
+      "source_location": "L129",
       "weight": 1.0
     },
     {
@@ -30713,7 +30713,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L120",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -30725,7 +30725,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L192",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
@@ -30737,7 +30737,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L199",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
@@ -30749,7 +30749,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L200",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -30761,7 +30761,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L210",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -30773,7 +30773,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L161",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -30785,7 +30785,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L162",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -30797,7 +30797,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L169",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -30809,7 +30809,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L181",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -31445,7 +31445,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L63",
+      "source_location": "L65",
       "weight": 1.0
     },
     {
@@ -31457,7 +31457,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L59",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -31469,7 +31469,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L71",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -31481,7 +31481,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L67",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -31817,7 +31817,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L447",
+      "source_location": "L450",
       "weight": 1.0
     },
     {
@@ -31829,7 +31829,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L475",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -31865,7 +31865,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L348",
+      "source_location": "L351",
       "weight": 1.0
     },
     {
@@ -31877,7 +31877,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L352",
+      "source_location": "L355",
       "weight": 1.0
     },
     {
@@ -31889,7 +31889,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L359",
+      "source_location": "L362",
       "weight": 1.0
     },
     {
@@ -31901,7 +31901,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L367",
+      "source_location": "L370",
       "weight": 1.0
     },
     {
@@ -31961,7 +31961,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L391",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -31973,7 +31973,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L393",
+      "source_location": "L396",
       "weight": 1.0
     },
     {
@@ -31985,7 +31985,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L402",
+      "source_location": "L405",
       "weight": 1.0
     },
     {
@@ -31997,7 +31997,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L409",
+      "source_location": "L412",
       "weight": 1.0
     },
     {
@@ -32009,7 +32009,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L418",
+      "source_location": "L421",
       "weight": 1.0
     },
     {
@@ -32021,7 +32021,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L422",
+      "source_location": "L425",
       "weight": 1.0
     },
     {
@@ -32033,7 +32033,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L424",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -32045,7 +32045,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L426",
+      "source_location": "L429",
       "weight": 1.0
     },
     {
@@ -32057,7 +32057,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L427",
+      "source_location": "L430",
       "weight": 1.0
     },
     {
@@ -32069,7 +32069,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L434",
+      "source_location": "L437",
       "weight": 1.0
     },
     {
@@ -32153,7 +32153,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L329",
+      "source_location": "L332",
       "weight": 1.0
     },
     {
@@ -32165,7 +32165,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L329",
+      "source_location": "L332",
       "weight": 1.0
     },
     {
@@ -32177,7 +32177,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L330",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -32189,7 +32189,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L342",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -32309,7 +32309,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/security_log.py",
-      "source_location": "L57",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -34973,7 +34973,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L52",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -34985,7 +34985,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L57",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -34997,7 +34997,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L69",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -35009,7 +35009,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L71",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -35021,7 +35021,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L75",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -35033,7 +35033,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L77",
+      "source_location": "L79",
       "weight": 1.0
     },
     {
@@ -35045,7 +35045,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L81",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -37421,7 +37421,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L122",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -37433,7 +37433,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L128",
+      "source_location": "L133",
       "weight": 1.0
     },
     {
@@ -37445,7 +37445,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L130",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -37457,7 +37457,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L170",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -37469,7 +37469,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L171",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -37481,7 +37481,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L145",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -37493,7 +37493,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L152",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -37505,7 +37505,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L82",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -37517,7 +37517,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L83",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -37529,7 +37529,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L86",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -37541,7 +37541,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L212",
+      "source_location": "L217",
       "weight": 1.0
     },
     {
@@ -37553,7 +37553,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L213",
+      "source_location": "L218",
       "weight": 1.0
     },
     {
@@ -37565,7 +37565,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L213",
+      "source_location": "L218",
       "weight": 1.0
     },
     {
@@ -37577,7 +37577,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L207",
+      "source_location": "L212",
       "weight": 1.0
     },
     {
@@ -37589,7 +37589,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L384",
+      "source_location": "L389",
       "weight": 1.0
     },
     {
@@ -37601,7 +37601,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L386",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -37613,7 +37613,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L393",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -37625,7 +37625,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L69",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -37637,7 +37637,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L69",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -37649,7 +37649,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L264",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -37661,7 +37661,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L270",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -37673,7 +37673,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L249",
+      "source_location": "L254",
       "weight": 1.0
     },
     {
@@ -37685,7 +37685,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L338",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -37697,7 +37697,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L345",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -37709,7 +37709,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L319",
+      "source_location": "L324",
       "weight": 1.0
     },
     {
@@ -38602,7 +38602,7 @@
     },
     {
       "source": "legacy_system_src_legacy_system_config_load_config",
-      "target": "legacy_system_src_legacy_system_config_integer",
+      "target": "legacy_system_src_legacy_system_config_number",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -38614,14 +38614,14 @@
     },
     {
       "source": "legacy_system_src_legacy_system_config_load_config",
-      "target": "legacy_system_src_legacy_system_config_number",
+      "target": "legacy_system_src_legacy_system_config_integer",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/src/legacy_system/config.py",
-      "source_location": "L89",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -38705,7 +38705,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L146",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -38717,7 +38717,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L57",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -38729,7 +38729,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L69",
+      "source_location": "L75",
       "weight": 1.0
     },
     {
@@ -38741,7 +38741,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L73",
+      "source_location": "L79",
       "weight": 1.0
     },
     {
@@ -38753,7 +38753,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L74",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -38861,7 +38861,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L309",
+      "source_location": "L310",
       "weight": 1.0
     },
     {
@@ -38873,7 +38873,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L310",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -38897,7 +38897,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L244",
+      "source_location": "L245",
       "weight": 1.0
     },
     {
@@ -38909,24 +38909,12 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L244",
+      "source_location": "L245",
       "weight": 1.0
     },
     {
       "source": "legacy_system_tests_test_client_test_retry_exhaustion_is_bounded_and_uses_deterministic_backoff",
       "target": "legacy_system_tests_test_client_scriptedopener",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L286",
-      "weight": 1.0
-    },
-    {
-      "source": "legacy_system_tests_test_client_test_retry_exhaustion_is_bounded_and_uses_deterministic_backoff",
-      "target": "legacy_system_tests_test_client_fakeresponse",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -38937,6 +38925,18 @@
       "weight": 1.0
     },
     {
+      "source": "legacy_system_tests_test_client_test_retry_exhaustion_is_bounded_and_uses_deterministic_backoff",
+      "target": "legacy_system_tests_test_client_fakeresponse",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "legacy_system/tests/test_client.py",
+      "source_location": "L288",
+      "weight": 1.0
+    },
+    {
       "source": "legacy_system_tests_test_client_test_retry_logging_exposes_failed_attempts_and_retry_events",
       "target": "legacy_system_tests_test_client_fakeresponse",
       "relation": "calls",
@@ -38969,7 +38969,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L329",
+      "source_location": "L330",
       "weight": 1.0
     },
     {
@@ -38981,7 +38981,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L329",
+      "source_location": "L330",
       "weight": 1.0
     },
     {
@@ -38993,7 +38993,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L223",
+      "source_location": "L224",
       "weight": 1.0
     },
     {
@@ -39005,7 +39005,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L223",
+      "source_location": "L224",
       "weight": 1.0
     },
     {
@@ -39029,7 +39029,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L267",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -39041,7 +39041,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L267",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -39053,7 +39053,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L349",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -39065,7 +39065,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L349",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -42941,7 +42941,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -42953,7 +42953,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L82",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -42965,7 +42965,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L206",
+      "source_location": "L211",
       "weight": 1.0
     },
     {
@@ -43097,7 +43097,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "cloud_service/src/cloud_service/gateway/queries.py",
-      "source_location": "L40",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -44681,7 +44681,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L96",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -44873,7 +44873,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L168",
+      "source_location": "L173",
       "weight": 1.0
     },
     {
@@ -44921,7 +44921,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L367",
+      "source_location": "L368",
       "weight": 1.0
     },
     {
@@ -44933,7 +44933,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L242",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -44945,7 +44945,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L221",
+      "source_location": "L222",
       "weight": 1.0
     },
     {
@@ -44957,7 +44957,7 @@
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L262",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -45173,7 +45173,7 @@
       "confidence_score": 1.0,
       "context": "generic_arg",
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L72",
+      "source_location": "L75",
       "weight": 1.0
     },
     {
@@ -45245,7 +45245,7 @@
       "confidence_score": 1.0,
       "context": "generic_arg",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L129",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -45257,7 +45257,7 @@
       "confidence_score": 1.0,
       "context": "generic_arg",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L138",
+      "source_location": "L144",
       "weight": 1.0
     },
     {
@@ -59885,7 +59885,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L60",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -59945,7 +59945,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "cloud_service/src/cloud_service/gateway/queries.py",
-      "source_location": "L41",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -60173,7 +60173,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L53",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -60197,7 +60197,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L347",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -60245,7 +60245,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L420",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -60449,7 +60449,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L56",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -60749,7 +60749,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L102",
+      "source_location": "L107",
       "weight": 1.0
     },
     {
@@ -60761,7 +60761,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L197",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
@@ -60773,7 +60773,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L368",
+      "source_location": "L373",
       "weight": 1.0
     },
     {
@@ -60785,7 +60785,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L243",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -60797,7 +60797,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L283",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -60893,7 +60893,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L145",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -61049,7 +61049,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L266",
+      "source_location": "L267",
       "weight": 1.0
     },
     {
@@ -62489,7 +62489,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "cloud_service/src/cloud_service/gateway/queries.py",
-      "source_location": "L41",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -62681,7 +62681,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L184",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -62693,7 +62693,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L180",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -62741,7 +62741,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L347",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -62777,7 +62777,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L372",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -62789,7 +62789,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L420",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -63029,7 +63029,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L97",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -63726,7 +63726,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/src/cloud_service/gateway/queries.py",
-      "source_location": "L41",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -64331,7 +64331,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L165",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -64342,7 +64342,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L175",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -64353,7 +64353,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L182",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -64364,7 +64364,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L206",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -66421,7 +66421,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L145",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -66432,7 +66432,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L157",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -66443,7 +66443,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L180",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -66454,7 +66454,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L184",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -66465,7 +66465,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L188",
+      "source_location": "L191",
       "weight": 1.0
     },
     {
@@ -66476,7 +66476,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L196",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -66503,13 +66503,24 @@
     },
     {
       "source": "edge_gateway_src_edge_gateway_app_create_app",
+      "target": "edge_gateway_src_edge_gateway_app_create_app_invalid_measurement",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "edge_gateway/src/edge_gateway/app.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "edge_gateway_src_edge_gateway_app_create_app",
       "target": "edge_gateway_src_edge_gateway_app_create_app_application_error",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L102",
+      "source_location": "L105",
       "weight": 1.0
     },
     {
@@ -66520,7 +66531,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L106",
+      "source_location": "L109",
       "weight": 1.0
     },
     {
@@ -66531,7 +66542,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L112",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -66542,7 +66553,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L118",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -66553,7 +66564,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L123",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -66564,7 +66575,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L131",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -66575,18 +66586,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L93",
-      "weight": 1.0
-    },
-    {
-      "source": "edge_gateway_src_edge_gateway_app_create_app",
-      "target": "edge_gateway_src_edge_gateway_app_create_app_invalid_measurement",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L98",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -66850,7 +66850,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/correlation.py",
-      "source_location": "L22",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -66960,7 +66960,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L81",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -67213,7 +67213,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L441",
+      "source_location": "L444",
       "weight": 1.0
     },
     {
@@ -67224,7 +67224,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L445",
+      "source_location": "L448",
       "weight": 1.0
     },
     {
@@ -67235,7 +67235,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L478",
+      "source_location": "L481",
       "weight": 1.0
     },
     {
@@ -67246,7 +67246,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L494",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -67323,7 +67323,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/security_log.py",
-      "source_location": "L49",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -67334,7 +67334,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/security_log.py",
-      "source_location": "L63",
+      "source_location": "L65",
       "weight": 1.0
     },
     {
@@ -69116,7 +69116,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L51",
+      "source_location": "L53",
       "weight": 1.0
     },
     {
@@ -69127,7 +69127,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L68",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -69171,7 +69171,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_errors.py",
-      "source_location": "L73",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -69182,7 +69182,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_errors.py",
-      "source_location": "L85",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -69204,7 +69204,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_errors.py",
-      "source_location": "L74",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -69721,7 +69721,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L121",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -69743,7 +69743,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L151",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -69776,7 +69776,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L61",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -69787,7 +69787,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L69",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -69798,7 +69798,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L78",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -69809,7 +69809,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L97",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -69820,7 +69820,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L156",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -70898,7 +70898,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L101",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -70909,7 +70909,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L142",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -70920,7 +70920,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L169",
+      "source_location": "L174",
       "weight": 1.0
     },
     {
@@ -70931,7 +70931,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L185",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -70942,7 +70942,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L197",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
@@ -70953,7 +70953,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L243",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -70964,7 +70964,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L283",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -70986,7 +70986,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L359",
+      "source_location": "L364",
       "weight": 1.0
     },
     {
@@ -70997,7 +70997,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L368",
+      "source_location": "L373",
       "weight": 1.0
     },
     {
@@ -71019,7 +71019,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L66",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -71030,7 +71030,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L78",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -71041,7 +71041,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L93",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -71052,7 +71052,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L248",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -71063,7 +71063,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L259",
+      "source_location": "L264",
       "weight": 1.0
     },
     {
@@ -71074,7 +71074,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L293",
+      "source_location": "L298",
       "weight": 1.0
     },
     {
@@ -71085,7 +71085,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L299",
+      "source_location": "L304",
       "weight": 1.0
     },
     {
@@ -71096,7 +71096,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L310",
+      "source_location": "L315",
       "weight": 1.0
     },
     {
@@ -71107,7 +71107,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -71118,7 +71118,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L317",
+      "source_location": "L322",
       "weight": 1.0
     },
     {
@@ -71129,7 +71129,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L329",
+      "source_location": "L334",
       "weight": 1.0
     },
     {
@@ -71833,7 +71833,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L222",
+      "source_location": "L223",
       "weight": 1.0
     },
     {
@@ -71844,7 +71844,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L243",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -71855,7 +71855,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L266",
+      "source_location": "L267",
       "weight": 1.0
     },
     {
@@ -71866,7 +71866,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L285",
+      "source_location": "L286",
       "weight": 1.0
     },
     {
@@ -71877,7 +71877,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L308",
+      "source_location": "L309",
       "weight": 1.0
     },
     {
@@ -71888,7 +71888,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L328",
+      "source_location": "L329",
       "weight": 1.0
     },
     {
@@ -71899,7 +71899,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L348",
+      "source_location": "L349",
       "weight": 1.0
     },
     {
@@ -71910,7 +71910,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L368",
+      "source_location": "L369",
       "weight": 1.0
     },
     {
@@ -75342,7 +75342,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L142",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -75727,7 +75727,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L60",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -75738,7 +75738,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L69",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -75749,7 +75749,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L72",
+      "source_location": "L75",
       "weight": 1.0
     },
     {
@@ -76200,7 +76200,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L48",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -76211,7 +76211,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L53",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -76222,7 +76222,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L57",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -76233,7 +76233,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L61",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -76244,7 +76244,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L65",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -76255,7 +76255,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L69",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -76266,7 +76266,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L73",
+      "source_location": "L75",
       "weight": 1.0
     },
     {
@@ -76519,7 +76519,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L347",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -76530,7 +76530,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L372",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -76541,7 +76541,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L420",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -76893,7 +76893,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L56",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -76904,7 +76904,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L60",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -77619,7 +77619,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L360",
+      "source_location": "L365",
       "weight": 1.0
     },
     {
@@ -77630,18 +77630,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L363",
-      "weight": 1.0
-    },
-    {
-      "source": "edge_gateway_tests_test_security_logging_clock",
-      "target": "edge_gateway_tests_test_security_logging_clock_init",
-      "relation": "method",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L94",
+      "source_location": "L368",
       "weight": 1.0
     },
     {
@@ -77652,7 +77641,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L97",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "edge_gateway_tests_test_security_logging_clock",
+      "target": "edge_gateway_tests_test_security_logging_clock_init",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "edge_gateway/tests/test_security_logging.py",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -77663,7 +77663,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L102",
+      "source_location": "L107",
       "weight": 1.0
     },
     {
@@ -77674,7 +77674,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L115",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -77685,7 +77685,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L126",
+      "source_location": "L131",
       "weight": 1.0
     },
     {
@@ -77696,7 +77696,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L143",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -77707,7 +77707,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L147",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -77718,7 +77718,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L157",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -77729,7 +77729,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L164",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -77894,7 +77894,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L120",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -77905,7 +77905,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L124",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -77916,7 +77916,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L129",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -77927,7 +77927,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L138",
+      "source_location": "L144",
       "weight": 1.0
     },
     {
@@ -77938,7 +77938,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L145",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -77971,7 +77971,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L81",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -79328,14 +79328,14 @@
       "weight": 1.0
     },
     {
-      "source": "cloud_service_src_cloud_service_failure_injector_rationale_73",
+      "source": "cloud_service_src_cloud_service_failure_injector_rationale_76",
       "target": "cloud_service_src_cloud_service_failure_injector_failureinjector_select",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L73",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -80021,36 +80021,36 @@
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_app_rationale_146",
+      "source": "edge_gateway_src_edge_gateway_app_rationale_149",
       "target": "edge_gateway_src_edge_gateway_app_baseline_transport",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L146",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_app_rationale_160",
+      "source": "edge_gateway_src_edge_gateway_app_rationale_163",
       "target": "edge_gateway_src_edge_gateway_app_secure_transport",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L160",
+      "source_location": "L163",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_app_rationale_197",
+      "source": "edge_gateway_src_edge_gateway_app_rationale_200",
       "target": "edge_gateway_src_edge_gateway_app_main",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L197",
+      "source_location": "L200",
       "weight": 1.0
     },
     {
@@ -80230,14 +80230,14 @@
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_correlation_rationale_23",
+      "source": "edge_gateway_src_edge_gateway_correlation_rationale_27",
       "target": "edge_gateway_src_edge_gateway_correlation_baseline_headers",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/correlation.py",
-      "source_location": "L23",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -80384,80 +80384,80 @@
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_49",
+      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_51",
       "target": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_disabled",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L49",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_54",
+      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_56",
       "target": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_from_config",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L54",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_58",
+      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_60",
       "target": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_handshake_failure",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L58",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_62",
+      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_64",
       "target": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_corrupt_ciphertext",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L62",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_66",
+      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_68",
       "target": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_session_missing",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L66",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_70",
+      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_72",
       "target": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector_session_expired",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L70",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_82",
+      "source": "edge_gateway_src_edge_gateway_crypto_failure_rationale_84",
       "target": "edge_gateway_src_edge_gateway_crypto_failure_corrupt_ciphertext_copy",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L82",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -80912,14 +80912,14 @@
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_crypto_security_log_rationale_50",
+      "source": "edge_gateway_src_edge_gateway_crypto_security_log_rationale_52",
       "target": "edge_gateway_src_edge_gateway_crypto_security_log_log_security",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/crypto/security_log.py",
-      "source_location": "L50",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -81374,25 +81374,25 @@
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_failure_injector_rationale_57",
+      "source": "edge_gateway_src_edge_gateway_failure_injector_rationale_60",
       "target": "edge_gateway_src_edge_gateway_failure_injector_failureinjector_from_config",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L57",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_src_edge_gateway_failure_injector_rationale_61",
+      "source": "edge_gateway_src_edge_gateway_failure_injector_rationale_64",
       "target": "edge_gateway_src_edge_gateway_failure_injector_failureinjector_select",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L61",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -81979,14 +81979,14 @@
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_tests_test_gateway_sequence_rationale_98",
+      "source": "edge_gateway_tests_test_gateway_sequence_rationale_100",
       "target": "edge_gateway_tests_test_gateway_sequence_test_committed_sequence_survives_later_cloud_failure",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L98",
+      "source_location": "L100",
       "weight": 1.0
     },
     {
@@ -82331,14 +82331,14 @@
       "weight": 1.0
     },
     {
-      "source": "legacy_system_src_legacy_system_device_rationale_121",
+      "source": "legacy_system_src_legacy_system_device_rationale_127",
       "target": "legacy_system_src_legacy_system_device_devicecontroller_stop",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L121",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -82364,14 +82364,14 @@
       "weight": 1.0
     },
     {
-      "source": "legacy_system_src_legacy_system_device_rationale_84",
+      "source": "legacy_system_src_legacy_system_device_rationale_90",
       "target": "legacy_system_src_legacy_system_device_devicecontroller_send_with_logging",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L84",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -83260,7 +83260,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L195",
+      "source_location": "L196",
       "weight": 1.0
     },
     {
@@ -83284,7 +83284,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L212",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -83680,7 +83680,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L84",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -83836,7 +83836,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L165",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -83848,7 +83848,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L133",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -84220,7 +84220,7 @@
       "confidence_score": 0.85,
       "context": "assignment",
       "source_file": "edge_gateway/tests/test_gateway_errors.py",
-      "source_location": "L77",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -84352,7 +84352,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L214",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -84664,7 +84664,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L330",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -85000,7 +85000,7 @@
       "confidence_score": 0.85,
       "context": "getattr",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L78",
+      "source_location": "L81",
       "weight": 1.0
     },
     {
@@ -85072,7 +85072,7 @@
       "confidence_score": 0.85,
       "context": "getattr",
       "source_file": "legacy_system/src/legacy_system/device.py",
-      "source_location": "L97",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -85192,7 +85192,7 @@
       "confidence_score": 0.95,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L145",
+      "source_location": "L148",
       "weight": 0.8
     },
     {
@@ -85204,7 +85204,7 @@
       "confidence_score": 0.95,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L145",
+      "source_location": "L148",
       "weight": 0.8
     },
     {
@@ -85252,7 +85252,7 @@
       "confidence_score": 0.95,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L184",
+      "source_location": "L187",
       "weight": 0.8
     },
     {
@@ -85264,7 +85264,7 @@
       "confidence_score": 0.95,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L188",
+      "source_location": "L191",
       "weight": 0.8
     },
     {
@@ -85276,7 +85276,7 @@
       "confidence_score": 0.95,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L158",
+      "source_location": "L161",
       "weight": 0.8
     },
     {
@@ -85288,7 +85288,7 @@
       "confidence_score": 0.95,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L158",
+      "source_location": "L161",
       "weight": 0.8
     },
     {
@@ -85300,7 +85300,7 @@
       "confidence_score": 0.95,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L158",
+      "source_location": "L161",
       "weight": 0.8
     },
     {
@@ -85312,7 +85312,7 @@
       "confidence_score": 0.95,
       "context": "parameter_type",
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L441",
+      "source_location": "L444",
       "weight": 0.8
     },
     {
@@ -85516,7 +85516,7 @@
       "confidence_score": 0.95,
       "context": "return_type",
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L145",
+      "source_location": "L148",
       "weight": 0.8
     },
     {
@@ -85843,7 +85843,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "cloud_service/src/cloud_service/failure/injector.py",
-      "source_location": "L61",
+      "source_location": "L64",
       "weight": 0.8
     },
     {
@@ -85887,7 +85887,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "cloud_service/src/cloud_service/gateway/queries.py",
-      "source_location": "L50",
+      "source_location": "L56",
       "weight": 0.8
     },
     {
@@ -86206,7 +86206,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L184",
+      "source_location": "L185",
       "weight": 0.8
     },
     {
@@ -86217,7 +86217,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L190",
+      "source_location": "L191",
       "weight": 0.8
     },
     {
@@ -86228,7 +86228,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L210",
+      "source_location": "L211",
       "weight": 0.8
     },
     {
@@ -86239,7 +86239,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "cloud_service/tests/test_cloud_baseline.py",
-      "source_location": "L213",
+      "source_location": "L214",
       "weight": 0.8
     },
     {
@@ -87564,13 +87564,24 @@
     },
     {
       "source": "edge_gateway_src_edge_gateway_app_create_app",
+      "target": "edge_gateway_src_edge_gateway_validation_legacymeasurementdomainerror",
+      "relation": "uses",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "edge_gateway/src/edge_gateway/app.py",
+      "source_location": "L100",
+      "weight": 0.8
+    },
+    {
+      "source": "edge_gateway_src_edge_gateway_app_create_app",
       "target": "edge_gateway_src_edge_gateway_errors_gatewayerror",
       "relation": "uses",
       "_origin": "ast",
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L101",
+      "source_location": "L104",
       "weight": 0.8
     },
     {
@@ -87581,7 +87592,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L92",
+      "source_location": "L95",
       "weight": 0.8
     },
     {
@@ -87592,7 +87603,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L94",
+      "source_location": "L97",
       "weight": 0.8
     },
     {
@@ -87603,18 +87614,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L96",
-      "weight": 0.8
-    },
-    {
-      "source": "edge_gateway_src_edge_gateway_app_create_app",
-      "target": "edge_gateway_src_edge_gateway_validation_legacymeasurementdomainerror",
-      "relation": "uses",
-      "_origin": "ast",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L97",
+      "source_location": "L99",
       "weight": 0.8
     },
     {
@@ -87625,7 +87625,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L201",
+      "source_location": "L204",
       "weight": 0.8
     },
     {
@@ -87636,7 +87636,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L161",
+      "source_location": "L164",
       "weight": 0.8
     },
     {
@@ -87647,7 +87647,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/app.py",
-      "source_location": "L181",
+      "source_location": "L184",
       "weight": 0.8
     },
     {
@@ -87658,7 +87658,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/crypto/failure.py",
-      "source_location": "L53",
+      "source_location": "L55",
       "weight": 0.8
     },
     {
@@ -87746,7 +87746,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L332",
+      "source_location": "L335",
       "weight": 0.8
     },
     {
@@ -87757,7 +87757,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L332",
+      "source_location": "L335",
       "weight": 0.8
     },
     {
@@ -87768,7 +87768,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L332",
+      "source_location": "L335",
       "weight": 0.8
     },
     {
@@ -87779,7 +87779,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/crypto/secure_transport.py",
-      "source_location": "L332",
+      "source_location": "L335",
       "weight": 0.8
     },
     {
@@ -87944,7 +87944,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/src/edge_gateway/failure/injector.py",
-      "source_location": "L56",
+      "source_location": "L59",
       "weight": 0.8
     },
     {
@@ -89066,7 +89066,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_correlation.py",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 0.8
     },
     {
@@ -89099,7 +89099,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_errors.py",
-      "source_location": "L86",
+      "source_location": "L89",
       "weight": 0.8
     },
     {
@@ -89379,18 +89379,18 @@
     },
     {
       "source": "edge_gateway_tests_test_gateway_sequence_test_committed_sequence_survives_later_cloud_failure",
-      "target": "edge_gateway_src_edge_gateway_errors_gatewayerror",
+      "target": "edge_gateway_src_edge_gateway_sequence_sequencetracker",
       "relation": "uses",
       "_origin": "ast",
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L104",
+      "source_location": "L101",
       "weight": 0.8
     },
     {
       "source": "edge_gateway_tests_test_gateway_sequence_test_committed_sequence_survives_later_cloud_failure",
-      "target": "edge_gateway_src_edge_gateway_errors_gatewayerrorcode",
+      "target": "edge_gateway_src_edge_gateway_errors_gatewayerror",
       "relation": "uses",
       "_origin": "ast",
       "confidence": "INFERRED",
@@ -89401,13 +89401,13 @@
     },
     {
       "source": "edge_gateway_tests_test_gateway_sequence_test_committed_sequence_survives_later_cloud_failure",
-      "target": "edge_gateway_src_edge_gateway_sequence_sequencetracker",
+      "target": "edge_gateway_src_edge_gateway_errors_gatewayerrorcode",
       "relation": "uses",
       "_origin": "ast",
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L99",
+      "source_location": "L108",
       "weight": 0.8
     },
     {
@@ -89418,7 +89418,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L152",
+      "source_location": "L154",
       "weight": 0.8
     },
     {
@@ -89429,7 +89429,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L160",
+      "source_location": "L162",
       "weight": 0.8
     },
     {
@@ -89440,7 +89440,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L168",
+      "source_location": "L170",
       "weight": 0.8
     },
     {
@@ -89451,7 +89451,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L79",
+      "source_location": "L81",
       "weight": 0.8
     },
     {
@@ -89462,7 +89462,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 0.8
     },
     {
@@ -89473,7 +89473,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L93",
+      "source_location": "L95",
       "weight": 0.8
     },
     {
@@ -89484,7 +89484,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L62",
+      "source_location": "L64",
       "weight": 0.8
     },
     {
@@ -89539,7 +89539,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L52",
+      "source_location": "L54",
       "weight": 0.8
     },
     {
@@ -89550,7 +89550,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L54",
+      "source_location": "L56",
       "weight": 0.8
     },
     {
@@ -89561,23 +89561,12 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L70",
+      "source_location": "L72",
       "weight": 0.8
     },
     {
       "source": "edge_gateway_tests_test_gateway_sequence_test_new_tracker_has_no_previous_history",
       "target": "edge_gateway_src_edge_gateway_errors_gatewayerror",
-      "relation": "uses",
-      "_origin": "ast",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L73",
-      "weight": 0.8
-    },
-    {
-      "source": "edge_gateway_tests_test_gateway_sequence_test_new_tracker_has_no_previous_history",
-      "target": "edge_gateway_src_edge_gateway_errors_gatewayerrorcode",
       "relation": "uses",
       "_origin": "ast",
       "confidence": "INFERRED",
@@ -89587,6 +89576,17 @@
       "weight": 0.8
     },
     {
+      "source": "edge_gateway_tests_test_gateway_sequence_test_new_tracker_has_no_previous_history",
+      "target": "edge_gateway_src_edge_gateway_errors_gatewayerrorcode",
+      "relation": "uses",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "edge_gateway/tests/test_gateway_sequence.py",
+      "source_location": "L77",
+      "weight": 0.8
+    },
+    {
       "source": "edge_gateway_tests_test_gateway_sequence_test_pending_cloud_failure_does_not_block_or_undo_newer_sequence",
       "target": "edge_gateway_src_edge_gateway_sequence_sequencetracker",
       "relation": "uses",
@@ -89594,7 +89594,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L122",
+      "source_location": "L124",
       "weight": 0.8
     },
     {
@@ -89605,7 +89605,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L143",
+      "source_location": "L145",
       "weight": 0.8
     },
     {
@@ -89616,7 +89616,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_gateway_sequence.py",
-      "source_location": "L145",
+      "source_location": "L147",
       "weight": 0.8
     },
     {
@@ -90100,7 +90100,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L79",
+      "source_location": "L84",
       "weight": 0.8
     },
     {
@@ -90111,7 +90111,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L80",
+      "source_location": "L85",
       "weight": 0.8
     },
     {
@@ -90122,7 +90122,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L81",
+      "source_location": "L86",
       "weight": 0.8
     },
     {
@@ -90133,7 +90133,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L202",
+      "source_location": "L207",
       "weight": 0.8
     },
     {
@@ -90144,7 +90144,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L203",
+      "source_location": "L208",
       "weight": 0.8
     },
     {
@@ -90155,7 +90155,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L204",
+      "source_location": "L209",
       "weight": 0.8
     },
     {
@@ -90166,23 +90166,12 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L369",
+      "source_location": "L374",
       "weight": 0.8
     },
     {
       "source": "edge_gateway_tests_test_security_logging_test_injected_handshake_failure_stays_fail_closed",
       "target": "edge_gateway_src_edge_gateway_crypto_session_sessionmanager",
-      "relation": "uses",
-      "_origin": "ast",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L370",
-      "weight": 0.8
-    },
-    {
-      "source": "edge_gateway_tests_test_security_logging_test_injected_handshake_failure_stays_fail_closed",
-      "target": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector",
       "relation": "uses",
       "_origin": "ast",
       "confidence": "INFERRED",
@@ -90193,13 +90182,24 @@
     },
     {
       "source": "edge_gateway_tests_test_security_logging_test_injected_handshake_failure_stays_fail_closed",
+      "target": "edge_gateway_src_edge_gateway_crypto_failure_cryptofailureinjector",
+      "relation": "uses",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "edge_gateway/tests/test_security_logging.py",
+      "source_location": "L380",
+      "weight": 0.8
+    },
+    {
+      "source": "edge_gateway_tests_test_security_logging_test_injected_handshake_failure_stays_fail_closed",
       "target": "edge_gateway_src_edge_gateway_crypto_secure_transport_securetransport",
       "relation": "uses",
       "_origin": "ast",
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L377",
+      "source_location": "L382",
       "weight": 0.8
     },
     {
@@ -90210,7 +90210,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L385",
+      "source_location": "L390",
       "weight": 0.8
     },
     {
@@ -90221,7 +90221,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L392",
+      "source_location": "L397",
       "weight": 0.8
     },
     {
@@ -90232,7 +90232,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L67",
+      "source_location": "L72",
       "weight": 0.8
     },
     {
@@ -90254,7 +90254,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L248",
+      "source_location": "L253",
       "weight": 0.8
     },
     {
@@ -90265,7 +90265,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L256",
+      "source_location": "L261",
       "weight": 0.8
     },
     {
@@ -90276,7 +90276,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L262",
+      "source_location": "L267",
       "weight": 0.8
     },
     {
@@ -90287,7 +90287,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L263",
+      "source_location": "L268",
       "weight": 0.8
     },
     {
@@ -90298,7 +90298,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L273",
+      "source_location": "L278",
       "weight": 0.8
     },
     {
@@ -90309,7 +90309,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L285",
+      "source_location": "L290",
       "weight": 0.8
     },
     {
@@ -90320,7 +90320,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L317",
+      "source_location": "L322",
       "weight": 0.8
     },
     {
@@ -90331,7 +90331,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L326",
+      "source_location": "L331",
       "weight": 0.8
     },
     {
@@ -90342,7 +90342,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "edge_gateway/tests/test_security_logging.py",
-      "source_location": "L337",
+      "source_location": "L342",
       "weight": 0.8
     },
     {
@@ -90617,7 +90617,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L313",
+      "source_location": "L314",
       "weight": 0.8
     },
     {
@@ -90672,7 +90672,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L370",
+      "source_location": "L371",
       "weight": 0.8
     },
     {
@@ -90683,7 +90683,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L246",
+      "source_location": "L247",
       "weight": 0.8
     },
     {
@@ -90694,7 +90694,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L290",
+      "source_location": "L291",
       "weight": 0.8
     },
     {
@@ -90716,7 +90716,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L331",
+      "source_location": "L332",
       "weight": 0.8
     },
     {
@@ -90727,7 +90727,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L225",
+      "source_location": "L226",
       "weight": 0.8
     },
     {
@@ -90749,7 +90749,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L269",
+      "source_location": "L270",
       "weight": 0.8
     },
     {
@@ -90793,7 +90793,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.95,
       "source_file": "legacy_system/tests/test_client.py",
-      "source_location": "L351",
+      "source_location": "L352",
       "weight": 0.8
     },
     {

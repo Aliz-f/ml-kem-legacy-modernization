@@ -42,7 +42,9 @@ class CryptoFailureInjector:
         self._rate = float(failure_rate)
         self._random = random.Random(None if failure_seed is None else str(failure_seed))
         if mode in CRYPTO_FAILURE_MODES and self._rate > 0:
-            logger.warning("event=failure_injection_enabled mode=%s", mode)
+            logger.warning(
+                "event=failure_injection_enabled component=edge_gateway mode=%s", mode
+            )
 
     @classmethod
     def disabled(cls) -> CryptoFailureInjector:

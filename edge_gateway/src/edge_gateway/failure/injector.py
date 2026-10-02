@@ -50,7 +50,10 @@ class FailureInjector:
     def log_enabled(self) -> None:
         """Announce enabled application simulation after startup logging is configured."""
         if self._mode in APPLICATION_FAILURE_MODES | {"random"} and self._rate > 0:
-            logger.warning("event=failure_injection_enabled mode=%s", self._mode)
+            logger.warning(
+                "event=failure_injection_enabled component=edge_gateway mode=%s",
+                self._mode,
+            )
 
     @classmethod
     def from_config(cls, config: GatewayConfig, *, announce: bool = True) -> FailureInjector:
@@ -72,5 +75,7 @@ class FailureInjector:
         if self._rate < 1 and self._random.random() >= self._rate:
             return None
         selected = self._random.choice(candidates) if self._mode == "random" else self._mode
-        logger.debug("event=failure_selected failure_type=%s", selected)
+        logger.debug(
+            "event=failure_selected component=edge_gateway failure_type=%s", selected
+        )
         return selected

@@ -45,7 +45,9 @@ def test_gap_is_logged_and_advances_state(caplog):
     with caplog.at_level(logging.INFO, logger="edge_gateway"):
         tracker.check_and_update("sensor-001", 43)
     record, = caplog.records
-    assert record.getMessage().startswith("sequence_gap_detected ")
+    assert record.getMessage().startswith(
+        "event=sequence_gap_detected component=edge_gateway "
+    )
     assert record.device_id == "sensor-001"
     assert record.previous_sequence_number == 40
     assert record.sequence_number == 43

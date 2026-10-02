@@ -74,8 +74,8 @@ the roadmap baseline Cloud gate or baseline E2E gate. SQLite initializes before
 the app becomes live; initialization failure aborts startup with a safe error.
 Shutdown closes storage and clears the database/repository references even when
 the lifespan exits through an exception. The configured database's parent
-directory must already exist. Future secure work must preserve
-lookup → ownership → expiry session validation.
+directory must already exist. Secure processing preserves lookup → ownership →
+expiry session validation.
 
 M4-12/M4-13 add the [measurement query API](queries.md), using the existing
 repository with bounded list results. Gateway-to-Cloud integration remains

@@ -19,8 +19,8 @@ def test_lifecycle_and_health(caplog):
             assert response.status_code == 200
             assert response.json() == {"status": "ok"}
         assert not app.state.running
-    assert "gateway_starting security_mode=classical" in caplog.text
-    assert "gateway_shutting_down" in caplog.text
+    assert "event=gateway_starting component=edge_gateway security_mode=classical" in caplog.text
+    assert "event=gateway_shutting_down component=edge_gateway" in caplog.text
     assert "gateway_ready" not in caplog.text
 
 
@@ -84,7 +84,7 @@ def test_invalid_configuration_prevents_startup(name, value, monkeypatch, caplog
     with pytest.raises(ConfigurationError):
         create_app()
     assert main() == 1
-    assert "invalid configuration" in caplog.text
+    assert "reason=invalid_configuration" in caplog.text
     assert "invalid-private-marker" not in caplog.text
 
 

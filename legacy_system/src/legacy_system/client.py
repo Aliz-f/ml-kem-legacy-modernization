@@ -63,7 +63,7 @@ class GatewayClient:
 
         while result.retryable and attempt_count <= self._max_retries:
             logger.warning(
-                "event=gateway_retry device_id=%s sequence_number=%s attempt=%s status_code=%s error_category=%s",
+                "event=gateway_retry component=legacy_system device_id=%s sequence_number=%s attempt=%s status_code=%s error_category=%s",
                 payload.get("device_id"),
                 payload.get("sequence_number"),
                 attempt_count,
@@ -77,7 +77,7 @@ class GatewayClient:
 
         if not result.success:
             logger.warning(
-                "event=gateway_request_failed device_id=%s sequence_number=%s status_code=%s attempt=%s error_category=%s",
+                "event=gateway_request_failed component=legacy_system device_id=%s sequence_number=%s status_code=%s attempt=%s error_category=%s",
                 payload.get("device_id"),
                 payload.get("sequence_number"),
                 result.status_code,

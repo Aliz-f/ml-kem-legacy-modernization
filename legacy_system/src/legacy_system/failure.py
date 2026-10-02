@@ -54,7 +54,7 @@ class FailureInjector:
 
         self._mutate(outgoing, selected_mode, current_sequence, previous_sequences)
         self._logger.warning(
-            "event=simulated_failure_injected mode=%s sequence_number=%s",
+            "event=simulated_failure_injected component=legacy_system mode=%s sequence_number=%s",
             selected_mode.value,
             current_sequence,
         )

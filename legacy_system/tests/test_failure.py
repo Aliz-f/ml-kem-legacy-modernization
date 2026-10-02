@@ -254,7 +254,7 @@ def test_injection_logs_local_event_without_wire_marker(
     assert len(records) == 1
     assert records[0].levelno == logging.WARNING
     assert records[0].getMessage() == (
-        "event=simulated_failure_injected mode=invalid_humidity "
+        "event=simulated_failure_injected component=legacy_system mode=invalid_humidity "
         "sequence_number=184"
     )
     assert "simulated_failure" not in outgoing

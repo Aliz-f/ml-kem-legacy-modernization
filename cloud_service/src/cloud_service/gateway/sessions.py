@@ -1,4 +1,4 @@
-"""Validated session handshake; no secure-message processing."""
+"""Validated session handshake for secure-message processing."""
 
 from json import JSONDecodeError
 import logging

@@ -325,7 +325,10 @@ class SecureTransport:
             )
             if self._injector.corrupt_ciphertext():
                 self._metrics.record_injected("corrupt_ciphertext")
-                logger.warning("event=corrupt_ciphertext_injected")
+                logger.warning(
+                    "event=corrupt_ciphertext_injected component=edge_gateway request_id=%s",
+                    request_id,
+                )
                 mutated = corrupt_ciphertext_copy(decode_binary(envelope.ciphertext))
                 envelope = replace(envelope, ciphertext=encode_binary(mutated))
             return envelope

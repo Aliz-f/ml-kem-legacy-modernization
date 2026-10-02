@@ -159,6 +159,7 @@ def test_unexpected_repository_error_is_safe_500(client, payload, monkeypatch, c
     assert response.status_code == 500
     assert response.json()["error"]["code"] == "INTERNAL_ERROR"
     assert "private-internal-marker" not in response.text + caplog.text
+    assert "event=baseline_internal_error component=cloud_service" in caplog.text
     assert client.app.state.repository.list() == []
 
 

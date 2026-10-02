@@ -53,12 +53,17 @@ def test_unsafe_log_values_are_dropped(caplog: pytest.LogCaptureFixture):
         log_security("not_a_security_event", gateway_id="gateway-001")
         log_security(
             "session_created",
+            device_id="sensor-001",
             gateway_id="gateway-001",
+            sequence_number=184,
             session_id="has space",
             key_id=b"raw-key",
         )
     assert "not_a_security_event" not in caplog.text
+    assert "component=edge_gateway" in caplog.text
+    assert "device_id=sensor-001" in caplog.text
     assert "gateway_id=gateway-001" in caplog.text
+    assert "sequence_number=184" in caplog.text
     assert "session_id=" not in caplog.text
     assert b"raw-key" not in caplog.text.encode()
 

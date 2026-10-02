@@ -23,7 +23,7 @@ def test_review_matches_dispatch_and_correlation() -> None:
     ready = app.split("async def ready", 1)[1].split("@app.post", 1)[0]
     assert "session" not in ready
     assert "_unavailable()" in ready
-    assert 'logger.error("gateway_internal_error")' in app
+    assert 'logger.error("event=gateway_internal_error component=edge_gateway")' in app
     assert "return UnavailableBaseline()" in app
 
     send = dispatch.split("async def send", 1)[1].split("async def _send_secure", 1)[0]

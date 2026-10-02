@@ -67,7 +67,10 @@ def create_app(
     async def lifespan(app: FastAPI):
         logging.basicConfig(level=level, format="%(levelname)s %(name)s %(message)s")
         logger.setLevel(level)
-        logger.info("gateway_starting security_mode=%s", settings.security_mode)
+        logger.info(
+            "event=gateway_starting component=edge_gateway security_mode=%s",
+            settings.security_mode,
+        )
         failures.log_enabled()
         app.state.running = True
         try:
@@ -78,7 +81,7 @@ def create_app(
             shutdown = getattr(transport, "shutdown", None)
             if shutdown is not None:
                 shutdown()
-            logger.info("gateway_shutting_down")
+            logger.info("event=gateway_shutting_down component=edge_gateway")
 
     app = FastAPI(
         title="Edge Gateway", lifespan=lifespan,
@@ -105,7 +108,7 @@ def create_app(
     @app.exception_handler(Exception)
     async def internal_error(request: Request, error: Exception):
         # Never interpolate exception text or traceback: either can contain secrets.
-        logger.error("gateway_internal_error")
+        logger.error("event=gateway_internal_error component=edge_gateway")
         return _error_response(GatewayErrorCode.INTERNAL_ERROR)
 
     @app.get("/health")
@@ -200,7 +203,7 @@ def main() -> int:
         app = create_app(config)
     except ConfigurationError:
         logging.basicConfig(level=logging.ERROR)
-        logger.error("gateway_startup_failed: invalid configuration")
+        logger.error("event=gateway_startup_failed component=edge_gateway reason=invalid_configuration")
         return 1
 
     import uvicorn

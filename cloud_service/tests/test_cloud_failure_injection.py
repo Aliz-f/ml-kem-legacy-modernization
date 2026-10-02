@@ -96,7 +96,7 @@ def test_random_seed_is_reproducible_and_selects_only_allowed_modes():
 def test_enabled_injection_logs_safe_warning(caplog):
     with caplog.at_level(logging.WARNING, logger="cloud_service"):
         FailureInjector(FailureMode.DECRYPTION_FAILURE, 1.0, 3, 0)
-    assert "event=failure_injection_enabled mode=decryption_failure rate=1.0" in caplog.text
+    assert "event=failure_injection_enabled component=cloud_service mode=decryption_failure rate=1.0" in caplog.text
 
 
 def test_public_key_unavailable(tmp_path):
@@ -150,7 +150,7 @@ def test_selected_fault_logs_only_when_its_boundary_is_reached(tmp_path, caplog)
             assert "event=failure_injected" not in caplog.text
             response = client.post(SECURE_PATH, json=envelope(client))
     assert response.status_code == 400
-    assert caplog.text.count("event=failure_injected failure_type=decryption_failure") == 1
+    assert caplog.text.count("event=failure_injected component=cloud_service failure_type=decryption_failure") == 1
 
 
 def test_decryption_failure_prevents_plaintext_and_storage(tmp_path, monkeypatch):

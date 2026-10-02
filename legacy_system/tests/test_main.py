@@ -55,4 +55,5 @@ def test_main_logs_invalid_configuration_and_returns_nonzero(
 
     assert main(config_loader=invalid_config) == 1
     assert "event=invalid_configuration" in caplog.text
+    assert "component=legacy_system" in caplog.text
     assert "SEND_INTERVAL_SECONDS" in caplog.text

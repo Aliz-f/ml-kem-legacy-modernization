@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from urllib.parse import urljoin, urlparse
 
 from edge_gateway.correlation import baseline_headers
+from edge_gateway.transport import CloudDeliveryError
 
 
 _PATH = "api/v1/baseline/measurements"
@@ -22,7 +23,7 @@ _RETRYABLE_STATUS = frozenset({500, 502, 503, 504})
 _ACCEPTED_STATUS = frozenset({"accepted", "already_accepted"})
 
 
-class BaselineCloudError(Exception):
+class BaselineCloudError(CloudDeliveryError):
     """A classified baseline delivery failure without remote error details."""
 
     def __init__(self, message: str, *, retryable: bool, code: str | None = None) -> None:

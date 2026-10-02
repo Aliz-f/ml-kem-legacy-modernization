@@ -5,14 +5,12 @@ from contextlib import nullcontext
 from datetime import datetime
 
 from edge_gateway.correlation import create_request_id
-from edge_gateway.cloud.baseline import BaselineCloudError
-from edge_gateway.crypto.secure_transport import SecureTransportError
-from edge_gateway.dispatch import CloudDispatch
 from edge_gateway.errors import GatewayError, GatewayErrorCode
 from edge_gateway.failure.runtime import ApplicationFailures
 from edge_gateway.models import CanonicalMeasurement, LegacyMeasurement
 from edge_gateway.normalization import normalize
 from edge_gateway.sequence import SequenceTracker
+from edge_gateway.transport import CloudDeliveryError, CloudTransport
 
 
 ProcessingHook = Callable[[CanonicalMeasurement, str], Awaitable[None]]
@@ -35,7 +33,7 @@ class MeasurementProcessor:
     """
 
     def __init__(
-        self, *, gateway_id: str, dispatch: CloudDispatch | None,
+        self, *, gateway_id: str, dispatch: CloudTransport | None,
         processing_hook: ProcessingHook | None = None,
         failures: ApplicationFailures | None = None,
     ) -> None:
@@ -60,7 +58,7 @@ class MeasurementProcessor:
             fields.pop("gateway_id")
             try:
                 result = await self._dispatch.send(request_id=request_id, **fields)
-            except (BaselineCloudError, SecureTransportError, TimeoutError, ConnectionError):
+            except (CloudDeliveryError, TimeoutError, ConnectionError):
                 raise GatewayError(GatewayErrorCode.CLOUD_UNAVAILABLE) from None
             if (
                 getattr(result, "status", None) not in ("accepted", "already_accepted")

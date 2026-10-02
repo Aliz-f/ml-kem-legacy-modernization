@@ -387,6 +387,15 @@ They do not claim real baseline Cloud persistence or baseline E2E readiness.
 uv run pytest edge_gateway/tests/test_gateway_measurements.py
 ```
 
+## Secure transport integration (M2-26 through M2-28)
+
+The application processor uses a mode-independent `CloudTransport` contract.
+`CloudDispatch` selects the classical or ML-KEM path once from validated
+configuration and never falls back to plaintext after a secure failure. The
+Legacy endpoint and payload remain unchanged in both modes. See
+[the integration note](docs/secure-transport-integration.md) for ownership,
+behavior, and live compatibility evidence.
+
 ## Baseline Cloud client (M2-13)
 
 `edge_gateway.cloud.baseline.BaselineCloudClient` is used only when

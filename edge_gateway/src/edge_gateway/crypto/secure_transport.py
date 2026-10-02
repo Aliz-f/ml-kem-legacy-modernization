@@ -30,6 +30,7 @@ from edge_gateway.crypto.plaintext import PlaintextError
 from edge_gateway.crypto.security_log import log_security
 from edge_gateway.crypto.session import SecureSession, SessionEstablishmentError
 from edge_gateway.crypto.symmetric import AeadError
+from edge_gateway.transport import CloudDeliveryError
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ _SESSION_CODES = frozenset({"SESSION_INVALID", "SESSION_EXPIRED"})
 _ACCEPTED_STATUS = frozenset({"accepted", "already_accepted"})
 
 
-class SecureTransportError(Exception):
+class SecureTransportError(CloudDeliveryError):
     """The secure measurement was not accepted."""
 
     def __init__(self, message: str, *, retryable: bool, code: str | None = None) -> None:

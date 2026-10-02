@@ -1,4 +1,4 @@
-# AI Task 0115 — Gateway static and code-quality verification
+# AI Task 0120 — Gateway static and code-quality verification
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Ran the M3-77 checks before a crypto pull request and recorded them in edge_gate
 
 ## Files Created
 
-- docs/ai/history/0115-gateway-static-and-code-quality-verification.md
+- docs/ai/history/0120-gateway-static-and-code-quality-verification.md
 - edge_gateway/docs/static-checks.md
 - edge_gateway/tests/test_static_checks.py
 

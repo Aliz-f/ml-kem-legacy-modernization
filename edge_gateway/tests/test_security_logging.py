@@ -261,7 +261,7 @@ def test_seal_failure_is_counted_without_the_session_key(caplog: pytest.LogCaptu
                 state=SessionState.ACTIVE,
             )
 
-        def invalidate(self) -> None:
+        def invalidate(self, session_id: str | None = None) -> None:
             return None
 
     metrics = PqcMetrics()
@@ -331,7 +331,7 @@ def test_session_recovery_is_counted(caplog: pytest.LogCaptureFixture):
                 state=SessionState.ACTIVE,
             )
 
-        def invalidate(self) -> None:
+        def invalidate(self, session_id: str | None = None) -> None:
             metrics.set_active_session(False)
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)

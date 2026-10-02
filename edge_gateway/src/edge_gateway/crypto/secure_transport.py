@@ -77,8 +77,8 @@ class _Sessions(Protocol):
     async def get_or_establish(self) -> SecureSession:
         """Return the active session, or establish one."""
 
-    def invalidate(self) -> None:
-        """Drop the current session and wipe its key."""
+    def invalidate(self, session_id: str | None = None) -> None:
+        """Drop the current session, optionally only when its ID matches."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -200,7 +200,9 @@ class SecureTransport:
         try:
             acceptance = await asyncio.to_thread(self._deliver, envelope)
         except _SessionRecovery as recovery:
-            acceptance = await self._recover(measurement, request_id, recovery.code)
+            acceptance = await self._recover(
+                measurement, request_id, recovery.code, session.session_id,
+            )
         self._metrics.record_secure_message(phase, time.perf_counter() - started)
         return acceptance
 
@@ -230,6 +232,7 @@ class SecureTransport:
         measurement: _Measurement,
         request_id: str,
         code: str,
+        rejected_session_id: str,
     ) -> SecureAcceptance:
         log_security(
             "session_reestablishment_started",
@@ -237,7 +240,7 @@ class SecureTransport:
             request_id=request_id,
             reason=code,
         )
-        self._sessions.invalidate()
+        self._sessions.invalidate(rejected_session_id)
         try:
             session = await self._sessions.get_or_establish()
         except SessionEstablishmentError as exc:

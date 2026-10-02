@@ -60,7 +60,7 @@ class _Sessions:
             raise self.failure
         return self.current
 
-    def invalidate(self) -> None:
+    def invalidate(self, session_id: str | None = None) -> None:
         return None
 
 

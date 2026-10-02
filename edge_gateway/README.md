@@ -538,6 +538,25 @@ One review of the Gateway integration checks modernized dispatch, request
 correlation, fail-closed delivery, and session recovery. It does not change the Gateway protocol.
 Details are in [docs/member2-integration-review.md](docs/member2-integration-review.md).
 
+## Dependency and security review (M3-76)
+
+One review of `uv.lock` and the crypto source checks for unnecessary,
+unmaintained, or duplicate crypto packages and unsafe low-level use.
+Details are in [docs/dependency-review.md](docs/dependency-review.md).
+
+## Static and code-quality verification (M3-77)
+
+Before a crypto pull request, run the Gateway tests, Ruff, the AI-history
+check, and the secure integration tests, then inspect the diff for secret
+logging, key files, debug prints, and `.env` values.
+Details are in [docs/static-checks.md](docs/static-checks.md).
+
+## Final secure-transport review (M3-78)
+
+One review checks every item of the frozen M3-78 checklist against the
+current Gateway and Cloud code, tests, and documentation before freeze.
+Details are in [docs/final-secure-transport-review.md](docs/final-secure-transport-review.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

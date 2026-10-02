@@ -1,4 +1,4 @@
-# AI Task 0107 — Corrupted ciphertext demonstration
+# AI Task 0115 — Corrupted ciphertext demonstration
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded one local corrupted-ciphertext run. The Gateway sealed a valid measurem
 
 ## Files Created
 
-- docs/ai/history/0107-corrupted-ciphertext-demonstration.md
+- docs/ai/history/0115-corrupted-ciphertext-demonstration.md
 - edge_gateway/docs/corrupt-ciphertext.md
 - tests/integration/test_corrupt_ciphertext_demo.py
 

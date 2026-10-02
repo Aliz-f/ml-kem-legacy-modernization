@@ -1,4 +1,4 @@
-# AI Task 0104 — M4 PR11–PR13 Cloud operations, observability, and security tests
+# AI Task 0107 — M4 PR11–PR13 Cloud operations, observability, and security tests
 
 **Status:** Complete
 
@@ -32,7 +32,7 @@ Implemented M4 PR11–PR13 only: structured safe Cloud lifecycle, key/session, s
 
 - cloud_service/src/cloud_service/metrics.py
 - cloud_service/tests/test_cloud_metrics.py
-- docs/ai/history/0104-m4-pr11-pr13-cloud-operations-observability-and-security-tests.md
+- docs/ai/history/0107-m4-pr11-pr13-cloud-operations-observability-and-security-tests.md
 
 ## Files Modified
 
@@ -96,7 +96,7 @@ Completed the requested task-0104 revision: scope now covers M4-52 through M4-69
 - cloud_service/src/cloud_service/metrics.py
 - cloud_service/tests/test_cloud_metrics.py
 - cloud_service/tests/test_gateway_cloud_baseline_contract.py
-- docs/ai/history/0104-m4-pr11-pr13-cloud-operations-observability-and-security-tests.md
+- docs/ai/history/0107-m4-pr11-pr13-cloud-operations-observability-and-security-tests.md
 - review-0104.diff
 
 ## Files Modified

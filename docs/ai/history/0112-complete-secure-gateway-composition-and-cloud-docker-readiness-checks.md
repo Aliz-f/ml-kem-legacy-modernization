@@ -1,4 +1,4 @@
-# AI Task 0107 — Complete secure Gateway composition and Cloud Docker readiness checks
+# AI Task 0112 — Complete secure Gateway composition and Cloud Docker readiness checks
 
 **Status:** Complete
 
@@ -30,11 +30,11 @@ Composed the existing fail-closed Gateway session manager and SecureTransport au
 
 ## Files Created
 
-- docs/ai/history/0107-complete-secure-gateway-composition-and-cloud-docker-readiness-checks.md
+- docs/ai/history/0112-complete-secure-gateway-composition-and-cloud-docker-readiness-checks.md
 
 ## Files Modified
 
-- .github/workflows/ai-history.yml, cloud_service/docs/final-integration-and-operations.md, cloud_service/tests/test_full_path_integration.py, edge_gateway/src/edge_gateway/app.py, graphify-out/graph.json, graphify-out/GRAPH_REPORT.md, docs/ai/.state.json, docs/ai/history/0107-complete-secure-gateway-composition-and-cloud-docker-readiness-checks.md
+- .github/workflows/ai-history.yml, cloud_service/docs/final-integration-and-operations.md, cloud_service/tests/test_full_path_integration.py, edge_gateway/src/edge_gateway/app.py, graphify-out/graph.json, graphify-out/GRAPH_REPORT.md, docs/ai/.state.json, docs/ai/history/0112-complete-secure-gateway-composition-and-cloud-docker-readiness-checks.md
 
 ## Files Deleted
 

@@ -1,4 +1,4 @@
-# AI Task 0106 — M4 PR14-PR16 complete Cloud integration, deployment, and final review
+# AI Task 0111 — M4 PR14-PR16 complete Cloud integration, deployment, and final review
 
 **Status:** Complete
 
@@ -504,7 +504,7 @@ Completed the feasible Member 4 PR14-PR16 integration, Cloud deployment, documen
 - cloud_service/Dockerfile
 - cloud_service/docs/final-integration-and-operations.md
 - cloud_service/tests/test_full_path_integration.py
-- docs/ai/history/0106-m4-pr14-pr16-complete-cloud-integration-deployment-and-final-review.md
+- docs/ai/history/0111-m4-pr14-pr16-complete-cloud-integration-deployment-and-final-review.md
 
 ## Files Modified
 

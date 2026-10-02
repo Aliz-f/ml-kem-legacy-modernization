@@ -1,4 +1,4 @@
-# AI Task 0108 — Repair mode-specific metrics assertion after secure Gateway composition
+# AI Task 0113 — Repair mode-specific metrics assertion after secure Gateway composition
 
 **Status:** Complete
 
@@ -30,11 +30,11 @@ Updated the legacy compatibility test to preserve the frozen identical Legacy re
 
 ## Files Created
 
-- docs/ai/history/0108-repair-mode-specific-metrics-assertion-after-secure-gateway-composition.md
+- docs/ai/history/0113-repair-mode-specific-metrics-assertion-after-secure-gateway-composition.md
 
 ## Files Modified
 
-- tests/integration/test_legacy_compatibility.py, graphify-out/graph.json, graphify-out/GRAPH_REPORT.md, docs/ai/.state.json, docs/ai/history/0108-repair-mode-specific-metrics-assertion-after-secure-gateway-composition.md
+- tests/integration/test_legacy_compatibility.py, graphify-out/graph.json, graphify-out/GRAPH_REPORT.md, docs/ai/.state.json, docs/ai/history/0113-repair-mode-specific-metrics-assertion-after-secure-gateway-composition.md
 
 ## Files Deleted
 

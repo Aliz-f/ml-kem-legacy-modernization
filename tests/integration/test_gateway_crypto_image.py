@@ -72,6 +72,8 @@ def test_frozen_gateway_install_uses_linux_wheels(
     tmp_path: Path, platform: str, architecture: str
 ) -> None:
     """Linux Gateway installs use manylinux wheels for the native packages."""
+    if sys.platform == "win32":
+        pytest.skip("Linux virtualenv wheel layout is verified on Linux CI")
     environment = tmp_path / "venv"
     _install(platform, environment)
     site = _site_packages(environment)

@@ -7,13 +7,11 @@ import logging
 from io import BytesIO
 from urllib.error import HTTPError
 
+from edge_gateway.application_log import log_application
 from edge_gateway.config import GatewayConfig
 from edge_gateway.crypto.metrics import PqcMetrics
 from edge_gateway.errors import GatewayError, GatewayErrorCode
 from edge_gateway.failure.injector import FailureInjector
-
-logger = logging.getLogger(__name__)
-
 
 class ApplicationFailures:
     """One selector per app; one decision after each valid sequence acceptance."""
@@ -65,6 +63,8 @@ class ApplicationFailures:
 
     def _record(self, mode: str, request_id: str) -> None:
         self._metrics.record_injected(mode)
-        logger.warning(
-            "event=failure_injected failure_type=%s request_id=%s", mode, request_id,
+        log_application(
+            "failure_injected", logging.WARNING,
+            failure_type=mode,
+            request_id=request_id,
         )

@@ -30,7 +30,13 @@ def test_processing_fault_is_visible_and_preserves_sequence(security_mode, fault
         assert client.post(PATH, json={**PAYLOAD, "sequence_number": 11}).status_code == status
         assert f'gateway_injected_failures_total{{failure_type="{fault}"}} 2' in client.get("/metrics").text
     assert baseline.calls == secure.calls == []
-    assert f"event=failure_injected failure_type={fault} request_id=req-" in caplog.text
+    injected = [
+        record for record in caplog.records
+        if record.getMessage().startswith("event=failure_injected ")
+    ]
+    assert len(injected) == 2
+    assert all(record.failure_type == fault for record in injected)
+    assert all(record.request_id.startswith("req-") for record in injected)
 
 
 @pytest.mark.parametrize("value", ["-1", "30.01", "nan", "inf", "bad", ""])

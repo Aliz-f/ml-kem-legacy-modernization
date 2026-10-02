@@ -22,7 +22,7 @@ HTTP 409 `SESSION_INVALID` and `SESSION_EXPIRED` are handled inside `SecureTrans
 
 ## Readiness and error translation
 
-`GET /ready` returns unavailable and does not read session state, so readiness does not require an already-active session. It is still the placeholder and does not report that the process is ready to deliver. Delivery failures of type `SecureTransportError`, `TimeoutError`, and `ConnectionError` become `GatewayError` `CLOUD_UNAVAILABLE` with the original exception detached. The HTTP handler returns the fixed error body. The catch-all logs `gateway_internal_error` and does not include the exception text.
+`GET /ready` reports ready when the application is running and the configured local transport is initialized. Classical mode requires the baseline client; ML-KEM mode requires a usable `SecureTransport`. The check does not establish or require an active session and does not probe Cloud, so delivery can still fail later with `CLOUD_UNAVAILABLE`. Delivery failures of type `SecureTransportError`, `TimeoutError`, and `ConnectionError` become `GatewayError` `CLOUD_UNAVAILABLE` with the original exception detached. The HTTP handler returns the fixed error body. The catch-all logs `gateway_internal_error` and does not include the exception text.
 
 ## Failure injection
 
@@ -30,4 +30,4 @@ HTTP 409 `SESSION_INVALID` and `SESSION_EXPIRED` are handled inside `SecureTrans
 
 ## Review result
 
-The inspected integration keeps modernized delivery on `SecureTransport` and keeps baseline delivery on the explicit classical path. The recorded limits are the placeholder `/ready` response and the absence of a cryptographic replay window, which remains outside this integration.
+The inspected integration keeps modernized delivery on `SecureTransport` and keeps baseline delivery on the explicit classical path. Readiness checks initialized local dependencies without creating a secure session or making a Cloud request. The absence of a cryptographic replay window remains outside this integration.

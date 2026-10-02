@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import http.client
 import json
+import logging
 import math
 import time
 import urllib.error
@@ -13,6 +14,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from urllib.parse import urljoin, urlparse
 
+from edge_gateway.application_log import log_application
 from edge_gateway.correlation import baseline_headers
 from edge_gateway.transport import CloudDeliveryError
 
@@ -106,6 +108,13 @@ class BaselineCloudClient:
                     raise
                 failure = exc
                 if attempt < self._max_retries:
+                    log_application(
+                        "cloud_delivery_retry", logging.WARNING,
+                        request_id=request_id,
+                        security_mode="classical",
+                        attempt=attempt + 2,
+                        reason="transport",
+                    )
                     # Frozen Gateway backoff: 1 second before retry two, then 2.
                     self._sleep(2.0**attempt)
         if failure is None:  # Defensive: every exhausted iteration is retryable.

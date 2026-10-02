@@ -3,10 +3,8 @@
 import logging
 from threading import Lock
 
+from edge_gateway.application_log import log_application
 from edge_gateway.errors import GatewayError, GatewayErrorCode
-
-
-logger = logging.getLogger("edge_gateway")
 
 
 class SequenceTracker:
@@ -35,18 +33,24 @@ class SequenceTracker:
             previous = self._last_sequence.get(device_id)
             if previous is not None:
                 if sequence_number == previous:
+                    log_application(
+                        "sequence_duplicate_detected", logging.WARNING,
+                        device_id=device_id, sequence_number=sequence_number,
+                    )
                     raise GatewayError(GatewayErrorCode.DUPLICATE_SEQUENCE)
                 if sequence_number < previous:
+                    log_application(
+                        "sequence_out_of_order_detected", logging.WARNING,
+                        device_id=device_id, sequence_number=sequence_number,
+                        previous_sequence_number=previous,
+                    )
                     raise GatewayError(GatewayErrorCode.OUT_OF_ORDER_SEQUENCE)
             self._last_sequence[device_id] = sequence_number
 
         if previous is not None and sequence_number > previous + 1:
-            logger.info(
-                "event=sequence_gap_detected component=edge_gateway device_id=%r sequence_number=%s previous_sequence_number=%s",
-                device_id, sequence_number, previous,
-                extra={
-                    "device_id": device_id,
-                    "sequence_number": sequence_number,
-                    "previous_sequence_number": previous,
-                },
+            log_application(
+                "sequence_gap_detected",
+                device_id=device_id,
+                sequence_number=sequence_number,
+                previous_sequence_number=previous,
             )

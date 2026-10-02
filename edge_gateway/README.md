@@ -19,7 +19,7 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | Route | Current behavior |
 | --- | --- |
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
-| `GET /ready` | `503 SERVICE_UNAVAILABLE` pending the operational readiness task |
+| `GET /ready` | `200 {"status":"ready","security_mode":"..."}` when the configured transport is initialized; otherwise `503 SERVICE_UNAVAILABLE` |
 | `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema/domain values → `422`; duplicate/out-of-order → `409`; `202` only after confirmed Cloud acceptance; unavailable delivery → `503` |
 | `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
 
@@ -27,9 +27,10 @@ M2-12 connects validation, sequence tracking, normalization, correlation, and
 selected transport delivery for roadmap Phase 3 / Member 2 Gate A. M2-13 now
 constructs the baseline HTTP client automatically for explicit
 `SECURITY_MODE=classical`; M2-14 adds its bounded retry loop. `create_app` still
-accepts transport dependencies for tests and secure-mode composition. Readiness
-remains unavailable pending M2-30/M2-31; it does not depend on an active secure
-session. There is no plaintext fallback.
+accepts transport dependencies for tests and secure-mode composition. M2-29
+through M2-31 provide liveness and local transport readiness. Secure readiness
+does not establish or require an active session and does not probe Cloud. There
+is no plaintext fallback.
 
 `create_app(load_config(mapping))` supports isolated test configuration.
 Routes obtain settings through `get_config`, which tests can replace with
@@ -105,7 +106,7 @@ codes. Application exception handlers always return
 | `OUT_OF_ORDER_SEQUENCE` | 409 | Older sequence rejected |
 | `CLOUD_UNAVAILABLE` | 503 | Cloud/secure delivery unavailable after its retry policy |
 | `INTERNAL_ERROR` | 500 | Unexpected application failure |
-| `SERVICE_UNAVAILABLE` | 503 | Operational readiness placeholder |
+| `SERVICE_UNAVAILABLE` | 503 | Gateway is not running or its configured transport is not initialized |
 
 Later sequence and transport stages can raise `GatewayError(code)` once their
 own policies determine a failure. M2-06 defines their error contracts only;
@@ -171,7 +172,8 @@ uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -q
 This covers the Member 2 client boundary and complements the Cloud-local
 serializer harness. The M2-17 tests below extend it through the Legacy boundary.
 Cloud health and dependency readiness both return `200`. Gateway readiness
-remains a `503` placeholder pending its owning readiness task.
+returns `200` after its configured local transport is initialized; it does not
+probe Cloud connectivity.
 
 ## First full baseline E2E support (M2-17)
 
@@ -206,9 +208,14 @@ This is Member 2's transformation evidence for the Phase 5 baseline milestone.
 Member 5 retains ownership of shared E2E orchestration, deployment, and baseline
 freeze coordination. These tests use the deterministic send path, not the
 continuous sensor loop or Docker Compose. Both services' `/health` endpoints
-return `200`; Cloud `/ready` returns `200`, while Gateway `/ready` remains a
-`503` placeholder. Compose currently has no
-service definitions, so this does not establish container deployment readiness.
+return `200`; both services' `/ready` endpoints also return `200` after their
+local dependencies initialize. Compose currently has no service definitions,
+so this does not establish container deployment readiness.
+
+The current Gateway `/ready` response reports local application and transport
+readiness. It deliberately does not establish an ML-KEM session or contact
+Cloud, so a later measurement can still receive `503 CLOUD_UNAVAILABLE` if
+Cloud cannot be reached. See [Gateway operations](docs/gateway-operations.md).
 
 ## Baseline Gateway measurements (M2-18)
 

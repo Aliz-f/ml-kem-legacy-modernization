@@ -21,6 +21,7 @@ from collections.abc import Callable
 from typing import Protocol
 from urllib.parse import urljoin, urlparse
 
+from edge_gateway.application_log import log_application
 from edge_gateway.crypto.aad import AadError
 from edge_gateway.crypto.encoding import EncodingError, decode_binary, encode_binary
 from edge_gateway.crypto.envelope import SecureEnvelope, build_secure_envelope
@@ -158,6 +159,11 @@ class SecureTransport:
     def metrics(self) -> PqcMetrics:
         """Return the process registry used by this secure transport."""
         return self._metrics
+
+    @property
+    def is_ready(self) -> bool:
+        """Report local transport usability without establishing a session."""
+        return not self._closed and self._opener is not None
 
     async def send(
         self,
@@ -360,6 +366,14 @@ class SecureTransport:
             except _RetryableTransport as exc:
                 failure = exc
                 if attempt < self._max_retries:
+                    log_application(
+                        "cloud_delivery_retry", logging.WARNING,
+                        request_id=envelope.request_id,
+                        gateway_id=envelope.gateway_id,
+                        security_mode="mlkem",
+                        attempt=attempt + 2,
+                        reason="transport",
+                    )
                     # The frozen Gateway policy waits 1s before retry two and
                     # 2s before retry three. The body remains byte-identical.
                     self._sleep(2.0**attempt)

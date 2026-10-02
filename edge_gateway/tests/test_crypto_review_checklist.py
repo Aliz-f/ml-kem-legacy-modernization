@@ -133,4 +133,4 @@ def test_checklist_anchors_still_match_the_gateway() -> None:
         assert term not in handler
     ready = app.split("async def ready", 1)[1].split("@app.post", 1)[0]
     assert "session" not in ready
-    assert "_unavailable()" in ready
+    assert "dispatch.is_ready" in ready

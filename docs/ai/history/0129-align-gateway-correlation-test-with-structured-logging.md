@@ -1,4 +1,4 @@
-# AI Task 0124 — Align Gateway correlation test with structured logging
+# AI Task 0129 — Align Gateway correlation test with structured logging
 
 **Status:** Complete
 
@@ -33,7 +33,7 @@ Updated the Gateway correlation test to assert the already accepted structured r
 - docs/ai/history/0120-align-legacy-timing-configuration-and-log-component-field.md
 - docs/ai/history/0121-align-edge-gateway-logging-with-project-convention.md
 - docs/ai/history/0122-align-cloud-logging-and-implementation-documentation.md
-- docs/ai/history/0124-align-gateway-correlation-test-with-structured-logging.md
+- docs/ai/history/0129-align-gateway-correlation-test-with-structured-logging.md
 
 ## Files Modified
 

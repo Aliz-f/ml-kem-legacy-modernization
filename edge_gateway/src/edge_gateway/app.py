@@ -8,6 +8,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
+from edge_gateway.application_log import log_application
 from edge_gateway.config import ConfigurationError, GatewayConfig, load_config
 from edge_gateway.cloud.baseline import BaselineCloudClient
 from edge_gateway.crypto.failure import CryptoFailureInjector
@@ -67,12 +68,10 @@ def create_app(
     async def lifespan(app: FastAPI):
         logging.basicConfig(level=level, format="%(levelname)s %(name)s %(message)s")
         logger.setLevel(level)
-        logger.info(
-            "event=gateway_starting component=edge_gateway security_mode=%s",
-            settings.security_mode,
-        )
+        log_application("gateway_starting", security_mode=settings.security_mode)
         failures.log_enabled()
         app.state.running = True
+        log_application("gateway_ready", security_mode=settings.security_mode)
         try:
             yield
         finally:
@@ -81,7 +80,7 @@ def create_app(
             shutdown = getattr(transport, "shutdown", None)
             if shutdown is not None:
                 shutdown()
-            logger.info("event=gateway_shutting_down component=edge_gateway")
+            log_application("gateway_shutting_down")
 
     app = FastAPI(
         title="Edge Gateway", lifespan=lifespan,
@@ -91,14 +90,23 @@ def create_app(
     app.state.pqc_metrics = registry
     app.state.running = False
     app.state.secure_transport = secure_transport
+    app.state.cloud_dispatch = dispatch
 
     @app.exception_handler(LegacyJSONError)
     async def invalid_json(request: Request, error: LegacyJSONError):
+        log_application(
+            "legacy_validation_failed", logging.WARNING,
+            status_code=400, reason="invalid_json",
+        )
         return _error_response(GatewayErrorCode.INVALID_JSON)
 
     @app.exception_handler(LegacyMeasurementSchemaError)
     @app.exception_handler(LegacyMeasurementDomainError)
     async def invalid_measurement(request: Request, error: ValueError):
+        log_application(
+            "legacy_validation_failed", logging.WARNING,
+            status_code=422, reason="invalid_measurement",
+        )
         return _error_response(GatewayErrorCode.INVALID_MEASUREMENT)
 
     @app.exception_handler(GatewayError)
@@ -108,7 +116,7 @@ def create_app(
     @app.exception_handler(Exception)
     async def internal_error(request: Request, error: Exception):
         # Never interpolate exception text or traceback: either can contain secrets.
-        logger.error("event=gateway_internal_error component=edge_gateway")
+        log_application("gateway_internal_error", logging.ERROR)
         return _error_response(GatewayErrorCode.INTERNAL_ERROR)
 
     @app.get("/health")
@@ -119,14 +127,21 @@ def create_app(
 
     @app.get("/ready")
     async def ready():
-        # Operational readiness is a later Member 2 task.
-        return _unavailable()
+        if not app.state.running or not dispatch.is_ready:
+            return _unavailable()
+        return {"status": "ready", "security_mode": settings.security_mode}
 
     @app.post("/api/v1/measurements")
     async def measurements(request: Request):
         received_at = datetime.now(UTC)
         measurement = parse_legacy_measurement(await request.body())
         validate_legacy_measurement(measurement)
+        log_application(
+            "legacy_measurement_received",
+            device_id=measurement.device_id,
+            sequence_number=measurement.sequence_number,
+            gateway_id=settings.gateway_id,
+        )
         await processor.process(measurement, received_at=received_at)
         return JSONResponse(status_code=202, content={"status": "accepted"})
 
@@ -203,7 +218,9 @@ def main() -> int:
         app = create_app(config)
     except ConfigurationError:
         logging.basicConfig(level=logging.ERROR)
-        logger.error("event=gateway_startup_failed component=edge_gateway reason=invalid_configuration")
+        log_application(
+            "gateway_startup_failed", logging.ERROR, reason="invalid_configuration",
+        )
         return 1
 
     import uvicorn

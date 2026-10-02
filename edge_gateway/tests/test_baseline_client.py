@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -176,7 +177,7 @@ def test_redirect_is_rejected_and_constructor_validates_inputs(cloud):
         BaselineCloudClient(cloud_url=url, timeout_seconds=True, max_retries=0)  # type: ignore[arg-type]
 
 
-def test_retryable_responses_retry_same_body_and_id_with_frozen_backoff(cloud):
+def test_retryable_responses_retry_same_body_and_id_with_frozen_backoff(cloud, caplog):
     url, script = cloud
     script.responses = [
         (503, {"error": {"code": "STORAGE_UNAVAILABLE"}}),
@@ -184,13 +185,16 @@ def test_retryable_responses_retry_same_body_and_id_with_frozen_backoff(cloud):
         (202, {"status": "already_accepted", "record_id": "rec-existing"}),
     ]
     delays: list[float] = []
-    result = _send(_client(url, max_retries=2, sleep=delays.append))
+    with caplog.at_level(logging.WARNING, logger="edge_gateway"):
+        result = _send(_client(url, max_retries=2, sleep=delays.append))
     assert result == BaselineAcceptance(status="already_accepted", record_id="rec-existing")
     assert delays == [1.0, 2.0]
     assert len(script.requests) == 3
     bodies = [body for _, body, _ in script.requests]
     assert bodies[0] == bodies[1] == bodies[2]
     assert {headers["X-Request-Id"] for _, _, headers in script.requests} == {"req-baseline-1"}
+    assert "event=cloud_delivery_retry component=edge_gateway request_id=req-baseline-1 security_mode=classical attempt=2 reason=transport" in caplog.text
+    assert "attempt=3" in caplog.text
 
 
 def test_retry_exhaustion_stays_retryable_without_an_extra_sleep(cloud):

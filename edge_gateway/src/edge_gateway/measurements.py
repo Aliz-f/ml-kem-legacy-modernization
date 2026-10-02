@@ -4,6 +4,7 @@ from collections.abc import Awaitable, Callable
 from contextlib import nullcontext
 from datetime import datetime
 
+from edge_gateway.application_log import log_application
 from edge_gateway.correlation import create_request_id
 from edge_gateway.errors import GatewayError, GatewayErrorCode
 from edge_gateway.failure.runtime import ApplicationFailures
@@ -47,6 +48,13 @@ class MeasurementProcessor:
         self._sequences.check_and_update(measurement.device_id, measurement.sequence_number)
         canonical = normalize(measurement, gateway_id=self._gateway_id, received_at=received_at)
         request_id = create_request_id()
+        log_application(
+            "canonical_measurement_created",
+            request_id=request_id,
+            device_id=canonical.device_id,
+            sequence_number=canonical.sequence_number,
+            gateway_id=canonical.gateway_id,
+        )
         scope = self._failures.request(request_id) if self._failures else nullcontext()
         async with scope:
             if self._processing_hook is not None:

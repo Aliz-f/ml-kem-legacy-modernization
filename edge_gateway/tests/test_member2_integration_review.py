@@ -22,8 +22,8 @@ def test_review_matches_dispatch_and_correlation() -> None:
         assert term not in handler
     ready = app.split("async def ready", 1)[1].split("@app.post", 1)[0]
     assert "session" not in ready
-    assert "_unavailable()" in ready
-    assert 'logger.error("event=gateway_internal_error component=edge_gateway")' in app
+    assert "dispatch.is_ready" in ready
+    assert 'log_application("gateway_internal_error", logging.ERROR)' in app
     assert "return UnavailableBaseline()" in app
 
     send = dispatch.split("async def send", 1)[1].split("async def _send_secure", 1)[0]
@@ -59,7 +59,7 @@ def test_review_matches_bounded_session_recovery() -> None:
         "X-Request-ID",
         "fail_closed",
         "SESSION_EXPIRED",
-        "does not require an already-active session",
+        "does not establish or require an active session",
         "FAILURE_MODE",
     ):
         assert sentence in review

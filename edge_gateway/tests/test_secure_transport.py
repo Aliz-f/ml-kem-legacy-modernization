@@ -181,7 +181,7 @@ def test_send_posts_one_envelope_and_reuses_the_session(cloud):
     assert script.requests[0][2] == "req-8fb2"
 
 
-def test_transport_retry_resends_the_same_envelope(cloud):
+def test_transport_retry_resends_the_same_envelope(cloud, caplog):
     url, script = cloud
     script.responses = [
         (503, _error("STORAGE_UNAVAILABLE")),
@@ -189,12 +189,15 @@ def test_transport_retry_resends_the_same_envelope(cloud):
         (202, {"status": "already_accepted", "record_id": "rec-existing"}),
     ]
     delays: list[float] = []
-    result = _send(_transport(url, _Sessions(), max_retries=2, sleep=delays.append))
+    with caplog.at_level(logging.WARNING, logger="edge_gateway"):
+        result = _send(_transport(url, _Sessions(), max_retries=2, sleep=delays.append))
     assert result.status == "already_accepted"
     bodies = [body for _, body, _ in script.requests]
     assert len(bodies) == 3
     assert bodies[0] == bodies[1] == bodies[2]
     assert delays == [1.0, 2.0]
+    assert "event=cloud_delivery_retry component=edge_gateway request_id=req-8fb2 gateway_id=gateway-001 security_mode=mlkem attempt=2 reason=transport" in caplog.text
+    assert "attempt=3" in caplog.text
 
 
 def test_lost_response_retries_the_same_envelope(cloud):

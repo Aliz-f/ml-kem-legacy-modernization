@@ -419,6 +419,12 @@ One review of the Gateway integration checks modernized dispatch, request
 correlation, fail-closed delivery, and session recovery. It does not change the Gateway protocol.
 Details are in [docs/member2-integration-review.md](docs/member2-integration-review.md).
 
+## Dependency and security review (M3-76)
+
+One review of `uv.lock` and the crypto source checks for unnecessary,
+unmaintained, or duplicate crypto packages and unsafe low-level use.
+Details are in [docs/dependency-review.md](docs/dependency-review.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

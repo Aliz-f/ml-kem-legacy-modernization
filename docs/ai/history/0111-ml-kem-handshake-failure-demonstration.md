@@ -1,4 +1,4 @@
-# AI Task 0108 — ML-KEM handshake failure demonstration
+# AI Task 0111 — ML-KEM handshake failure demonstration
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded one local ML-KEM handshake-failure run. FAILURE_MODE=mlkem_handshake_fa
 
 ## Files Created
 
-- docs/ai/history/0108-ml-kem-handshake-failure-demonstration.md
+- docs/ai/history/0111-ml-kem-handshake-failure-demonstration.md
 - edge_gateway/docs/mlkem-handshake-failure.md
 - tests/integration/test_mlkem_handshake_failure_demo.py
 

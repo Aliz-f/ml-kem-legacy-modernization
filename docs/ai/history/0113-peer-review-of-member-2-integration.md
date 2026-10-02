@@ -1,4 +1,4 @@
-# AI Task 0110 — Peer review of Member 2 integration
+# AI Task 0113 — Peer review of Member 2 integration
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded a peer review of the current Gateway integration. The Legacy route does
 
 ## Files Created
 
-- docs/ai/history/0110-peer-review-of-member-2-integration.md
+- docs/ai/history/0113-peer-review-of-member-2-integration.md
 - edge_gateway/docs/member2-integration-review.md
 - edge_gateway/tests/test_member2_integration_review.py
 

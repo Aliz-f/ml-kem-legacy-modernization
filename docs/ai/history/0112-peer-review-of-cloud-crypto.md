@@ -1,4 +1,4 @@
-# AI Task 0109 — Peer review of Cloud crypto
+# AI Task 0112 — Peer review of Cloud crypto
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded a peer review of the current Cloud crypto. The session path uses HKDF-S
 
 ## Files Created
 
-- docs/ai/history/0109-peer-review-of-cloud-crypto.md
+- docs/ai/history/0112-peer-review-of-cloud-crypto.md
 - edge_gateway/docs/cloud-crypto-review.md
 - edge_gateway/tests/test_cloud_crypto_review.py
 

@@ -1,4 +1,4 @@
-# AI Task 0111 — Gateway dependency and security review
+# AI Task 0114 — Gateway dependency and security review
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded a dependency and security review of uv.lock and the Gateway and Cloud c
 
 ## Files Created
 
-- docs/ai/history/0111-gateway-dependency-and-security-review.md
+- docs/ai/history/0114-gateway-dependency-and-security-review.md
 - edge_gateway/docs/dependency-review.md
 - edge_gateway/tests/test_dependency_review.py
 

@@ -1,4 +1,4 @@
-# AI Task 0106 — PQC observability demonstration
+# AI Task 0109 — PQC observability demonstration
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Recorded one local PQC metrics run on the secure Gateway path. The first Legacy 
 
 ## Files Created
 
-- docs/ai/history/0106-pqc-observability-demonstration.md
+- docs/ai/history/0109-pqc-observability-demonstration.md
 - edge_gateway/docs/pqc-observability.md
 - tests/integration/test_pqc_observability.py
 

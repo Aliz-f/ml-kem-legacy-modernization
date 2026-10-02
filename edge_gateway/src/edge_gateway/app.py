@@ -10,7 +10,10 @@ from fastapi.responses import JSONResponse, Response
 
 from edge_gateway.config import ConfigurationError, GatewayConfig, load_config
 from edge_gateway.cloud.baseline import BaselineCloudClient
+from edge_gateway.crypto.failure import CryptoFailureInjector
+from edge_gateway.crypto.metrics import PqcMetrics
 from edge_gateway.crypto.secure_transport import SecureTransport
+from edge_gateway.crypto.session import SessionManager
 from edge_gateway.dispatch import BaselineTransport, CloudDispatch
 from edge_gateway.errors import GatewayError, GatewayErrorCode
 from edge_gateway.measurements import MeasurementProcessor, ProcessingHook, UnavailableBaseline
@@ -21,7 +24,6 @@ from edge_gateway.validation import (
     parse_legacy_measurement,
     validate_legacy_measurement,
 )
-from edge_gateway.crypto.metrics import PqcMetrics
 
 logger = logging.getLogger("edge_gateway")
 
@@ -46,13 +48,14 @@ def create_app(
     settings = load_config() if config is None else config
     level = _logging_level(settings)
     registry = pqc_metrics or PqcMetrics()
-    dispatch = None
-    if settings.security_mode == "classical" or secure_transport is not None:
-        dispatch = CloudDispatch(
-            settings,
-            baseline=baseline_transport or _baseline_transport(settings),
-            secure=secure_transport, pqc_metrics=registry,
-        )
+    if settings.security_mode == "mlkem" and secure_transport is None:
+        secure_transport = _secure_transport(settings, registry)
+    dispatch = CloudDispatch(
+        settings,
+        baseline=baseline_transport or _baseline_transport(settings),
+        secure=secure_transport,
+        pqc_metrics=registry,
+    )
     processor = MeasurementProcessor(
         gateway_id=settings.gateway_id, dispatch=dispatch, processing_hook=processing_hook,
     )
@@ -144,6 +147,26 @@ def _baseline_transport(config: GatewayConfig) -> BaselineTransport:
             max_retries=config.cloud_max_retries,
         )
     return UnavailableBaseline()
+
+
+def _secure_transport(config: GatewayConfig, metrics: PqcMetrics) -> SecureTransport:
+    """Compose the one fail-closed Gateway secure path for Modernized Mode."""
+    injector = CryptoFailureInjector.from_config(config)
+    sessions = SessionManager(
+        config.gateway_id,
+        config.cloud_url,
+        config.cloud_timeout_seconds,
+        metrics=metrics,
+        injector=injector,
+    )
+    return SecureTransport(
+        sessions,
+        cloud_url=config.cloud_url,
+        timeout_seconds=config.cloud_timeout_seconds,
+        max_retries=config.cloud_max_retries,
+        injector=injector,
+        metrics=metrics,
+    )
 
 
 def _unavailable() -> JSONResponse:

@@ -32,3 +32,19 @@ jobs:
           cloud_service/tests
           tests/integration/test_gateway_cloud_secure.py
       - run: uv run ai-history check
+      - name: Build and verify Cloud container readiness
+        run: |
+          docker build --file cloud_service/Dockerfile --tag course-cloud-readiness .
+          docker run --detach --rm --name course-cloud-readiness \
+            --publish 127.0.0.1:9000:9000 \
+            --env SECURITY_MODE=mlkem \
+            course-cloud-readiness
+          trap 'docker logs course-cloud-readiness; docker stop course-cloud-readiness || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:9000/ready \
+              && curl --fail --silent --show-error http://127.0.0.1:9000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1

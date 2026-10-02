@@ -52,20 +52,20 @@ development/demo restart, attach a **named volume at `/data`**. For isolated
 tests, use a fresh temporary volume or `DATABASE_URL=sqlite:///:memory:`.
 The database schema holds measurements only, so a volume does not persist
 ML-KEM private keys or sessions. Member 5 owns Compose wiring; the current
-`docker-compose.yml` has no services. Docker was unavailable on the local
-verification host, so image build, volume attachment, SIGTERM, and container
-health/readiness remain runtime checks for an environment with Docker. Local
+`docker-compose.yml` has no services. CI builds the Cloud image from the clean
+repository context, starts it with `SECURITY_MODE=mlkem`, and verifies both
+`/ready` and `/health`; this proves that SQLite initialization, the ML-KEM key
+pair, and the KDF/AEAD dependencies are usable in the image. Local
 Cloud startup, readiness, SQLite reopen, and empty-session-after-restart are
 tested by `cloud_service/tests/test_full_path_integration.py` and existing
-Cloud app/storage tests. CI runs the full suite and an explicit Cloud plus
+Cloud app/storage tests. CI also runs the full suite and an explicit Cloud plus
 Gateway↔Cloud integration selection.
 
-The secure live E2E test injects the existing Gateway `SecureTransport` into
-`create_app`. Gateway `main()` currently does not compose that transport in
-`mlkem` mode; deployment through the unmodified Gateway executable remains a
-Member 2/3 integration dependency. The service-level HTTP path is exercised,
-but this is not a claim that the default Gateway executable can serve secure
-traffic. Likewise M4-77 observes two retry attempts and Cloud 503 responses;
+The secure live E2E test uses the normal `create_app` composition in
+`SECURITY_MODE=mlkem`: the Gateway creates its existing session manager and
+fail-closed secure transport at startup. Thus the Legacy client, Gateway HTTP
+route, and Cloud secure endpoint are exercised without test-only transport
+injection. Likewise M4-77 observes two retry attempts and Cloud 503 responses;
 Gateway `PqcMetrics` currently has no generic retry counter, so its requested
 counter increment is an external metrics dependency.
 

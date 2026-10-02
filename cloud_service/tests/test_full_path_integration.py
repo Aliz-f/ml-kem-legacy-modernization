@@ -21,8 +21,6 @@ from cloud_service.app import create_app as create_cloud_app
 from cloud_service.config import load_config as load_cloud_config
 from edge_gateway.app import create_app as create_gateway_app
 from edge_gateway.config import load_config as load_gateway_config
-from edge_gateway.crypto.secure_transport import SecureTransport
-from edge_gateway.crypto.session import SessionManager
 from legacy_system.client import GatewayClient
 
 
@@ -63,12 +61,7 @@ def test_legacy_gateway_cloud_http_path_persists_canonical_measurement(
         gateway_config = load_gateway_config({
             "SECURITY_MODE": mode, "CLOUD_URL": cloud_url, "CLOUD_MAX_RETRIES": "0",
         })
-        secure = None
-        if mode == "mlkem":
-            # Gateway composition is supplied here until its owner wires main().
-            sessions = SessionManager(gateway_config.gateway_id, cloud_url, 5.0)
-            secure = SecureTransport(sessions, cloud_url=cloud_url, timeout_seconds=5.0, max_retries=0)
-        gateway_app = create_gateway_app(gateway_config, secure_transport=secure)
+        gateway_app = create_gateway_app(gateway_config)
         with _serve(gateway_app) as gateway_url:
             result = GatewayClient(gateway_url, 5.0, max_retries=0).send(payload)
             assert result.success is True

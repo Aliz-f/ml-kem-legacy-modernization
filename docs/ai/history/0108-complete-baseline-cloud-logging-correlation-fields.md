@@ -1,4 +1,4 @@
-# AI Task 0105 — Complete baseline Cloud logging correlation fields
+# AI Task 0108 — Complete baseline Cloud logging correlation fields
 
 **Status:** Complete
 
@@ -30,11 +30,11 @@ Added the frozen common correlation fields gateway_id, device_id, and sequence_n
 
 ## Files Created
 
-- docs/ai/history/0105-complete-baseline-cloud-logging-correlation-fields.md
+- docs/ai/history/0108-complete-baseline-cloud-logging-correlation-fields.md
 
 ## Files Modified
 
-- cloud_service/src/cloud_service/gateway/routes.py, cloud_service/tests/test_cloud_baseline.py, cloud_service/tools/measure_baseline.py, graphify-out/graph.json, graphify-out/GRAPH_REPORT.md, docs/ai/.state.json, docs/ai/history/0105-complete-baseline-cloud-logging-correlation-fields.md
+- cloud_service/src/cloud_service/gateway/routes.py, cloud_service/tests/test_cloud_baseline.py, cloud_service/tools/measure_baseline.py, graphify-out/graph.json, graphify-out/GRAPH_REPORT.md, docs/ai/.state.json, docs/ai/history/0108-complete-baseline-cloud-logging-correlation-fields.md
 
 ## Files Deleted
 

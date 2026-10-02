@@ -118,6 +118,115 @@ exceptions receive a generic JSON `500`; the application handler logs only
 uv run pytest edge_gateway/tests/test_gateway_errors.py edge_gateway/tests/test_gateway_validation.py
 ```
 
+## Gateway response mapping (M2-15)
+
+The Legacy endpoint has one frozen outcome-to-response mapping. It does not
+pass through Cloud HTTP statuses, Cloud error codes, secure-session details, or
+Python exception text. Cloud and secure delivery failures are intentionally
+reduced to the same Legacy-safe unavailable result.
+
+| Gateway outcome | Legacy HTTP response | Stable code |
+| --- | ---: | --- |
+| Confirmed Cloud acceptance, including Cloud idempotent acceptance | `202` | `{"status":"accepted"}` |
+| Malformed or unparseable Legacy body | `400` | `INVALID_JSON` |
+| Parsed Legacy schema/domain failure | `422` | `INVALID_MEASUREMENT` |
+| Duplicate sequence | `409` | `DUPLICATE_SEQUENCE` |
+| Lower sequence | `409` | `OUT_OF_ORDER_SEQUENCE` |
+| Baseline retry exhaustion, baseline rejection, timeout, connection failure, secure session/PQC failure | `503` | `CLOUD_UNAVAILABLE` |
+| Unexpected Gateway error | `500` | `INTERNAL_ERROR` |
+
+The route returns `202` only after its selected Cloud transport confirms either
+`accepted` or `already_accepted` with a record ID. `already_accepted` remains a
+Cloud idempotency detail; Legacy receives the unchanged accepted response.
+Baseline and secure errors both become `503` because the Legacy interface does
+not expose the Gateway-to-Cloud transport or cryptographic boundary. Secure
+mode remains fail closed: this mapping does not send a baseline request after a
+secure failure. Tests exercise the complete table with transport doubles.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_response_mapping.py
+```
+
+## Baseline Gateway–Cloud integration (M2-16)
+
+The integration test sends the M2-16 canonical fixture through the production
+`BaselineCloudClient` to a live loopback Cloud server in `SECURITY_MODE=classical`
+with a temporary file-backed SQLite database. It verifies the exact seven-field
+JSON body, `X-Request-ID: req-test-001` in the received request and Cloud logs,
+unchanged measurement values, `received_at` mapping to `gateway_received_at`,
+and Cloud-generated `cloud_received_at` and `record_id`. List/detail queries and
+a fresh SQLite connection after Cloud shutdown confirm persistence.
+
+Repeated delivery returns `already_accepted` with the original record ID and
+one row. Real Cloud validation rejection is non-retryable; a SQLite write failure
+exhausts the configured two retries with identical requests and no stored row.
+The test replaces only retry sleeping, so failures do not add backoff delays.
+
+Run from the workspace root (requires permission to bind loopback sockets):
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -q
+```
+
+This covers the Member 2 client boundary and complements the Cloud-local
+serializer harness. The M2-17 tests below extend it through the Legacy boundary.
+Cloud health and dependency readiness both return `200`. Gateway readiness
+remains a `503` placeholder pending its owning readiness task.
+
+## First full baseline E2E support (M2-17)
+
+The same test module now sends a deterministic Legacy `Measurement` through its
+production serializer and `GatewayClient`, a live Gateway configured with
+`SECURITY_MODE=classical`, the production baseline Cloud client, and a live Cloud
+with temporary file-backed SQLite. Both HTTP boundaries use loopback sockets;
+the Gateway creates its own transport, sequence tracker, and request IDs.
+
+The roadmap fixture (`sensor-test`, sequence `1`, `22.5` °C, `44.0` %,
+`2026-09-21T12:00:00Z`) and domain-boundary cases verify unchanged values,
+`timestamp` → `measured_at`, added Gateway ID and receipt time, and exact
+`received_at` → `gateway_received_at` mapping. Fractional timestamp precision is
+preserved. Correlation reaches Cloud through `X-Request-ID` and its acceptance
+log, outside the seven-field canonical body. Cloud list/detail queries immediately
+after Legacy `202`, plus a fresh SQLite connection after shutdown, verify storage.
+
+Negative coverage verifies that invalid Legacy data returns `422` without
+forwarding, a real SQLite write failure returns `503` rather than acceptance,
+and duplicate/out-of-order sequences return `409` even after failed delivery.
+A subsequent valid sequence gap succeeds. Retries are disabled in these E2E
+cases to isolate the response and sequence policy; M2-14/M2-16 cover bounded
+Cloud retries.
+
+Run the M2-17 cases from the workspace root:
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -k 'legacy_to_sqlite or baseline_e2e' -q
+```
+
+This is Member 2's transformation evidence for the Phase 5 baseline milestone.
+Member 5 retains ownership of shared E2E orchestration, deployment, and baseline
+freeze coordination. These tests use the deterministic send path, not the
+continuous sensor loop or Docker Compose. Both services' `/health` endpoints
+return `200`; Cloud `/ready` returns `200`, while Gateway `/ready` remains a
+`503` placeholder. Compose currently has no
+service definitions, so this does not establish container deployment readiness.
+
+## Baseline Gateway measurements (M2-18)
+
+A small collector in the existing live integration test records Legacy request
+counts, accepted/rejected/failed outcomes, Gateway request duration, baseline
+Cloud delivery and attempt latency, actual retries, and canonical HTTP body
+size. Production behavior is unchanged. Run from the workspace root:
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -k baseline_gateway_measurements -q -s
+```
+
+Each scenario prints an `M2-18` JSON report. See
+[the measurement method and recorded sample](docs/baseline-measurements.md)
+for timing boundaries, workload, configuration, and limitations. This supplies
+Member 2 evidence for the Phase 5 baseline milestone; Member 5 retains ownership
+of the shared benchmark harness, deployment, and baseline freeze.
+
 ## Canonical measurement model (M2-07)
 
 `edge_gateway.models.CanonicalMeasurement` is an immutable Gateway-owned model
@@ -458,3 +567,35 @@ read its configuration directly from the environment.
 `SECURITY_MODE=classical` is the explicitly selected baseline mode. The
 `mlkem` setting selects only the supplied secure transport; missing or failed
 secure delivery returns `503` without a plaintext fallback.
+
+## Application failure-injection framework (M2-19)
+
+`edge_gateway.failure.FailureInjector.from_config(config)` builds a local
+selector using `FAILURE_MODE`, `FAILURE_RATE`, and optional `FAILURE_SEED`.
+Defaults (`none`, `0.0`, empty seed) disable selection. Rate zero never selects;
+rate one always selects an eligible fault; intermediate rates use one probability
+check per eligible call. A seed reproduces decisions for the same call order.
+Concurrent request scheduling can change which request receives a decision.
+
+`select()` returns one mode or `None`. Application modes are `processing_error`,
+`processing_delay`, `cloud_timeout`, `cloud_unavailable`, and `drop_message`.
+`random` chooses only from these modes, with a stable candidate order. Pass
+`allowed` to restrict selection to implemented/applicable boundaries. Keep one
+injector per application and select once after validation, sequence acceptance,
+normalization, and request-ID creation; retain that decision across boundaries.
+Failure selection must never bypass validation or roll back sequence state.
+
+This task provides selection infrastructure only. M2-20 through M2-24 implement
+fault execution and route/transport wiring; setting an application failure mode
+does not yet inject a fault into live requests. The existing processing hook is
+available for that wiring. Execution hooks must log actual injection, preserve
+bounded transport retries, and never return success for a dropped measurement.
+The selector logs enablement and debug selection without claiming execution.
+
+Member 3's crypto injector remains separate; crypto modes select no application
+fault. This framework does not generate keys/nonces/request IDs, mutate payloads,
+or add network fields. Its private PRNG does not change global random state.
+
+```bash
+uv run pytest edge_gateway/tests/test_gateway_failure_injector.py
+```

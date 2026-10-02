@@ -293,7 +293,7 @@ class _Sessions:
     async def get_or_establish(self) -> SecureSession:
         return self.session
 
-    def invalidate(self) -> None:
+    def invalidate(self, session_id: str | None = None) -> None:
         return None
 
 

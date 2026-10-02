@@ -19,7 +19,9 @@ def main(
             level=logging.ERROR,
             format="%(levelname)s %(name)s %(message)s",
         )
-        logging.getLogger(__name__).error("event=invalid_configuration error=%s", exc)
+        logging.getLogger(__name__).error(
+            "event=invalid_configuration component=legacy_system error=%s", exc
+        )
         return 1
     logging.basicConfig(
         level=getattr(logging, config.log_level),

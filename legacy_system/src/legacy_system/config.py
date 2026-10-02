@@ -31,8 +31,8 @@ class Config:
 
     device_id: str
     gateway_url: str
-    send_interval_seconds: int
-    request_timeout_seconds: int
+    send_interval_seconds: float
+    request_timeout_seconds: float
     max_retries: int
     failure_mode: FailureMode
     failure_rate: float
@@ -74,11 +74,11 @@ def load_config(environ: Mapping[str, str] | None = None) -> Config:
     if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
         raise ConfigurationError("GATEWAY_URL must be a valid HTTP or HTTPS URL")
 
-    send_interval_seconds = _integer(environment, "SEND_INTERVAL_SECONDS")
+    send_interval_seconds = _number(environment, "SEND_INTERVAL_SECONDS")
     if send_interval_seconds <= 0:
         raise ConfigurationError("SEND_INTERVAL_SECONDS must be greater than zero")
 
-    request_timeout_seconds = _integer(environment, "REQUEST_TIMEOUT_SECONDS")
+    request_timeout_seconds = _number(environment, "REQUEST_TIMEOUT_SECONDS")
     if request_timeout_seconds <= 0:
         raise ConfigurationError("REQUEST_TIMEOUT_SECONDS must be greater than zero")
 

@@ -34,7 +34,7 @@ class FailureSelection:
         if not self.inject(mode):
             return False
         if not self._applied:
-            logger.warning("event=failure_injected failure_type=%s", mode.value)
+            logger.warning("event=failure_injected component=cloud_service failure_type=%s", mode.value)
             if self.on_applied is not None:
                 self.on_applied(mode.value)
             self._applied = True
@@ -54,7 +54,10 @@ class FailureInjector:
         self._random = random.Random(seed)
         self._on_applied = on_applied
         if mode is not FailureMode.NONE and rate > 0:
-            logger.warning("event=failure_injection_enabled mode=%s rate=%s", mode.value, rate)
+            logger.warning(
+                "event=failure_injection_enabled component=cloud_service mode=%s rate=%s",
+                mode.value, rate,
+            )
 
     @classmethod
     def from_config(

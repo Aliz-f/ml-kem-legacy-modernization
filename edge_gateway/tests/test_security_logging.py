@@ -53,12 +53,17 @@ def test_unsafe_log_values_are_dropped(caplog: pytest.LogCaptureFixture):
         log_security("not_a_security_event", gateway_id="gateway-001")
         log_security(
             "session_created",
+            device_id="sensor-001",
             gateway_id="gateway-001",
+            sequence_number=184,
             session_id="has space",
             key_id=b"raw-key",
         )
     assert "not_a_security_event" not in caplog.text
+    assert "component=edge_gateway" in caplog.text
+    assert "device_id=sensor-001" in caplog.text
     assert "gateway_id=gateway-001" in caplog.text
+    assert "sequence_number=184" in caplog.text
     assert "session_id=" not in caplog.text
     assert b"raw-key" not in caplog.text.encode()
 
@@ -256,7 +261,7 @@ def test_seal_failure_is_counted_without_the_session_key(caplog: pytest.LogCaptu
                 state=SessionState.ACTIVE,
             )
 
-        def invalidate(self) -> None:
+        def invalidate(self, session_id: str | None = None) -> None:
             return None
 
     metrics = PqcMetrics()
@@ -326,7 +331,7 @@ def test_session_recovery_is_counted(caplog: pytest.LogCaptureFixture):
                 state=SessionState.ACTIVE,
             )
 
-        def invalidate(self) -> None:
+        def invalidate(self, session_id: str | None = None) -> None:
             metrics.set_active_session(False)
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)

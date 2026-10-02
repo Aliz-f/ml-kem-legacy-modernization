@@ -113,3 +113,5 @@ def test_safe_query_errors(client, path, method, error_type, status, monkeypatch
     response = client.get(path)
     assert response.status_code == status
     assert "private-query-marker" not in response.text + caplog.text
+    event = "measurement_query_storage_failed" if status == 503 else "measurement_query_internal_error"
+    assert f"event={event} component=cloud_service" in caplog.text

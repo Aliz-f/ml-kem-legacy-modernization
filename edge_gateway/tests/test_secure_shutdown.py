@@ -48,7 +48,7 @@ class _Sessions:
         self.handshakes += 1
         return self.current
 
-    def invalidate(self) -> None:
+    def invalidate(self, session_id: str | None = None) -> None:
         return None
 
     def close(self) -> None:

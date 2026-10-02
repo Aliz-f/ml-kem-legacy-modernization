@@ -1,4 +1,4 @@
-"""Public-key distribution only; sessions and secure ingestion follow later."""
+"""Public-key distribution for the Cloud secure-ingestion protocol."""
 
 import logging
 

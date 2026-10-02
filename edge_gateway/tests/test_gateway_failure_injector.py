@@ -89,7 +89,7 @@ def test_logs_distinguish_selection_from_execution_and_omit_seed(caplog):
         assert not caplog.records
         injector = FailureInjector("processing_error", 1, "private-seed-marker")
         injector.select()
-    assert "event=failure_injection_enabled mode=processing_error" in caplog.text
-    assert "event=failure_selected failure_type=processing_error" in caplog.text
+    assert "event=failure_injection_enabled component=edge_gateway mode=processing_error" in caplog.text
+    assert "event=failure_selected component=edge_gateway failure_type=processing_error" in caplog.text
     assert "failure_injected" not in caplog.text
     assert "private-seed-marker" not in caplog.text

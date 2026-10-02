@@ -40,7 +40,7 @@ Checked on 2026-10-02 on `feat/gateway-final-review`, after merging `origin/deve
 
 These are not checklist failures. They are recorded for the team before freeze.
 
-- `SessionManager.invalidate()` drops whatever session is current, not only the session the Cloud rejected. If two requests get a 409 for the same old session, the second invalidation can discard the replacement that the first request just established. Each request still recovers once with its own `request_id`. The cost is an extra handshake. No test covers concurrent recovery.
+- Session invalidation is scoped to the rejected envelope's `session_id`. A delayed concurrent 409 therefore cannot discard a replacement session that another request has established. The session tests cover preservation of a replacement on a mismatched invalidation ID.
 - The single post after session recovery goes through `_post`, not `_deliver`, so a timeout on that post is not retried. The request fails closed. This keeps the one-recovery-attempt bound.
 - The Docker image tests (`test_clean_container_crypto.py` and `test_gateway_crypto_image.py`) have not run on this machine. CI or a machine with Docker must run them before freeze.
 - `GET /ready` on the Gateway is still the Member 2 placeholder and always returns unavailable.

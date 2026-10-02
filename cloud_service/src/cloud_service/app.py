@@ -60,11 +60,11 @@ def create_app(config: Config | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         logger.setLevel(settings.log_level)
-        logger.info("cloud_starting security_mode=%s", settings.security_mode.value)
+        logger.info("event=cloud_starting component=cloud_service security_mode=%s", settings.security_mode.value)
         try:
             database = Database(settings.database_url)
         except StorageError:
-            logger.error("cloud_startup_failed: storage unavailable")
+            logger.error("event=cloud_startup_failed component=cloud_service reason=storage_unavailable")
             raise StartupError("Cloud storage initialization failed") from None
         app.state.database = database
         app.state.repository = MeasurementRepository(database)
@@ -74,7 +74,7 @@ def create_app(config: Config | None = None) -> FastAPI:
                     app.state.keys = KeyService()
                     app.state.sessions = SessionManager(settings.session_ttl_seconds)
                 except Exception:
-                    logger.error("cloud_startup_failed: key initialization failed")
+                    logger.error("event=cloud_startup_failed component=cloud_service reason=key_initialization_failed")
                     raise StartupError("Cloud key initialization failed") from None
             app.state.running = True
             logger.info("event=cloud_ready component=cloud_service security_mode=%s", settings.security_mode.value)
@@ -92,7 +92,7 @@ def create_app(config: Config | None = None) -> FastAPI:
             finally:
                 app.state.database = None
                 app.state.repository = None
-                logger.info("cloud_shutting_down")
+                logger.info("event=cloud_shutting_down component=cloud_service")
 
     app = FastAPI(
         title="Cloud Service", lifespan=lifespan,
@@ -182,7 +182,7 @@ def main() -> int:
     except ConfigurationError:
         # Do not echo environment values or exception details at startup.
         logging.basicConfig(level=logging.ERROR)
-        logger.error("cloud_startup_failed: invalid configuration")
+        logger.error("event=cloud_startup_failed component=cloud_service reason=invalid_configuration")
         return 1
 
     logging.basicConfig(level=config.log_level, format="%(levelname)s %(name)s %(message)s")

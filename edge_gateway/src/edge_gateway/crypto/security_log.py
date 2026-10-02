@@ -36,7 +36,9 @@ SECURITY_EVENTS = frozenset(
 
 _FIELDS = (
     "request_id",
+    "device_id",
     "gateway_id",
+    "sequence_number",
     "session_id",
     "key_id",
     "result",
@@ -50,7 +52,7 @@ def log_security(event: str, level: int = logging.INFO, **fields: object) -> Non
     """Log one security event. Unknown events and unsafe values are dropped."""
     if event not in SECURITY_EVENTS:
         return
-    parts = [f"event={event}"]
+    parts = [f"event={event}", "component=edge_gateway"]
     for name in _FIELDS:
         if name not in fields:
             continue

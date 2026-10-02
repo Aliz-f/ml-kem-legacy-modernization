@@ -38,6 +38,7 @@ class _Sessions:
         self.fail_on_call = fail_on_call
         self.calls = 0
         self.invalidated = 0
+        self.invalidated_ids: list[str | None] = []
         self._ids = ["sess-1", "sess-2"]
         self.current: SecureSession | None = _session(self._ids.pop(0))
 
@@ -49,8 +50,9 @@ class _Sessions:
             self.current = _session(self._ids.pop(0))
         return self.current
 
-    def invalidate(self) -> None:
+    def invalidate(self, session_id: str | None = None) -> None:
         self.invalidated += 1
+        self.invalidated_ids.append(session_id)
         if self.current is not None:
             self.current.clear(SessionState.EXPIRED)
             self.current = None
@@ -219,6 +221,7 @@ def test_session_conflict_rebuilds_once_with_the_same_request_id(cloud):
     result = _send(_transport(url, sessions, max_retries=2))
     assert result.record_id == "rec-2"
     assert sessions.invalidated == 1
+    assert sessions.invalidated_ids == ["sess-1"]
     posted = [json.loads(body) for _, body, _ in script.requests]
     assert [item["session_id"] for item in posted] == ["sess-1", "sess-2"]
     assert [item["request_id"] for item in posted] == ["req-8fb2", "req-8fb2"]

@@ -305,17 +305,17 @@ def test_runtime_logs_lifecycle_and_delivery_events(
     controller.run()
 
     messages = [record.getMessage() for record in caplog.records]
-    assert "event=device_starting device_id=sensor-001" in messages
-    assert "event=device_ready device_id=sensor-001" in messages
+    assert "event=device_starting component=legacy_system device_id=sensor-001" in messages
+    assert "event=device_ready component=legacy_system device_id=sensor-001" in messages
     assert (
-        "event=measurement_generated device_id=sensor-001 sequence_number=0"
+        "event=measurement_generated component=legacy_system device_id=sensor-001 sequence_number=0"
         in messages
     )
     assert (
-        "event=measurement_delivered device_id=sensor-001 sequence_number=0 "
+        "event=measurement_delivered component=legacy_system device_id=sensor-001 sequence_number=0 "
         "status_code=202 attempt=1"
     ) in messages
-    assert "event=device_shutting_down device_id=sensor-001" in messages
+    assert "event=device_shutting_down component=legacy_system device_id=sensor-001" in messages
     assert all(record.levelno == logging.INFO for record in caplog.records)
 
 
@@ -365,17 +365,17 @@ def test_retry_and_final_failure_logging_are_visible(
 
     assert opener.calls == 3
     assert retry_messages == [
-        "event=gateway_retry device_id=None sequence_number=0 attempt=1 "
+        "event=gateway_retry component=legacy_system device_id=None sequence_number=0 attempt=1 "
         "status_code=503 error_category=http",
-        "event=gateway_retry device_id=None sequence_number=0 attempt=2 "
+        "event=gateway_retry component=legacy_system device_id=None sequence_number=0 attempt=2 "
         "status_code=503 error_category=http",
     ]
     assert request_failure_messages == [
-        "event=gateway_request_failed device_id=None sequence_number=0 "
+        "event=gateway_request_failed component=legacy_system device_id=None sequence_number=0 "
         "status_code=503 attempt=3 error_category=http"
     ]
     assert delivery_failure_messages == [
-        "event=measurement_delivery_failed device_id=sensor-001 "
+        "event=measurement_delivery_failed component=legacy_system device_id=sensor-001 "
         "sequence_number=0 status_code=503 attempt=3 error_category=http"
     ]
     assert all(
@@ -421,11 +421,11 @@ def test_permanent_gateway_failures_are_logged_without_retry(
     assert delays == []
     assert sum("event=gateway_retry" in message for message in messages) == 0
     assert messages.count(
-        "event=gateway_request_failed device_id=None sequence_number=0 "
+        "event=gateway_request_failed component=legacy_system device_id=None sequence_number=0 "
         f"status_code={status_code} attempt=1 error_category=http"
     ) == 1
     assert messages.count(
-        "event=measurement_delivery_failed device_id=sensor-001 "
+        "event=measurement_delivery_failed component=legacy_system device_id=sensor-001 "
         f"sequence_number=0 status_code={status_code} attempt=1 "
         "error_category=http"
     ) == 1
@@ -462,12 +462,12 @@ def test_retry_eventual_success_logs_delivery_without_final_failure(
     messages = [record.getMessage() for record in caplog.records]
     assert opener.calls == 2
     assert (
-        "event=gateway_retry device_id=None sequence_number=0 attempt=1 "
+        "event=gateway_retry component=legacy_system device_id=None sequence_number=0 attempt=1 "
         "status_code=503 error_category=http"
     ) in messages
     assert not any("event=gateway_request_failed" in message for message in messages)
     assert (
-        "event=measurement_delivered device_id=sensor-001 sequence_number=0 "
+        "event=measurement_delivered component=legacy_system device_id=sensor-001 sequence_number=0 "
         "status_code=202 attempt=2"
     ) in messages
     assert not any(
@@ -506,7 +506,7 @@ def test_sigterm_stops_during_wait_and_logs_shutdown(
     controller.run()
 
     assert client.closed is True
-    assert "device_shutting_down device_id=sensor-001" in caplog.text
+    assert "device_shutting_down component=legacy_system device_id=sensor-001" in caplog.text
 
 
 def test_sigint_stops_after_delivery_and_restores_handlers(

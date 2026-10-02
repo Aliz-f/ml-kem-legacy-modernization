@@ -1,4 +1,4 @@
-# AI Task 0121 — Gateway static and code-quality verification
+# AI Task 0125 — Gateway static and code-quality verification
 
 **Status:** Complete
 

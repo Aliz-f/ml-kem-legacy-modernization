@@ -145,20 +145,26 @@ class SessionManager:
             self._metrics.set_active_session(True)
             return session
 
-    def invalidate(self) -> None:
-        """Drop the current session and wipe its key."""
+    def invalidate(self, session_id: str | None = None) -> None:
+        """Drop the current session only when it is the rejected session.
+
+        ``None`` retains the explicit local-management behavior used outside a
+        recovery. A 409 recovery supplies the envelope's session ID so a
+        delayed concurrent recovery cannot clear a replacement session.
+        """
         session = self._session
-        if session is not None:
-            log_security(
-                "session_invalidated",
-                session_id=session.session_id,
-                gateway_id=session.gateway_id,
-                reason="invalidated",
-                level=logging.WARNING,
-            )
-            session.clear(SessionState.EXPIRED)
-            self._session = None
-            self._metrics.set_active_session(False)
+        if session is None or (session_id is not None and session.session_id != session_id):
+            return
+        log_security(
+            "session_invalidated",
+            session_id=session.session_id,
+            gateway_id=session.gateway_id,
+            reason="invalidated",
+            level=logging.WARNING,
+        )
+        session.clear(SessionState.EXPIRED)
+        self._session = None
+        self._metrics.set_active_session(False)
 
     def close(self) -> None:
         """Drop the current session and wipe its key.

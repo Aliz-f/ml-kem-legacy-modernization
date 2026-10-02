@@ -15,7 +15,11 @@ def create_request_id() -> str:
     header contributes to the generated value.
     """
     request_id = f"req-{uuid4()}"
-    logger.info("gateway_request_created request_id=%s", request_id, extra={"request_id": request_id})
+    logger.info(
+        "event=gateway_request_created component=edge_gateway request_id=%s",
+        request_id,
+        extra={"request_id": request_id},
+    )
     return request_id
 
 

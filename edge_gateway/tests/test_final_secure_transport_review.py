@@ -32,7 +32,7 @@ def test_review_matches_the_secure_path() -> None:
     deliver = transport.split("def _deliver", 1)[1].split("def _post", 1)[0]
 
     assert send.count("_recover(") == 1
-    assert "self._sessions.invalidate()" in recover
+    assert "self._sessions.invalidate(rejected_session_id)" in recover
     assert "self._seal(session, request_id, measurement)" in recover
     assert "asyncio.to_thread(\n                self._post," in recover
     assert deliver.count("_dump(envelope)") == 1
@@ -49,8 +49,8 @@ def test_review_matches_the_secure_path() -> None:
     assert "_secure_transport(settings, registry)" in _text("edge_gateway/src/edge_gateway/app.py")
 
 
-def test_invalidate_is_not_session_scoped() -> None:
+def test_invalidate_is_scoped_to_the_rejected_session() -> None:
     session = _text("edge_gateway/src/edge_gateway/crypto/session.py")
-    invalidate = session.split("def invalidate(self)", 1)[1].split("def close", 1)[0]
-    assert "session = self._session" in invalidate
-    assert "session_id ==" not in invalidate
+    invalidate = session.split("def invalidate(", 1)[1].split("def close", 1)[0]
+    assert "session_id: str | None = None" in invalidate
+    assert "session.session_id != session_id" in invalidate

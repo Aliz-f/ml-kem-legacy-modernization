@@ -239,6 +239,27 @@ def test_replacement_clears_a_held_session_before_the_new_handshake(cloud_url):
     assert manager._session is replacement
 
 
+def test_scoped_invalidation_preserves_a_replacement_session(cloud_url):
+    url, _, clock = cloud_url
+    manager = _manager(url, clock)
+    replacement = SecureSession(
+        session_id="sess-replacement",
+        gateway_id="gateway-001",
+        cloud_key_id="cloud-key-001",
+        created_at=clock.now,
+        expires_at=clock.now + timedelta(minutes=5),
+        session_key=bytearray(b"\x22" * 32),
+        state=SessionState.ACTIVE,
+    )
+    manager._session = replacement
+
+    manager.invalidate("sess-rejected")
+
+    assert manager._session is replacement
+    assert replacement.state is SessionState.ACTIVE
+    assert bytes(replacement.session_key) == b"\x22" * 32
+
+
 def test_expired_session_is_replaced(cloud_url):
     url, cloud, clock = cloud_url
     manager = _manager(url, clock)

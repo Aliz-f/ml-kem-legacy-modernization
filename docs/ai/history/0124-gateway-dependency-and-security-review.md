@@ -1,4 +1,4 @@
-# AI Task 0120 — Gateway dependency and security review
+# AI Task 0124 — Gateway dependency and security review
 
 **Status:** Complete
 

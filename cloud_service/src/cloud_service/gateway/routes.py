@@ -22,7 +22,7 @@ def _error(status: int, code: str, message: str) -> JSONResponse:
 
 @router.post("/api/v1/baseline/measurements")
 async def baseline_measurement(request: Request) -> JSONResponse:
-    # A future secure runtime must never activate baseline delivery implicitly.
+    # Secure operation must never activate baseline delivery implicitly.
     if request.app.state.config.security_mode != SecurityMode.CLASSICAL:
         return _error(503, "SERVICE_UNAVAILABLE", "baseline service is unavailable")
     repository = request.app.state.repository
@@ -60,7 +60,7 @@ async def baseline_measurement(request: Request) -> JSONResponse:
         logger.warning("event=storage_failed component=cloud_service request_id=%r", correlation)
         return _error(503, "STORAGE_UNAVAILABLE", "storage is unavailable")
     except Exception:
-        logger.error("baseline_internal_error request_id=%r", correlation)
+        logger.error("event=baseline_internal_error component=cloud_service request_id=%r", correlation)
         return _error(500, "INTERNAL_ERROR", "internal error")
 
     status = "accepted" if result.created else "already_accepted"

@@ -27,7 +27,7 @@ def test_every_checklist_item_has_a_result() -> None:
 
 def test_review_matches_the_secure_path() -> None:
     transport = _text("edge_gateway/src/edge_gateway/crypto/secure_transport.py")
-    send = transport.split("async def send", 1)[1].split("def _session_is_active", 1)[0]
+    send = transport.split("async def send", 1)[1].split("def _handshakes_completed", 1)[0]
     recover = transport.split("async def _recover", 1)[1].split("def _seal", 1)[0]
     deliver = transport.split("def _deliver", 1)[1].split("def _post", 1)[0]
 

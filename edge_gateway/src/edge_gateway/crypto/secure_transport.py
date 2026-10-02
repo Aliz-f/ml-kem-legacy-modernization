@@ -184,9 +184,12 @@ class SecureTransport:
             sequence_number=sequence_number,
             received_at=received_at,
         )
-        phase = "steady" if self._session_is_active() else "first"
         started = time.perf_counter()
+        handshakes = self._handshakes_completed()
         session = await self._open_session(request_id)
+        # A locally expired session still reads as active until this open
+        # replaces it, so the phase follows whether a handshake ran here.
+        phase = "first" if self._handshakes_completed() != handshakes else "steady"
         log_security(
             "secure_delivery_started",
             request_id=request_id,
@@ -203,11 +206,10 @@ class SecureTransport:
         self._metrics.record_secure_message(phase, time.perf_counter() - started)
         return acceptance
 
-    def _session_is_active(self) -> bool:
-        for metrics in (self._metrics, getattr(self._sessions, "metrics", None)):
-            if getattr(metrics, "active_session", 0):
-                return True
-        return False
+    def _handshakes_completed(self) -> int:
+        session_metrics = getattr(self._sessions, "metrics", None)
+        metrics = session_metrics if isinstance(session_metrics, PqcMetrics) else self._metrics
+        return metrics.handshakes_succeeded
 
     async def _open_session(self, request_id: str) -> SecureSession:
         try:
@@ -383,8 +385,19 @@ class SecureTransport:
                 "X-Request-ID": request_id,
             },
         )
+        opener = self._opener
+        if opener is None:
+            # shutdown() closed the client while this delivery was in flight.
+            log_security(
+                "secure_delivery_rejected",
+                logging.WARNING,
+                request_id=request_id,
+                session_id=session_id,
+                reason="closed",
+            )
+            raise SecureTransportError("Secure transport is closed.", retryable=False)
         try:
-            with self._opener.open(request, timeout=self._timeout_seconds) as response:
+            with opener.open(request, timeout=self._timeout_seconds) as response:
                 payload = response.read(_MAX_BODY_BYTES + 1)
                 status = response.status
         except SecureTransportError:
@@ -400,6 +413,10 @@ class SecureTransport:
             # an incomplete HTTP body must be retried using this exact wire
             # envelope, not re-encrypted.
             raise _RetryableTransport("incomplete response") from exc
+        except OSError as exc:
+            # A reset while reading the body is not wrapped in URLError.  The
+            # Cloud may already have persisted the request, so resend it.
+            raise _RetryableTransport("connection") from exc
         if status != 202:
             log_security(
                 "secure_delivery_rejected",
@@ -420,7 +437,10 @@ class SecureTransport:
         return _parse_acceptance(payload)
 
     def _raise_http(self, exc: urllib.error.HTTPError, request_id: str, session_id: str) -> SecureAcceptance:
-        raw = exc.read(_MAX_BODY_BYTES + 1)
+        try:
+            raw = exc.read(_MAX_BODY_BYTES + 1)
+        except (OSError, http.client.HTTPException):
+            raw = b""
         code = _error_code(raw)
         if exc.code in _RETRYABLE_STATUS:
             raise _RetryableTransport(f"HTTP {exc.code}") from exc

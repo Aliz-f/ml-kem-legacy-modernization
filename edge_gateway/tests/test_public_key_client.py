@@ -2,6 +2,7 @@
 
 import json
 import socket
+import struct
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -32,6 +33,19 @@ class _Response:
         self.path = path
         self.delay_seconds = 0.0
         self.redirect_to: str | None = None
+        self.reset = False
+
+
+def _reset_mid_body(handler: BaseHTTPRequestHandler, status: int) -> None:
+    """Send headers and a partial body, then abort the connection with RST."""
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json")
+    handler.send_header("Content-Length", "100")
+    handler.end_headers()
+    handler.wfile.write(b'{"sta')
+    handler.connection.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
+    handler.connection.close()
+    handler.close_connection = True
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -48,6 +62,9 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_response(302)
             self.send_header("Location", response.redirect_to)
             self.end_headers()
+            return
+        if response.reset:
+            _reset_mid_body(self, 200)
             return
         self.send_response(response.status)
         self.send_header("Content-Type", "application/json")
@@ -153,6 +170,14 @@ def test_redirect_is_not_followed(cloud_server):
     with pytest.raises(PublicKeyTransportError) as caught:
         fetch_public_key(base_url, timeout_seconds=3)
     assert caught.value.retryable is False
+
+
+def test_connection_reset_while_reading_is_retryable(cloud_server):
+    base_url, response = cloud_server
+    response.reset = True
+    with pytest.raises(PublicKeyTransportError) as caught:
+        fetch_public_key(base_url, timeout_seconds=3)
+    assert caught.value.retryable is True
 
 
 def test_oversized_body_is_rejected(cloud_server):

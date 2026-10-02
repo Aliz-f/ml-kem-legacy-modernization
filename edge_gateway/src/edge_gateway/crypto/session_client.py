@@ -6,6 +6,7 @@ stay off the wire. Response validation does not create a local session.
 
 from __future__ import annotations
 
+import http.client
 import json
 import urllib.error
 import urllib.request
@@ -159,6 +160,12 @@ def _request(cloud_url: str, timeout_seconds: float, payload: dict[str, str]) ->
             else "Cloud session request failed."
         )
         raise SessionTransportError(message, retryable=True) from exc
+    except (http.client.HTTPException, OSError) as exc:
+        # A reset or truncated body while reading is not wrapped in URLError.
+        raise SessionTransportError(
+            "Cloud session request failed.",
+            retryable=True,
+        ) from exc
     if status != 200:
         raise SessionTransportError(
             f"Cloud session request failed with HTTP {status}.",

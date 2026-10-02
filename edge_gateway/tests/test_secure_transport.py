@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import socket
+import struct
 from typing import TypeAlias
 import threading
 from collections.abc import Callable
@@ -14,6 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import pytest
 
 from edge_gateway.crypto.encoding import decode_binary
+from edge_gateway.crypto.metrics import PqcMetrics
 from edge_gateway.crypto.secure_transport import SecureAcceptance, SecureTransport, SecureTransportError
 from edge_gateway.crypto.session import SecureSession, SessionEstablishmentError, SessionState
 from edge_gateway.crypto.symmetric import NONCE_LENGTH
@@ -67,6 +70,19 @@ class _Cloud:
         self.requests: list[tuple[str, bytes, str | None]] = []
         self.redirect_to: str | None = None
         self.delay_seconds = 0.0
+        self.reset_next = 0
+
+
+def _reset_mid_body(handler: BaseHTTPRequestHandler, status: int) -> None:
+    """Send headers and a partial body, then abort the connection with RST."""
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json")
+    handler.send_header("Content-Length", "100")
+    handler.end_headers()
+    handler.wfile.write(b'{"sta')
+    handler.connection.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
+    handler.connection.close()
+    handler.close_connection = True
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -83,6 +99,11 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_response(302)
             self.send_header("Location", cloud.redirect_to)
             self.end_headers()
+            return
+        if cloud.reset_next:
+            # Simulate a connection reset while the Cloud response is read.
+            cloud.reset_next -= 1
+            _reset_mid_body(self, 202)
             return
         status, payload = cloud.responses.pop(0)
         if payload is None:
@@ -303,6 +324,68 @@ def test_timeout_is_retryable_without_a_second_session(cloud):
     assert caught.value.retryable is True
     assert sessions.invalidated == 0
     assert len(script.requests) == 1
+
+
+def test_connection_reset_while_reading_retries_the_same_envelope(cloud):
+    url, script = cloud
+    script.reset_next = 1
+    script.responses = [(202, {"status": "already_accepted", "record_id": "rec-existing"})]
+    delays: list[float] = []
+    result = _send(_transport(url, _Sessions(), max_retries=2, sleep=delays.append))
+    assert result.status == "already_accepted"
+    bodies = [body for _, body, _ in script.requests]
+    assert len(bodies) == 2
+    assert bodies[0] == bodies[1]
+    assert delays == [1.0]
+
+
+def test_exhausted_connection_resets_fail_closed_as_retryable(cloud):
+    url, script = cloud
+    script.reset_next = 2
+    with pytest.raises(SecureTransportError) as caught:
+        _send(_transport(url, _Sessions(), max_retries=1, sleep=lambda _: None))
+    assert caught.value.retryable is True
+    assert len(script.requests) == 2
+
+
+def test_shutdown_during_retry_fails_closed_without_another_post(cloud):
+    url, script = cloud
+    script.responses = [(503, _error("SERVICE_UNAVAILABLE"))]
+    sessions = _Sessions()
+    transport = _transport(url, sessions, max_retries=2, sleep=lambda _: transport.shutdown())
+    with pytest.raises(SecureTransportError) as caught:
+        _send(transport)
+    assert caught.value.retryable is False
+    assert len(script.requests) == 1
+
+
+def test_message_phase_follows_whether_a_handshake_ran(cloud):
+    url, script = cloud
+    script.responses = [
+        (202, {"status": "accepted", "record_id": "rec-1"}),
+        (202, {"status": "accepted", "record_id": "rec-2"}),
+    ]
+
+    class _CountingSessions(_Sessions):
+        def __init__(self) -> None:
+            super().__init__()
+            self.metrics = PqcMetrics()
+
+        async def get_or_establish(self) -> SecureSession:
+            if self.current is None:
+                self.metrics.record_handshake_success(0.0, 0.0, 0.0)
+            return await super().get_or_establish()
+
+    sessions = _CountingSessions()
+    # The held session expired locally; the gauge still reads active until
+    # the next open replaces it with a new handshake.
+    sessions.current = None
+    sessions.metrics.set_active_session(True)
+    transport = _transport(url, sessions)
+    _send(transport)
+    _send(transport)
+    assert sessions.metrics.message_duration["first"].count == 1
+    assert sessions.metrics.message_duration["steady"].count == 1
 
 
 def test_keys_and_plaintext_are_not_logged(cloud, caplog: pytest.LogCaptureFixture):

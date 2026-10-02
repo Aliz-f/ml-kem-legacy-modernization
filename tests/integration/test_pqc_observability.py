@@ -166,8 +166,8 @@ def test_handshake_counter_shows_reuse_then_expiry(tmp_path: Path) -> None:
     assert _count(expired, REESTABLISH_FAILURE) == 0
     assert _count(expired, "gateway_active_session") == 1
     assert _count(expired, "gateway_pqc_fallback_total") == 0
-    assert _count(expired, FIRST) == 1
-    assert _count(expired, STEADY) == 3
+    assert _count(expired, FIRST) == 2
+    assert _count(expired, STEADY) == 2
     assert metrics.handshakes_succeeded == 2
 
 
@@ -183,6 +183,7 @@ def test_recorded_scrape_matches_the_observability_note() -> None:
     assert f"{HANDSHAKE_SUCCESS} 1" in document
     assert f"{HANDSHAKE_SUCCESS} 2" in document
     assert f"{STEADY} 2" in document
-    assert f"{STEADY} 3" in document
+    assert f"{FIRST} 2" in document
+    assert f"{STEADY} 3" not in document
     assert "gateway_pqc_fallback_total 0" in document
     assert "The scrape does not include a session identifier." in readme

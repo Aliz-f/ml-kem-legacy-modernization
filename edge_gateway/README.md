@@ -425,6 +425,13 @@ One review of `uv.lock` and the crypto source checks for unnecessary,
 unmaintained, or duplicate crypto packages and unsafe low-level use.
 Details are in [docs/dependency-review.md](docs/dependency-review.md).
 
+## Static and code-quality verification (M3-77)
+
+Before a crypto pull request, run the Gateway tests, Ruff, the AI-history
+check, and the secure integration tests, then inspect the diff for secret
+logging, key files, debug prints, and `.env` values.
+Details are in [docs/static-checks.md](docs/static-checks.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

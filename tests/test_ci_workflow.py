@@ -24,3 +24,31 @@ def test_repository_quality_workflow_runs_required_foundation_checks() -> None:
     )
     positions = [workflow.index(command) for command in commands]
     assert positions == sorted(positions)
+
+
+def test_repository_quality_workflow_runs_contract_stage_after_unit_tests() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    stage = "name: Run protocol contract tests"
+    assert stage in workflow
+    for path in (
+        "edge_gateway/tests/test_gateway_models.py",
+        "edge_gateway/tests/test_gateway_canonical_model.py",
+        "edge_gateway/tests/test_gateway_correlation.py",
+        "edge_gateway/tests/test_public_key_client.py",
+        "edge_gateway/tests/test_session.py",
+        "edge_gateway/tests/test_secure_envelope.py",
+        "edge_gateway/tests/test_aad.py",
+        "edge_gateway/tests/test_kdf.py",
+        "cloud_service/tests/test_gateway_cloud_baseline_contract.py",
+        "cloud_service/tests/test_cloud_public_key.py",
+        "cloud_service/tests/test_cloud_session_api.py",
+        "cloud_service/tests/test_cloud_envelope.py",
+        "cloud_service/tests/test_cloud_kdf.py",
+    ):
+        assert path in workflow
+
+    unit_tests = workflow.index("- run: uv run pytest")
+    contract_tests = workflow.index(stage)
+    crypto_tests = workflow.index("name: Run Gateway crypto checks")
+    assert unit_tests < contract_tests < crypto_tests

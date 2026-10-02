@@ -14,6 +14,22 @@ jobs:
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run pytest
+      - name: Run protocol contract tests
+        run: >-
+          uv run pytest
+          edge_gateway/tests/test_gateway_models.py
+          edge_gateway/tests/test_gateway_canonical_model.py
+          edge_gateway/tests/test_gateway_correlation.py
+          edge_gateway/tests/test_public_key_client.py
+          edge_gateway/tests/test_session.py
+          edge_gateway/tests/test_secure_envelope.py
+          edge_gateway/tests/test_aad.py
+          edge_gateway/tests/test_kdf.py
+          cloud_service/tests/test_gateway_cloud_baseline_contract.py
+          cloud_service/tests/test_cloud_public_key.py
+          cloud_service/tests/test_cloud_session_api.py
+          cloud_service/tests/test_cloud_envelope.py
+          cloud_service/tests/test_cloud_kdf.py
       - name: Run Gateway crypto checks
         run: >-
           uv run pytest

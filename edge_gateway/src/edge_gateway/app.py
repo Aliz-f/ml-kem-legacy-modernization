@@ -16,6 +16,7 @@ from edge_gateway.crypto.secure_transport import SecureTransport
 from edge_gateway.crypto.session import SessionManager
 from edge_gateway.dispatch import BaselineTransport, CloudDispatch
 from edge_gateway.errors import GatewayError, GatewayErrorCode
+from edge_gateway.failure.runtime import ApplicationFailures
 from edge_gateway.measurements import MeasurementProcessor, ProcessingHook, UnavailableBaseline
 from edge_gateway.models import LegacyMeasurementSchemaError
 from edge_gateway.validation import (
@@ -48,16 +49,18 @@ def create_app(
     settings = load_config() if config is None else config
     level = _logging_level(settings)
     registry = pqc_metrics or PqcMetrics()
+    failures = ApplicationFailures(settings, registry)
     if settings.security_mode == "mlkem" and secure_transport is None:
-        secure_transport = _secure_transport(settings, registry)
+        secure_transport = _secure_transport(settings, registry, failures)
     dispatch = CloudDispatch(
         settings,
-        baseline=baseline_transport or _baseline_transport(settings),
+        baseline=baseline_transport or _baseline_transport(settings, failures),
         secure=secure_transport,
         pqc_metrics=registry,
     )
     processor = MeasurementProcessor(
         gateway_id=settings.gateway_id, dispatch=dispatch, processing_hook=processing_hook,
+        failures=failures,
     )
 
     @asynccontextmanager
@@ -65,6 +68,7 @@ def create_app(
         logging.basicConfig(level=level, format="%(levelname)s %(name)s %(message)s")
         logger.setLevel(level)
         logger.info("gateway_starting security_mode=%s", settings.security_mode)
+        failures.log_enabled()
         app.state.running = True
         try:
             yield
@@ -138,18 +142,21 @@ def create_app(
     return app
 
 
-def _baseline_transport(config: GatewayConfig) -> BaselineTransport:
+def _baseline_transport(config: GatewayConfig, failures: ApplicationFailures) -> BaselineTransport:
     """Construct the baseline client only for explicit classical-mode dispatch."""
     if config.security_mode == "classical":
         return BaselineCloudClient(
             cloud_url=config.cloud_url,
             timeout_seconds=config.cloud_timeout_seconds,
             max_retries=config.cloud_max_retries,
+            before_attempt=failures.before_cloud_attempt,
         )
     return UnavailableBaseline()
 
 
-def _secure_transport(config: GatewayConfig, metrics: PqcMetrics) -> SecureTransport:
+def _secure_transport(
+    config: GatewayConfig, metrics: PqcMetrics, failures: ApplicationFailures,
+) -> SecureTransport:
     """Compose the one fail-closed Gateway secure path for Modernized Mode."""
     injector = CryptoFailureInjector.from_config(config)
     sessions = SessionManager(
@@ -164,6 +171,7 @@ def _secure_transport(config: GatewayConfig, metrics: PqcMetrics) -> SecureTrans
         cloud_url=config.cloud_url,
         timeout_seconds=config.cloud_timeout_seconds,
         max_retries=config.cloud_max_retries,
+        before_attempt=failures.before_cloud_attempt,
         injector=injector,
         metrics=metrics,
     )

@@ -28,7 +28,7 @@ class FailureInjector:
 
     def __init__(
         self, mode: str = "none", failure_rate: float = 0.0,
-        failure_seed: str | None = None,
+        failure_seed: str | None = None, *, announce: bool = True,
     ) -> None:
         if not isinstance(mode, str) or mode not in KNOWN_FAILURE_MODES:
             raise ValueError("failure_mode must be a known Gateway mode")
@@ -44,13 +44,18 @@ class FailureInjector:
         self._mode = mode
         self._rate = failure_rate
         self._random = random.Random(failure_seed)
-        if mode in APPLICATION_FAILURE_MODES | {"random"} and failure_rate > 0:
-            logger.warning("event=failure_injection_enabled mode=%s", mode)
+        if announce:
+            self.log_enabled()
+
+    def log_enabled(self) -> None:
+        """Announce enabled application simulation after startup logging is configured."""
+        if self._mode in APPLICATION_FAILURE_MODES | {"random"} and self._rate > 0:
+            logger.warning("event=failure_injection_enabled mode=%s", self._mode)
 
     @classmethod
-    def from_config(cls, config: GatewayConfig) -> FailureInjector:
+    def from_config(cls, config: GatewayConfig, *, announce: bool = True) -> FailureInjector:
         """Use the existing validated local configuration."""
-        return cls(config.failure_mode, config.failure_rate, config.failure_seed)
+        return cls(config.failure_mode, config.failure_rate, config.failure_seed, announce=announce)
 
     def select(self, allowed: Iterable[str] = APPLICATION_FAILURE_MODES) -> str | None:
         """Return an applicable fault or None, using one probability gate.

@@ -52,6 +52,7 @@ class BaselineCloudClient:
     def __init__(
         self, *, cloud_url: str, timeout_seconds: float, max_retries: int,
         sleep: Callable[[float], None] = time.sleep,
+        before_attempt: Callable[[str], None] | None = None,
     ) -> None:
         if (
             isinstance(timeout_seconds, bool)
@@ -65,6 +66,7 @@ class BaselineCloudClient:
         self._endpoint = _endpoint(cloud_url)
         self._timeout_seconds = float(timeout_seconds)
         self._max_retries = max_retries
+        self._before_attempt = before_attempt
         self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
 
@@ -117,6 +119,8 @@ class BaselineCloudClient:
             headers={"Content-Type": "application/json", **baseline_headers(request_id)},
         )
         try:
+            if self._before_attempt is not None:
+                self._before_attempt(request_id)
             with self._opener.open(request, timeout=self._timeout_seconds) as response:
                 payload = response.read(_MAX_BODY_BYTES + 1)
                 status = response.status

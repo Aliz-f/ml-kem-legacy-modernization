@@ -367,8 +367,9 @@ sanitized `500 INTERNAL_ERROR`. The route performs no extra retry loop.
 Only confirmed delivery returns `202 {"status":"accepted"}`. Cloud record IDs
 and transport details are not exposed to Legacy. The optional async
 `processing_hook(canonical, request_id)` runs after sequence commit and before
-Cloud delivery; no hook is active by default. Concrete processing fault modes
-remain M2-19 onward. Exceptions from the hook use the existing safe error mapping.
+Cloud delivery. Configured application faults run at this boundary before the
+optional hook; faults are disabled by default. Exceptions use the existing safe
+error mapping.
 
 A failed delivery or processing hook never rolls sequence state back. For
 example, sequence `10` followed by a Cloud failure returns `503`; resending `10`
@@ -547,6 +548,7 @@ read its configuration directly from the environment.
 | `SESSION_TTL_SECONDS` | `300` | Exactly `300` for protocol v1 |
 | `PQC_FAILURE_POLICY` | `fail_closed` | `fail_closed` only for protocol v1 |
 | `FAILURE_MODE` | `none` | A documented Gateway failure mode |
+| `FAILURE_DELAY_SECONDS` | `2` | Processing delay, finite and between 0 and 30 seconds |
 | `FAILURE_RATE` | `0.0` | Number from 0.0 to 1.0 inclusive |
 | `FAILURE_SEED` | empty | Optional deterministic-test seed; empty means unset |
 | `LOG_LEVEL` | `INFO` | Non-empty |
@@ -555,7 +557,7 @@ read its configuration directly from the environment.
 `mlkem` setting selects only the supplied secure transport; missing or failed
 secure delivery returns `503` without a plaintext fallback.
 
-## Application failure-injection framework (M2-19)
+## Application failure injection (M2-19 through M2-25)
 
 `edge_gateway.failure.FailureInjector.from_config(config)` builds a local
 selector using `FAILURE_MODE`, `FAILURE_RATE`, and optional `FAILURE_SEED`.
@@ -572,12 +574,12 @@ injector per application and select once after validation, sequence acceptance,
 normalization, and request-ID creation; retain that decision across boundaries.
 Failure selection must never bypass validation or roll back sequence state.
 
-This task provides selection infrastructure only. M2-20 through M2-24 implement
-fault execution and route/transport wiring; setting an application failure mode
-does not yet inject a fault into live requests. The existing processing hook is
-available for that wiring. Execution hooks must log actual injection, preserve
-bounded transport retries, and never return success for a dropped measurement.
-The selector logs enablement and debug selection without claiming execution.
+The application composes the selector and execution hooks in both security modes.
+See [the task-by-task guide](docs/application-failure-injection.md) for behavior,
+configuration, verification, and limitations. Enabled application simulation emits
+`WARNING event=failure_injection_enabled` during startup. Applied faults emit
+`event=failure_injected` with the request ID and increment the existing
+`gateway_injected_failures_total{failure_type="..."}` counter.
 
 Member 3's crypto injector remains separate; crypto modes select no application
 fault. This framework does not generate keys/nonces/request IDs, mutate payloads,

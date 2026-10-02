@@ -111,6 +111,7 @@ class SecureTransport:
         injector: CryptoFailureInjector | None = None,
         metrics: PqcMetrics | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        before_attempt: Callable[[str], None] | None = None,
     ) -> None:
         if isinstance(max_retries, bool) or not isinstance(max_retries, int) or max_retries < 0:
             raise ValueError("max_retries must be a non-negative integer.")
@@ -130,6 +131,7 @@ class SecureTransport:
         self._metrics = metrics or (
             session_metrics if isinstance(session_metrics, PqcMetrics) else PqcMetrics()
         )
+        self._before_attempt = before_attempt
         self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
         self._closed = False
@@ -378,6 +380,8 @@ class SecureTransport:
             },
         )
         try:
+            if self._before_attempt is not None:
+                self._before_attempt(request_id)
             with self._opener.open(request, timeout=self._timeout_seconds) as response:
                 payload = response.read(_MAX_BODY_BYTES + 1)
                 status = response.status

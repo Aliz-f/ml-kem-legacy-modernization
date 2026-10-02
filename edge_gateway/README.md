@@ -496,6 +496,38 @@ mode and in mlkem mode. The first secure request is reported separately. The
 sample does not rank the modes. Details are in
 [docs/mode-evaluation.md](docs/mode-evaluation.md).
 
+## PQC observability (M3-71)
+
+One local run shows the handshake counter move from 0 to 1, stay at 1 while
+later measurements reuse the session, and move to 2 after the session expires.
+The scrape does not include a session identifier. Details are in
+[docs/pqc-observability.md](docs/pqc-observability.md).
+
+## Corrupted ciphertext (M3-72)
+
+One local run seals a valid measurement, corrupts the outgoing ciphertext copy,
+and records Cloud's authentication rejection. It does not store the rejected measurement.
+Details are in [docs/corrupt-ciphertext.md](docs/corrupt-ciphertext.md).
+
+## ML-KEM handshake failure (M3-73)
+
+One local run stops session establishment before a public key is fetched.
+The Gateway returns failure and the handshake-failure counter increments.
+It does not call the baseline endpoint.
+Details are in [docs/mlkem-handshake-failure.md](docs/mlkem-handshake-failure.md).
+
+## Cloud crypto review (M3-74)
+
+One review of Member 4's Cloud crypto compares the implementation with the
+frozen session-key contract. It does not change the Cloud protocol.
+Details are in [docs/cloud-crypto-review.md](docs/cloud-crypto-review.md).
+
+## Member 2 integration review (M3-75)
+
+One review of the Gateway integration checks modernized dispatch, request
+correlation, fail-closed delivery, and session recovery. It does not change the Gateway protocol.
+Details are in [docs/member2-integration-review.md](docs/member2-integration-review.md).
+
 ## Configuration
 
 The Gateway loads environment variables once at application startup through

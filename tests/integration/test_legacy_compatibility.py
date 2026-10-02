@@ -1,9 +1,9 @@
 """Legacy Device contract stays the same in classical and mlkem modes.
 
-These tests start the production route without Cloud transport dependencies.
-They check that switching SECURITY_MODE does not change
-the Legacy JSON schema, response, or retry behavior, and that the Legacy
-Device does not learn Gateway-to-Cloud cryptography.
+These tests start the production route with an unavailable Cloud endpoint.
+They check that switching SECURITY_MODE does not change the Legacy JSON schema,
+response, or retry behavior, while mode-specific Gateway metrics remain
+separate from the Legacy contract.
 """
 
 from __future__ import annotations
@@ -142,7 +142,7 @@ def _exchange(base_url: str, body: bytes, *, method: str = "POST", path: str = "
         method=method,
     )
     try:
-        with urlopen(request, timeout=5) as response:
+        with urlopen(request, timeout=15) as response:
             return response.status, response.read()
     except HTTPError as error:
         return error.code, error.read()
@@ -262,9 +262,9 @@ def test_metrics_label_changes_without_changing_the_legacy_response(gateways) ->
     mlkem_text = mlkem_metrics[1].decode("utf-8")
     assert 'gateway_service_info{security_mode="classical"} 1' in classical_text
     assert 'gateway_service_info{security_mode="mlkem"} 1' in mlkem_text
-    assert classical_text.replace(
-        'security_mode="classical"', 'security_mode="mlkem"'
-    ) == mlkem_text
+    assert classical_text != mlkem_text
+    assert 'gateway_mlkem_handshakes_total{result="failure"} 0' in classical_text
+    assert 'gateway_mlkem_handshakes_total{result="failure"} 1' in mlkem_text
 
 
 def test_legacy_sources_do_not_learn_gateway_crypto() -> None:

@@ -108,7 +108,7 @@ def _serve(tmp_path: Path, mode: str) -> _Server:
     app = create_app(
         load_config(
             {
-                "DATABASE_URL": f"sqlite:///{tmp_path / f'{mode}.db'}",
+                "DATABASE_URL": f"sqlite:///{(tmp_path / f'{mode}.db').as_posix()}",
                 "SECURITY_MODE": mode,
                 "LOG_LEVEL": "WARNING",
             }
@@ -230,7 +230,13 @@ def measure_modes(tmp_path: Path) -> dict[str, float | int]:
         session = secure._sessions._session
         if session is None:
             raise RuntimeError("mlkem workload did not keep a session")
-        modernized.server.config.app.state.sessions.invalidate(session.session_id)
+        cloud_app = modernized.server.config.app
+        cloud_metrics = cloud_app.state.metrics
+        if cloud_metrics._decapsulation_count != 1:
+            raise RuntimeError("first secure session did not record one Cloud decapsulation")
+        cloud_decapsulation_ms = cloud_metrics._decapsulation_sum * 1000
+        active_cloud_sessions = len(cloud_app.state.sessions)
+        cloud_app.state.sessions.invalidate(session.session_id)
         asyncio.run(
             modern_dispatch.send(
                 request_id="req-eval-5",
@@ -248,6 +254,8 @@ def measure_modes(tmp_path: Path) -> dict[str, float | int]:
             "classical_body_bytes": baseline.sizes[0],
             "handshake_ms": first_handshake_ms,
             "encapsulation_ms": encapsulation_ms,
+            "cloud_decapsulation_ms": cloud_decapsulation_ms,
+            "active_cloud_sessions_before_recovery": active_cloud_sessions,
             "secure_first_ms": secure_first_ms,
             "secure_steady_ms": secure_steady_ms,
             "envelope_bytes": recorder.sizes[0],
@@ -294,6 +302,8 @@ def test_equivalent_workload_keeps_the_modes_separate(tmp_path: Path) -> None:
     assert sample["envelope_bytes"] > sample["classical_body_bytes"]
     assert sample["secure_first_ms"] > 0
     assert sample["secure_steady_ms"] > 0
+    assert sample["cloud_decapsulation_ms"] > 0
+    assert sample["active_cloud_sessions_before_recovery"] == 1
 
 
 @pytest.mark.parametrize(

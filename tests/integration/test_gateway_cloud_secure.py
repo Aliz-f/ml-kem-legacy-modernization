@@ -240,9 +240,9 @@ def cloud(tmp_path: Path):
     app = create_app(
         load_config(
             {
-                "DATABASE_URL": f"sqlite:///{database}",
+                "DATABASE_URL": f"sqlite:///{database.as_posix()}",
                 "SECURITY_MODE": "mlkem",
-                "LOG_LEVEL": "WARNING",
+                "LOG_LEVEL": "INFO",
             }
         )
     )
@@ -277,7 +277,7 @@ def test_production_cloud_app_has_secure_measurement_route(tmp_path: Path) -> No
     app = create_app(
         load_config(
             {
-                "DATABASE_URL": f"sqlite:///{tmp_path / 'unused.db'}",
+                "DATABASE_URL": f"sqlite:///{(tmp_path / 'unused.db').as_posix()}",
                 "SECURITY_MODE": "mlkem",
             }
         )
@@ -426,9 +426,14 @@ def test_local_session_expiry_reestablishes_before_the_next_send(cloud: CloudHar
 def test_expired_session_returns_409_and_recovers_once(cloud: CloudHarness) -> None:
     sessions = cloud.gateway_sessions()
     current = asyncio.run(sessions.get_or_establish())
+    with urllib.request.urlopen(cloud.base_url + "/metrics", timeout=5) as response:
+        before_metrics = response.read().decode()
+    assert "cloud_mlkem_sessions_created_total 1" in before_metrics
+    assert "cloud_active_sessions 1" in before_metrics
     stored = cloud.app.state.sessions._sessions[current.session_id]
     object.__setattr__(stored, "expires_at", datetime.now(timezone.utc) - timedelta(seconds=5))
-    acceptance = _deliver(cloud.transport(sessions), request_id="req-expired")
+    transport = cloud.transport(sessions)
+    acceptance = _deliver(transport, request_id="req-expired")
     assert cloud.trace.secure_statuses == [409, 202]
     assert acceptance.status == "accepted"
     assert current.session_id not in cloud.app.state.sessions._sessions
@@ -438,6 +443,12 @@ def test_expired_session_returns_409_and_recovers_once(cloud: CloudHarness) -> N
     second = json.loads(cloud.trace.bodies[1])
     assert first["request_id"] == second["request_id"] == "req-expired"
     assert first["session_id"] != second["session_id"]
+    assert transport._metrics.reestablishments["success"] == 1
+    with urllib.request.urlopen(cloud.base_url + "/metrics", timeout=5) as response:
+        after_metrics = response.read().decode()
+    assert "cloud_mlkem_sessions_created_total 2" in after_metrics
+    assert "cloud_expired_sessions_total 1" in after_metrics
+    assert "cloud_active_sessions 1" in after_metrics
 
 
 def test_invalid_session_returns_409_and_recovers_once(cloud: CloudHarness) -> None:
@@ -469,21 +480,30 @@ def test_a_second_session_rejection_is_not_recovered(cloud: CloudHarness) -> Non
 
 
 @pytest.mark.parametrize(
-    ("field", "code"),
+    ("field", "status", "code", "event"),
     [
-        ("ciphertext", "SECURE_MESSAGE_REJECTED"),
-        ("nonce", "SECURE_MESSAGE_REJECTED"),
-        ("request_id", "SECURE_MESSAGE_REJECTED"),
-        ("tag", "SECURE_MESSAGE_REJECTED"),
+        ("ciphertext", 400, "SECURE_MESSAGE_REJECTED", "decryption_failed"),
+        ("nonce", 400, "SECURE_MESSAGE_REJECTED", "decryption_failed"),
+        ("request_id", 400, "SECURE_MESSAGE_REJECTED", "decryption_failed"),
+        ("gateway_id", 400, "SECURE_MESSAGE_REJECTED", "secure_envelope_rejected"),
+        ("session_id", 409, "SESSION_INVALID", "session_unknown"),
+        ("protocol_version", 400, "UNSUPPORTED_PROTOCOL_VERSION", "secure_envelope_rejected"),
+        ("tag", 400, "SECURE_MESSAGE_REJECTED", "decryption_failed"),
     ],
     ids=(
         "corrupted-aead-ciphertext",
         "nonce-tampering",
         "aad-tampering",
+        "gateway-ownership-tampering",
+        "session-id-tampering",
+        "protocol-version-tampering",
         "cloud-decryption-failure",
     ),
 )
-def test_tampered_secure_message_is_rejected(cloud: CloudHarness, field: str, code: str) -> None:
+def test_tampered_secure_message_is_rejected(
+    cloud: CloudHarness, caplog: pytest.LogCaptureFixture,
+    field: str, status: int, code: str, event: str,
+) -> None:
     sessions = cloud.gateway_sessions()
     session = asyncio.run(sessions.get_or_establish())
     changed = _seal(session).as_dict()
@@ -495,10 +515,25 @@ def test_tampered_secure_message_is_rejected(cloud: CloudHarness, field: str, co
         changed["nonce"] = _flip(changed["nonce"], 0)
     elif field == "request_id":
         changed["request_id"] = "req-changed"
-    status, body = cloud.post_json("/api/v1/secure/measurements", changed)
-    assert status == 400
+    elif field == "gateway_id":
+        changed["gateway_id"] = "gateway-other"
+    elif field == "session_id":
+        changed["session_id"] = "sess-unknown"
+    elif field == "protocol_version":
+        changed["protocol_version"] = "999"
+    with caplog.at_level(logging.INFO, logger="cloud_service"):
+        actual_status, body = cloud.post_json("/api/v1/secure/measurements", changed)
+    assert actual_status == status
     assert body["error"]["code"] == code
     assert cloud.rows() == []
+    assert f"event={event}" in caplog.text
+    assert changed["ciphertext"] not in caplog.text
+    assert changed["nonce"] not in caplog.text
+    with urllib.request.urlopen(cloud.base_url + "/metrics", timeout=5) as response:
+        metrics = response.read().decode()
+    assert "cloud_secure_requests_rejected_total 1" in metrics
+    if field in {"ciphertext", "nonce", "request_id", "tag"}:
+        assert "cloud_decryption_failures_total 1" in metrics
 
 
 def test_wrong_session_is_rejected_without_storage(cloud: CloudHarness) -> None:
@@ -667,6 +702,32 @@ def test_ambiguous_transport_retries_the_same_envelope(cloud: CloudHarness) -> N
     same_envelope = first == second
     assert same_envelope
     assert first["request_id"] == "req-retry"
+
+
+@pytest.mark.parametrize("mode", [FailureMode.STORAGE_FAILURE, FailureMode.SERVICE_UNAVAILABLE])
+def test_cloud_failure_retries_the_same_secure_request_without_storage(
+    cloud: CloudHarness, mode: FailureMode,
+) -> None:
+    sessions = cloud.gateway_sessions()
+    asyncio.run(sessions.get_or_establish())
+    cloud.set_failure(mode)
+    delays: list[float] = []
+    with pytest.raises(SecureTransportError) as caught:
+        _deliver(cloud.transport(sessions, max_retries=1, sleep=delays.append), request_id=f"req-{mode.value}")
+    assert caught.value.retryable is True
+    assert cloud.trace.handshakes == 1
+    assert cloud.trace.secure_statuses == [503, 503]
+    assert cloud.trace.bodies[0] == cloud.trace.bodies[1]
+    assert delays == [1.0]
+    assert cloud.rows() == []
+    with urllib.request.urlopen(cloud.base_url + "/metrics", timeout=5) as response:
+        metrics = response.read().decode()
+    assert "cloud_secure_requests_total 2" in metrics
+    if mode is FailureMode.STORAGE_FAILURE:
+        assert "cloud_authenticated_messages_total 2" in metrics
+        assert "cloud_storage_failures_total 2" in metrics
+    else:
+        assert "cloud_authenticated_messages_total 0" in metrics
 
 
 def test_duplicate_sequence_is_stored_once(cloud: CloudHarness) -> None:

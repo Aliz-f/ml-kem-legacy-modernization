@@ -32,11 +32,11 @@ Missing headers are logged as `None`; Cloud does not generate a replacement
 Gateway request ID or use it for idempotency. No correlation value is persisted
 in the canonical or stored model.
 
-The current app rejects Modernized Mode at startup. A route-level mode check
-also prevents baseline acceptance outside classical mode. The secure endpoint
-remains unimplemented and never dispatches to this route; there is no runtime
-plaintext fallback. No query API, secure protocol, readiness expansion, metrics
-expansion or failure-injection implementation is included in this task.
+The route-level mode check prevents baseline acceptance outside classical mode.
+In `mlkem` mode, secure ingestion is handled only by the separate secure
+endpoint; there is no runtime plaintext fallback. Query, secure-protocol,
+readiness, metrics, and failure-injection behavior remain separate concerns
+from this baseline route.
 
 Run `uv run --frozen --all-packages --all-extras pytest cloud_service/tests`.
 Tests cover committed visibility, lost-response retry semantics, concurrent

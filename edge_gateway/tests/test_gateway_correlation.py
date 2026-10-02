@@ -43,7 +43,9 @@ def test_gateway_logs_generated_id_without_measurement_data(canonical, caplog):
         request_id = create_request_id()
     record, = caplog.records
     assert record.request_id == request_id
-    assert record.getMessage() == f"gateway_request_created request_id={request_id}"
+    assert record.getMessage() == (
+        f"event=gateway_request_created component=edge_gateway request_id={request_id}"
+    )
     assert canonical.device_id not in caplog.text
     assert "temperature_c" not in caplog.text
 

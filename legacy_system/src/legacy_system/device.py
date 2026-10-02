@@ -53,14 +53,20 @@ class DeviceController:
 
     def run(self) -> None:
         """Run the device loop until :meth:`stop` is called."""
-        logger.info("event=device_starting device_id=%s", self._config.device_id)
+        logger.info(
+            "event=device_starting component=legacy_system device_id=%s",
+            self._config.device_id,
+        )
         previous_handlers = self._install_signal_handlers()
         try:
-            logger.info("event=device_ready device_id=%s", self._config.device_id)
+            logger.info(
+                "event=device_ready component=legacy_system device_id=%s",
+                self._config.device_id,
+            )
             while not self._stop_event.is_set():
                 measurement = self._sensor.read()
                 logger.info(
-                    "event=measurement_generated device_id=%s sequence_number=%s",
+                    "event=measurement_generated component=legacy_system device_id=%s sequence_number=%s",
                     self._config.device_id,
                     measurement.sequence_number,
                 )
@@ -74,7 +80,7 @@ class DeviceController:
             self._close_client()
             if self._stop_event.is_set():
                 logger.info(
-                    "event=device_shutting_down device_id=%s",
+                    "event=device_shutting_down component=legacy_system device_id=%s",
                     self._config.device_id,
                 )
 
@@ -86,7 +92,7 @@ class DeviceController:
             result = self._client.send(payload)
         except Exception as exc:
             logger.warning(
-                "event=measurement_delivery_failed device_id=%s sequence_number=%s error=%s",
+                "event=measurement_delivery_failed component=legacy_system device_id=%s sequence_number=%s error=%s",
                 self._config.device_id,
                 sequence_number,
                 type(exc).__name__,
@@ -100,7 +106,7 @@ class DeviceController:
 
         if success:
             logger.info(
-                "event=measurement_delivered device_id=%s sequence_number=%s status_code=%s attempt=%s",
+                "event=measurement_delivered component=legacy_system device_id=%s sequence_number=%s status_code=%s attempt=%s",
                 self._config.device_id,
                 sequence_number,
                 status_code,
@@ -109,7 +115,7 @@ class DeviceController:
             return
 
         logger.warning(
-            "event=measurement_delivery_failed device_id=%s sequence_number=%s status_code=%s attempt=%s error_category=%s",
+            "event=measurement_delivery_failed component=legacy_system device_id=%s sequence_number=%s status_code=%s attempt=%s error_category=%s",
             self._config.device_id,
             sequence_number,
             status_code,

@@ -30,10 +30,16 @@ async def list_measurements(request: Request, limit: str = str(DEFAULT_LIMIT), d
         records = await run_in_threadpool(repository.list, int(limit), device_id=device_id)
         return JSONResponse(content={"items": [record.to_dict() for record in records]})
     except StorageError:
-        logger.warning("measurement_query_storage_failed")
+        logger.warning(
+            "event=measurement_query_storage_failed component=cloud_service device_id=%r",
+            None if device_id is None else device_id[:256],
+        )
         return _error(503, "STORAGE_UNAVAILABLE", "storage is unavailable")
     except Exception:
-        logger.error("measurement_query_internal_error")
+        logger.error(
+            "event=measurement_query_internal_error component=cloud_service device_id=%r",
+            None if device_id is None else device_id[:256],
+        )
         return _error(500, "INTERNAL_ERROR", "internal error")
 
 
@@ -48,8 +54,8 @@ async def get_measurement(request: Request, record_id: str) -> JSONResponse:
             return _error(404, "MEASUREMENT_NOT_FOUND", "measurement not found")
         return JSONResponse(content=record.to_dict())
     except StorageError:
-        logger.warning("measurement_query_storage_failed")
+        logger.warning("event=measurement_query_storage_failed component=cloud_service record_id=%r", record_id[:256])
         return _error(503, "STORAGE_UNAVAILABLE", "storage is unavailable")
     except Exception:
-        logger.error("measurement_query_internal_error")
+        logger.error("event=measurement_query_internal_error component=cloud_service record_id=%r", record_id[:256])
         return _error(500, "INTERNAL_ERROR", "internal error")

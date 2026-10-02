@@ -45,7 +45,9 @@ class FailureInjector:
         self._rate = failure_rate
         self._random = random.Random(failure_seed)
         if mode in APPLICATION_FAILURE_MODES | {"random"} and failure_rate > 0:
-            logger.warning("event=failure_injection_enabled mode=%s", mode)
+            logger.warning(
+                "event=failure_injection_enabled component=edge_gateway mode=%s", mode
+            )
 
     @classmethod
     def from_config(cls, config: GatewayConfig) -> FailureInjector:
@@ -67,5 +69,7 @@ class FailureInjector:
         if self._rate < 1 and self._random.random() >= self._rate:
             return None
         selected = self._random.choice(candidates) if self._mode == "random" else self._mode
-        logger.debug("event=failure_selected failure_type=%s", selected)
+        logger.debug(
+            "event=failure_selected component=edge_gateway failure_type=%s", selected
+        )
         return selected

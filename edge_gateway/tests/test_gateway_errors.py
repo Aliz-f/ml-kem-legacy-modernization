@@ -66,7 +66,10 @@ def test_exception_details_are_not_exposed(
     assert "private-marker" not in caplog.text
     if status == 500:
         records = [r for r in caplog.records if r.name == "edge_gateway"]
-        assert any(r.message == "gateway_internal_error" for r in records)
+        assert any(
+            r.message == "event=gateway_internal_error component=edge_gateway"
+            for r in records
+        )
         assert all(r.exc_info is None for r in records)
 
 

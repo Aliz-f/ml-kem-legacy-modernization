@@ -42,7 +42,7 @@ class SequenceTracker:
 
         if previous is not None and sequence_number > previous + 1:
             logger.info(
-                "sequence_gap_detected device_id=%r sequence_number=%s previous_sequence_number=%s",
+                "event=sequence_gap_detected component=edge_gateway device_id=%r sequence_number=%s previous_sequence_number=%s",
                 device_id, sequence_number, previous,
                 extra={
                     "device_id": device_id,

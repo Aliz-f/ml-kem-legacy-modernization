@@ -97,11 +97,11 @@ aborts startup with a safe error and closes already-open storage. Vendor
 exception messages and traceback chains are suppressed at wrapper boundaries.
 Public-response failures also return a generic `503`, without vendor details.
 
-`/health` reports liveness after initialization. `/ready` remains `503` because
-the full secure processing path is unfinished. Plaintext baseline ingestion
-remains unavailable in `mlkem` mode; it is never a fallback. Session and secure
-measurement routes remain unimplemented (`404`). M4-21 KDF, sessions, AES-GCM,
-runtime fault injection and full readiness are outside this task.
+`/health` reports liveness after initialization. `/ready` verifies initialized
+storage and, in `mlkem` mode, key/session state plus KDF/AEAD usability.
+Plaintext baseline ingestion remains unavailable in `mlkem` mode; it is never a
+fallback. The session and secure-measurement routes implement the remaining
+secure processing path using the key service described here.
 
 ## Public-key response
 

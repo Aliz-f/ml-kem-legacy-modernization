@@ -216,6 +216,7 @@ def test_retry_logging_exposes_failed_attempts_and_retry_events(
     assert result.status_code == 422
     assert "event=gateway_request_failed" in caplog.text
     assert "event=gateway_retry" in caplog.text
+    assert "component=legacy_system" in caplog.text
 
 
 @pytest.mark.parametrize("status_code", [500, 502, 503, 504])

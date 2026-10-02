@@ -31,8 +31,8 @@ def test_lifecycle_liveness_and_unready_storage(tmp_path, monkeypatch, caplog):
         assert not app.state.running
         assert database.closed
         assert app.state.repository is None
-    assert "cloud_starting security_mode=classical" in caplog.text
-    assert "cloud_shutting_down" in caplog.text
+    assert "event=cloud_starting component=cloud_service security_mode=classical" in caplog.text
+    assert "event=cloud_shutting_down component=cloud_service" in caplog.text
     assert "event=cloud_ready component=cloud_service" in caplog.text
     assert (tmp_path / "cloud.db").is_file()
 
@@ -81,7 +81,7 @@ def test_invalid_config_exits_without_server_start(monkeypatch, caplog):
     monkeypatch.setenv("PORT", "invalid-private-marker")
     assert main() == 1
     assert "invalid-private-marker" not in caplog.text
-    assert "invalid configuration" in caplog.text
+    assert "event=cloud_startup_failed component=cloud_service reason=invalid_configuration" in caplog.text
 
 
 def test_cli_uses_configured_server_settings(monkeypatch):

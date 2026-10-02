@@ -14,15 +14,14 @@ ordering rule is introduced.
 Secure callers must supply `expected_gateway_id` obtained from the verified
 envelope/session identity. The payload Gateway ID must match exactly; case and
 whitespace are not normalized. An empty or non-string expected ID is rejected.
-Baseline callers omit this argument. This optional baseline entry point does
-not authenticate a Gateway or perform secure processing: future secure routes
-must check session lookup, ownership, expiry and AEAD authentication first, then
-invoke this validator with the trusted identity. Never derive the expected ID
-from the decrypted measurement itself.
+Baseline callers omit this argument. The baseline entry point does not
+authenticate a Gateway or perform secure processing. The secure route checks
+session lookup, ownership, expiry, and AEAD authentication first, then invokes
+this validator with the trusted identity. It never derives the expected ID from
+the decrypted measurement itself.
 
 Schema and domain failures raise `MeasurementValidationError` with safe messages
-that do not echo payload values. HTTP status mapping belongs to future routes;
-this function neither assigns status codes nor writes records. No routes,
-storage, cryptographic behavior, or dependencies change in M4-04.
+that do not echo payload values. This function neither assigns HTTP status codes
+nor writes records; callers map its failures to their route-specific responses.
 
 Run `uv run --frozen --all-packages --all-extras pytest cloud_service/tests`.

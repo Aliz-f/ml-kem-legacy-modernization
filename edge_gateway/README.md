@@ -624,3 +624,12 @@ or add network fields. Its private PRNG does not change global random state.
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_failure_injector.py
 ```
+
+## Gateway test-suite hardening (M2-38 through M2-41)
+
+PR11 consolidates the Member 2 unit, route, exact validation-boundary, and
+sequence-policy requirements without moving Member 3's crypto tests. The route
+matrix uses a transport stub and the sequence tests preserve the frozen
+validation → sequence commit → Cloud delivery order, including after failure
+and under concurrent requests. See [the PR11 test-suite audit](docs/gateway-test-suite.md)
+for requirement-to-test mappings and the focused verification command.

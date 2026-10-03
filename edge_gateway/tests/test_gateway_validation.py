@@ -126,6 +126,7 @@ def test_domain_valid_values_are_preserved(client, payload, field, value):
 @pytest.mark.parametrize(("field", "value"), [
     ("temperature_c", -40.01), ("temperature_c", 85.01),
     ("humidity_pct", -1), ("humidity_pct", 101),
+    ("humidity_pct", -0.1), ("humidity_pct", 100.1),
     ("humidity_pct", -0.01), ("humidity_pct", 100.01),
     ("device_id", ""), ("device_id", " \t\n"), ("sequence_number", -1),
 ])

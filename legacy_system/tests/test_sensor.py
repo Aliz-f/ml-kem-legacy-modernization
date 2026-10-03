@@ -1,3 +1,4 @@
+from dataclasses import FrozenInstanceError
 from datetime import datetime, timedelta, timezone
 import random
 
@@ -114,16 +115,52 @@ def test_measurement_accepts_valid_internal_state() -> None:
     [
         ("device_id", ""),
         ("device_id", "   "),
+        ("device_id", None),
         ("temperature_c", -40.1),
         ("temperature_c", 85.1),
+        ("temperature_c", float("nan")),
+        ("temperature_c", float("inf")),
+        ("temperature_c", True),
         ("humidity_pct", -0.1),
         ("humidity_pct", 100.1),
+        ("humidity_pct", float("nan")),
+        ("humidity_pct", float("inf")),
+        ("humidity_pct", True),
         ("sequence_number", -1),
+        ("sequence_number", 1.5),
+        ("sequence_number", True),
+        ("timestamp", "2026-09-21T13:45:31Z"),
     ],
 )
 def test_measurement_rejects_invalid_domain_values(field: str, value: object) -> None:
     with pytest.raises((TypeError, ValueError)):
         make_measurement(**{field: value})
+
+
+@pytest.mark.parametrize(
+    ("temperature", "humidity", "sequence"),
+    [
+        (-40.0, 0.0, 0),
+        (85.0, 100.0, 1000000),
+    ],
+)
+def test_measurement_accepts_valid_boundary_values(
+    temperature: float, humidity: float, sequence: int
+) -> None:
+    measurement = make_measurement(
+        temperature_c=temperature,
+        humidity_pct=humidity,
+        sequence_number=sequence,
+    )
+    assert measurement.temperature_c == temperature
+    assert measurement.humidity_pct == humidity
+    assert measurement.sequence_number == sequence
+
+
+def test_measurement_is_immutable() -> None:
+    measurement = make_measurement()
+    with pytest.raises(FrozenInstanceError):
+        measurement.temperature_c = 25.0  # type: ignore[misc]
 
 
 def test_measurement_rejects_naive_timestamp() -> None:

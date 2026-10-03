@@ -85,8 +85,13 @@ def test_valid_boundary_values() -> None:
             "FAILURE_RATE": "1.0",
         }
     )
-
+    assert config.send_interval_seconds == 1.0
+    assert config.request_timeout_seconds == 1.0
+    assert config.max_retries == 0
     assert config.failure_rate == 1.0
+
+    zero_rate_config = load_config({"FAILURE_RATE": "0.0"})
+    assert zero_rate_config.failure_rate == 0.0
 
 
 def test_empty_device_id() -> None:

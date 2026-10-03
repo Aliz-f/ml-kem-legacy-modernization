@@ -302,3 +302,14 @@ def test_invalid_payload_sequence_is_rejected() -> None:
 def test_invalid_failure_rate_is_rejected() -> None:
     with pytest.raises(ValueError, match="failure_rate"):
         FailureInjector(FailureMode.NONE, 1.1)
+    with pytest.raises(ValueError, match="failure_rate"):
+        FailureInjector(FailureMode.NONE, -0.1)
+
+
+def test_out_of_order_without_lower_previous_sequence_leaves_payload_unchanged() -> None:
+    injector = FailureInjector(FailureMode.OUT_OF_ORDER_SEQUENCE, 1.0)
+    first = make_payload(10)
+    second = make_payload(5)
+
+    assert injector.apply(first) == first
+    assert injector.apply(second) == second

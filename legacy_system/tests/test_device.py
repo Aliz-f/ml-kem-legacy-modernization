@@ -589,3 +589,32 @@ def test_shutdown_after_gateway_unavailable_delivery(
 
     assert opener_calls == 3
     assert retry_delays == [1, 2]
+
+
+def test_default_device_controller_initialization() -> None:
+    config = make_config()
+    controller = DeviceController(config)
+    assert controller._config == config
+    assert controller._stop_event.is_set() is False
+    controller.stop()
+    assert controller._stop_event.is_set() is True
+
+
+def test_controller_run_in_background_thread_skips_signal_handling() -> None:
+    client = RecordingClient([])
+    stop_event = threading.Event()
+    controller = DeviceController(
+        make_config(),
+        sensor=FakeSensor(),
+        client=client,
+        stop_event=stop_event,
+        sleeper=lambda _delay: stop_event.set(),
+    )
+
+    thread = threading.Thread(target=controller.run)
+    thread.start()
+    thread.join(timeout=2.0)
+
+    assert not thread.is_alive()
+    assert len(client.events) == 1
+    assert client.closed is True

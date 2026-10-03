@@ -98,7 +98,7 @@ class CloudDispatch:
         failures.
         """
         if self._mode == "classical":
-            return self._baseline is not None
+            return self._baseline is not None and bool(getattr(self._baseline, "is_ready", True))
         secure = self._secure
         return secure is not None and bool(getattr(secure, "is_ready", True))
 

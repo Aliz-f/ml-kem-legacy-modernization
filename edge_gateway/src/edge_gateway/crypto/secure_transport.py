@@ -32,6 +32,7 @@ from edge_gateway.crypto.security_log import log_security
 from edge_gateway.crypto.session import SecureSession, SessionEstablishmentError
 from edge_gateway.crypto.symmetric import AeadError
 from edge_gateway.transport import CloudDeliveryError
+from edge_gateway.metrics import GatewayMetrics
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,7 @@ class SecureTransport:
         metrics: PqcMetrics | None = None,
         sleep: Callable[[float], None] = time.sleep,
         before_attempt: Callable[[str], None] | None = None,
+        application_metrics: GatewayMetrics | None = None,
     ) -> None:
         if isinstance(max_retries, bool) or not isinstance(max_retries, int) or max_retries < 0:
             raise ValueError("max_retries must be a non-negative integer.")
@@ -137,6 +139,7 @@ class SecureTransport:
         self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
         self._closed = False
+        self.application_metrics = application_metrics or GatewayMetrics()
 
     def shutdown(self) -> None:
         """Stop secure work, close the HTTP client, then clear the session.
@@ -361,6 +364,8 @@ class SecureTransport:
         body = _dump(envelope)
         failure: _RetryableTransport | None = None
         for attempt in range(self._max_retries + 1):
+            if attempt:
+                self.application_metrics.increment("cloud_retries")
             try:
                 return self._post(body, envelope.request_id, envelope.session_id)
             except _RetryableTransport as exc:
@@ -391,6 +396,10 @@ class SecureTransport:
         ) from failure
 
     def _post(self, body: bytes, request_id: str, session_id: str) -> SecureAcceptance:
+        with self.application_metrics.cloud_attempt():
+            return self._post_request(body, request_id, session_id)
+
+    def _post_request(self, body: bytes, request_id: str, session_id: str) -> SecureAcceptance:
         request = urllib.request.Request(
             self._endpoint,
             data=body,

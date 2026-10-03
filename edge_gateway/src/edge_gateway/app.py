@@ -1,6 +1,7 @@
 """Gateway HTTP application and synchronous Legacy measurement endpoint."""
 
 from contextlib import asynccontextmanager
+import asyncio
 from datetime import UTC, datetime
 import logging
 from typing import Annotated
@@ -20,6 +21,7 @@ from edge_gateway.errors import GatewayError, GatewayErrorCode
 from edge_gateway.failure.runtime import ApplicationFailures
 from edge_gateway.measurements import MeasurementProcessor, ProcessingHook, UnavailableBaseline
 from edge_gateway.models import LegacyMeasurementSchemaError
+from edge_gateway.metrics import GatewayMetrics
 from edge_gateway.validation import (
     LegacyJSONError,
     LegacyMeasurementDomainError,
@@ -40,6 +42,7 @@ def create_app(
     baseline_transport: BaselineTransport | None = None,
     secure_transport: SecureTransport | None = None,
     processing_hook: ProcessingHook | None = None,
+    application_metrics: GatewayMetrics | None = None,
 ) -> FastAPI:
     """Build an isolated app; importing this module has no startup side effects.
 
@@ -50,18 +53,20 @@ def create_app(
     settings = load_config() if config is None else config
     level = _logging_level(settings)
     registry = pqc_metrics or PqcMetrics()
+    application_registry = application_metrics or GatewayMetrics()
     failures = ApplicationFailures(settings, registry)
     if settings.security_mode == "mlkem" and secure_transport is None:
-        secure_transport = _secure_transport(settings, registry, failures)
+        secure_transport = _secure_transport(settings, registry, failures, application_registry)
+    baseline = baseline_transport or _baseline_transport(settings, failures, application_registry)
     dispatch = CloudDispatch(
         settings,
-        baseline=baseline_transport or _baseline_transport(settings, failures),
+        baseline=baseline,
         secure=secure_transport,
         pqc_metrics=registry,
     )
     processor = MeasurementProcessor(
         gateway_id=settings.gateway_id, dispatch=dispatch, processing_hook=processing_hook,
-        failures=failures,
+        failures=failures, metrics=application_registry,
     )
 
     @asynccontextmanager
@@ -76,11 +81,17 @@ def create_app(
             yield
         finally:
             app.state.running = False
-            transport = getattr(app.state, "secure_transport", None)
-            shutdown = getattr(transport, "shutdown", None)
-            if shutdown is not None:
-                shutdown()
-            log_application("gateway_shutting_down")
+            app.state.stopping = True
+            try:
+                shutdown = getattr(baseline, "shutdown", None)
+                if shutdown is not None:
+                    await asyncio.to_thread(shutdown)
+            finally:
+                transport = getattr(app.state, "secure_transport", None)
+                shutdown = getattr(transport, "shutdown", None)
+                if shutdown is not None:
+                    shutdown()
+                log_application("gateway_shutting_down")
 
     app = FastAPI(
         title="Edge Gateway", lifespan=lifespan,
@@ -88,12 +99,15 @@ def create_app(
     )
     app.state.config = settings
     app.state.pqc_metrics = registry
+    app.state.application_metrics = application_registry
     app.state.running = False
+    app.state.stopping = False
     app.state.secure_transport = secure_transport
     app.state.cloud_dispatch = dispatch
 
     @app.exception_handler(LegacyJSONError)
     async def invalid_json(request: Request, error: LegacyJSONError):
+        application_registry.increment("measurements_rejected")
         log_application(
             "legacy_validation_failed", logging.WARNING,
             status_code=400, reason="invalid_json",
@@ -103,6 +117,7 @@ def create_app(
     @app.exception_handler(LegacyMeasurementSchemaError)
     @app.exception_handler(LegacyMeasurementDomainError)
     async def invalid_measurement(request: Request, error: ValueError):
+        application_registry.increment("measurements_rejected")
         log_application(
             "legacy_validation_failed", logging.WARNING,
             status_code=422, reason="invalid_measurement",
@@ -133,8 +148,20 @@ def create_app(
 
     @app.post("/api/v1/measurements")
     async def measurements(request: Request):
+        if app.state.stopping:
+            return _unavailable()
+        application_registry.increment("measurements_received")
         received_at = datetime.now(UTC)
-        measurement = parse_legacy_measurement(await request.body())
+        # Count actual bytes, including chunked bodies or a misleading length header.
+        body = bytearray()
+        async for chunk in request.stream():
+            if len(body) + len(chunk) > 16 * 1024:
+                application_registry.increment("measurements_rejected")
+                return JSONResponse(status_code=413, content={"error": {
+                    "code": "PAYLOAD_TOO_LARGE", "message": "request body exceeds 16 KiB",
+                }})
+            body.extend(chunk)
+        measurement = parse_legacy_measurement(bytes(body))
         validate_legacy_measurement(measurement)
         log_application(
             "legacy_measurement_received",
@@ -153,6 +180,7 @@ def create_app(
                 "# TYPE gateway_service_info gauge\n"
                 f'gateway_service_info{{security_mode="{config.security_mode}"}} 1\n'
                 f"{registry.render()}"
+                f"{application_registry.render()}"
             ),
             media_type="text/plain; version=0.0.4; charset=utf-8",
         )
@@ -160,7 +188,9 @@ def create_app(
     return app
 
 
-def _baseline_transport(config: GatewayConfig, failures: ApplicationFailures) -> BaselineTransport:
+def _baseline_transport(
+    config: GatewayConfig, failures: ApplicationFailures, metrics: GatewayMetrics,
+) -> BaselineTransport:
     """Construct the baseline client only for explicit classical-mode dispatch."""
     if config.security_mode == "classical":
         return BaselineCloudClient(
@@ -168,12 +198,14 @@ def _baseline_transport(config: GatewayConfig, failures: ApplicationFailures) ->
             timeout_seconds=config.cloud_timeout_seconds,
             max_retries=config.cloud_max_retries,
             before_attempt=failures.before_cloud_attempt,
+            metrics=metrics,
         )
     return UnavailableBaseline()
 
 
 def _secure_transport(
     config: GatewayConfig, metrics: PqcMetrics, failures: ApplicationFailures,
+    application_metrics: GatewayMetrics,
 ) -> SecureTransport:
     """Compose the one fail-closed Gateway secure path for Modernized Mode."""
     injector = CryptoFailureInjector.from_config(config)
@@ -192,6 +224,7 @@ def _secure_transport(
         before_attempt=failures.before_cloud_attempt,
         injector=injector,
         metrics=metrics,
+        application_metrics=application_metrics,
     )
 
 

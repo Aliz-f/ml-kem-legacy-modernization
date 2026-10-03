@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
+from edge_gateway.metrics import GatewayMetrics
 
 from edge_gateway.crypto.encoding import decode_binary
 from edge_gateway.crypto.secure_transport import SecureAcceptance, SecureTransport, SecureTransportError
@@ -325,3 +326,62 @@ def test_retry_count_must_be_a_non_negative_integer():
         SecureTransport(_Sessions(), cloud_url="http://127.0.0.1", timeout_seconds=1, max_retries=-1)
     with pytest.raises(ValueError):
         SecureTransport(_Sessions(), cloud_url="http://127.0.0.1", timeout_seconds=1, max_retries=True)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("responses, attempts, failures, retries", [
+    ([(202, {"status": "accepted", "record_id": "rec-1"})], 1, 0, 0),
+    ([(503, {}), (202, {"status": "accepted", "record_id": "rec-1"})], 2, 1, 1),
+    ([(409, {"error": {"code": "SESSION_EXPIRED"}}),
+      (202, {"status": "accepted", "record_id": "rec-1"})], 2, 1, 0),
+    ([(503, {})] * 3, 3, 3, 2),
+    ([(422, {})], 1, 1, 0),
+    ([(202, {})], 1, 1, 0),
+])
+def test_application_attempt_metrics_preserve_retry_and_recovery_semantics(
+    cloud, responses, attempts, failures, retries,
+):
+    url, script = cloud
+    script.responses = responses.copy()
+    transport = _transport(url, _Sessions(), sleep=lambda _: None)
+    if failures == attempts:
+        with pytest.raises(SecureTransportError):
+            _send(transport)
+    else:
+        _send(transport)
+    text = transport.application_metrics.render()
+    for name, value in {"cloud_requests": attempts, "cloud_failures": failures,
+                        "cloud_retries": retries}.items():
+        assert f"gateway_{name}_total {value}\n" in text
+    assert f"gateway_cloud_request_duration_seconds_count {attempts}\n" in text
+    assert len(script.requests) == attempts
+
+
+def test_handshake_failure_does_not_count_a_measurement_http_attempt():
+    registry = GatewayMetrics()
+    sessions = _Sessions(SessionEstablishmentError("unavailable", retryable=False))
+    transport = SecureTransport(sessions, cloud_url="http://cloud.invalid", timeout_seconds=1,
+                                max_retries=2, application_metrics=registry)
+    with pytest.raises(SecureTransportError):
+        _send(transport)
+    assert "gateway_cloud_requests_total 0\n" in registry.render()
+    assert "gateway_cloud_failures_total 0\n" in registry.render()
+
+
+def test_gateway_exports_secure_attempt_metrics_from_shared_registry(cloud):
+    from fastapi.testclient import TestClient
+    from edge_gateway.app import create_app
+    from edge_gateway.config import load_config
+
+    url, _ = cloud
+    transport = _transport(url, _Sessions())
+    app = create_app(load_config({"SECURITY_MODE": "mlkem"}), secure_transport=transport,
+                     application_metrics=transport.application_metrics,
+                     pqc_metrics=transport.metrics)
+    with TestClient(app) as client:
+        assert client.post("/api/v1/measurements", json={
+            "device_id": "sensor-001", "temperature_c": 21.7, "humidity_pct": 42.5,
+            "timestamp": "2026-09-21T13:45:31Z", "sequence_number": 1,
+        }).status_code == 202
+        text = client.get("/metrics").text
+        assert "gateway_cloud_requests_total 1\n" in text
+        assert "gateway_cloud_failures_total 0\n" in text

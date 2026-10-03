@@ -21,7 +21,7 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
 | `GET /ready` | `200 {"status":"ready","security_mode":"..."}` when the configured transport is initialized; otherwise `503 SERVICE_UNAVAILABLE` |
 | `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema/domain values → `422`; duplicate/out-of-order → `409`; `202` only after confirmed Cloud acceptance; unavailable delivery → `503` |
-| `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
+| `GET /metrics` | Prometheus text with application, Cloud-attempt, injection, and PQC metrics. `gateway_pqc_fallback_total` stays 0 |
 
 M2-12 connects validation, sequence tracking, normalization, correlation, and
 selected transport delivery for roadmap Phase 3 / Member 2 Gate A. M2-13 now
@@ -348,7 +348,8 @@ failures after commit, another update during pending delivery, and concurrent
 equal/different sequences, alongside the M2-10 policy cases. These are component
 tests using delivery stubs. M2-12 adds HTTP route tests with transport stubs that
 verify commit timing, concurrent requests, and failure retention. Real Cloud
-integration and application metrics remain separate tasks.
+integration is covered by M2-16/17; application metrics are documented in
+[PR9 metrics and operations](docs/gateway-pr9.md).
 ## Legacy measurement endpoint (M2-12)
 
 `POST /api/v1/measurements` captures UTC receipt time, parses JSON, validates

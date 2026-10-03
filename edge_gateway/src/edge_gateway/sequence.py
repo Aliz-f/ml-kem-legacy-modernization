@@ -5,6 +5,7 @@ from threading import Lock
 
 from edge_gateway.application_log import log_application
 from edge_gateway.errors import GatewayError, GatewayErrorCode
+from edge_gateway.metrics import GatewayMetrics
 
 
 class SequenceTracker:
@@ -19,7 +20,8 @@ class SequenceTracker:
     Instances do not share state across processes or persist it to storage.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, metrics: GatewayMetrics | None = None) -> None:
+        self._metrics = metrics or GatewayMetrics()
         self._last_sequence: dict[str, int] = {}
         self._lock = Lock()
 
@@ -33,12 +35,16 @@ class SequenceTracker:
             previous = self._last_sequence.get(device_id)
             if previous is not None:
                 if sequence_number == previous:
+                    self._metrics.increment("duplicate_measurements")
+                    self._metrics.increment("measurements_rejected")
                     log_application(
                         "sequence_duplicate_detected", logging.WARNING,
                         device_id=device_id, sequence_number=sequence_number,
                     )
                     raise GatewayError(GatewayErrorCode.DUPLICATE_SEQUENCE)
                 if sequence_number < previous:
+                    self._metrics.increment("out_of_order_measurements")
+                    self._metrics.increment("measurements_rejected")
                     log_application(
                         "sequence_out_of_order_detected", logging.WARNING,
                         device_id=device_id, sequence_number=sequence_number,
@@ -48,6 +54,7 @@ class SequenceTracker:
             self._last_sequence[device_id] = sequence_number
 
         if previous is not None and sequence_number > previous + 1:
+            self._metrics.increment("sequence_gaps")
             log_application(
                 "sequence_gap_detected",
                 device_id=device_id,

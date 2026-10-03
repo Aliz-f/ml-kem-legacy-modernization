@@ -46,7 +46,7 @@ def test_review_matches_the_secure_path() -> None:
     assert "UNIQUE(device_id, sequence_number)" in _text(
         "cloud_service/src/cloud_service/storage/database.py"
     )
-    assert "_secure_transport(settings, registry, failures)" in _text(
+    assert "_secure_transport(settings, registry, failures, application_registry)" in _text(
         "edge_gateway/src/edge_gateway/app.py"
     )
 

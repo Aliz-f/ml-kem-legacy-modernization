@@ -9,6 +9,7 @@ from edge_gateway.correlation import create_request_id
 from edge_gateway.errors import GatewayError, GatewayErrorCode
 from edge_gateway.failure.runtime import ApplicationFailures
 from edge_gateway.models import CanonicalMeasurement, LegacyMeasurement
+from edge_gateway.metrics import GatewayMetrics
 from edge_gateway.normalization import normalize
 from edge_gateway.sequence import SequenceTracker
 from edge_gateway.transport import CloudDeliveryError, CloudTransport
@@ -37,15 +38,18 @@ class MeasurementProcessor:
         self, *, gateway_id: str, dispatch: CloudTransport | None,
         processing_hook: ProcessingHook | None = None,
         failures: ApplicationFailures | None = None,
+        metrics: GatewayMetrics | None = None,
     ) -> None:
         self._failures = failures
         self._gateway_id = gateway_id
         self._dispatch = dispatch
         self._processing_hook = processing_hook
-        self._sequences = SequenceTracker()
+        self._metrics = metrics or GatewayMetrics()
+        self._sequences = SequenceTracker(self._metrics)
 
     async def process(self, measurement: LegacyMeasurement, *, received_at: datetime) -> None:
         self._sequences.check_and_update(measurement.device_id, measurement.sequence_number)
+        self._metrics.increment("measurements_accepted")
         canonical = normalize(measurement, gateway_id=self._gateway_id, received_at=received_at)
         request_id = create_request_id()
         log_application(

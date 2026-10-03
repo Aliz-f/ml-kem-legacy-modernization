@@ -3,6 +3,9 @@
 This note defines Member 2 PR8 behavior. It does not change the frozen protocol
 or move cryptographic logging from Member 3.
 
+For application/Cloud metrics, the 16 KiB Legacy body limit, and lifecycle
+cleanup, see [PR9 metrics and operations](gateway-pr9.md).
+
 ## M2-29 — Liveness
 
 `GET /health` returns `200 {"status":"ok"}` while the application lifespan is

@@ -39,6 +39,7 @@ jobs:
           edge_gateway/tests/test_kdf.py
           edge_gateway/tests/test_symmetric.py
           edge_gateway/tests/test_secure_envelope.py
+          edge_gateway/tests/test_crypto_review_checklist.py
           edge_gateway/tests/test_transport_trust.py
           edge_gateway/tests/test_security_logging.py
           edge_gateway/tests/test_secure_transport.py
@@ -66,3 +67,5 @@ jobs:
             sleep 1
           done
           exit 1
+      - name: Run Compose recovery regression
+        run: uv run pytest tests/integration/test_gateway_compose_e2e.py

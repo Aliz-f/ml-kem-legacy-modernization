@@ -42,9 +42,9 @@ These are not checklist failures. They are recorded for the team before freeze.
 
 - Session invalidation is scoped to the rejected envelope's `session_id`. A delayed concurrent 409 therefore cannot discard a replacement session that another request has established. The session tests cover preservation of a replacement on a mismatched invalidation ID.
 - The single post after session recovery goes through `_post`, not `_deliver`, so a timeout on that post is not retried. The request fails closed. This keeps the one-recovery-attempt bound.
-- The Docker image tests (`test_clean_container_crypto.py` and `test_gateway_crypto_image.py`) have not run on this machine. CI or a machine with Docker must run them before freeze.
+- The historical review machine did not run the Docker image tests. They subsequently passed on 2026-10-04 with Docker available: `uv run pytest -q tests/integration/test_clean_container_crypto.py tests/integration/test_gateway_crypto_image.py` (8 passed).
 - `GET /ready` now checks the running application and initialized configured transport. It does not establish or require an active ML-KEM session and does not probe Cloud.
-- The M3-76 follow-ups remain open: moving the lock to `cryptography` 50.0.2, and the Graphify refresh script choosing an LLM labeling backend when a `claude` CLI is on `PATH`.
+- The `cryptography` 50.0.2 lock follow-up is complete. The Graphify refresh script selecting an LLM labeling backend when a `claude` CLI is on `PATH` remains repository-tooling work outside the Gateway crypto protocol.
 
 ## Review result
 

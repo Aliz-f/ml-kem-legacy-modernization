@@ -18,10 +18,10 @@ them, verify identical fixed info bytes, and check the exact Cloud library
 parameters including `salt=None`. Separate tests cover deterministic derivation,
 input validation and safe vendor failures.
 
-This is primitive interoperability, not an HTTP session or secure E2E test.
-No Gateway code or dependency changes are needed. M4-23 session models and
-later processing are not started. The M4-17 Docker runtime verification deferral
-to M4-81/M4-83 remains unchanged.
+This original task established primitive interoperability rather than an HTTP
+session or secure E2E test. At that time M4-23 and later processing had not
+started; current session, secure-route, and Docker verification is documented
+in `final-integration-and-operations.md`.
 
 Run from the configured workspace environment:
 

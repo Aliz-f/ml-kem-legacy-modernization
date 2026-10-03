@@ -22,11 +22,10 @@ bytes are built explicitly because both production builders reject version 2
 before cryptography. Empty and arbitrary-byte plaintext tests demonstrate that
 the wrapper does not parse data. Test-only fixed keys are not runtime randomness.
 
-No Gateway, dependency or protocol files changed. There is no secure-envelope
-model or secure-ingestion route in this task; M4-33 and later work remain
-unstarted. HTTP mapping and plaintext validation belong to the later secure
-processing path. This is primitive interoperability, not secure-message E2E.
-M4-17 Docker runtime verification remains deferred to M4-81/M4-83.
+No Gateway, dependency or protocol files changed in this original primitive
+task. At that time, the secure-envelope route and later M4 work had not yet
+started. Current secure-route, Docker, and E2E verification is documented in
+`final-integration-and-operations.md`.
 
 Run `uv run pytest cloud_service/tests/test_cloud_aead.py -q` in the configured
 workspace environment (`UV_NO_SYNC=1`; use `PYTHONUTF8=1` on Windows).

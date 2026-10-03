@@ -1,18 +1,18 @@
 # Cloud ML-KEM keys and public-key API (M4-16–M4-20)
 
 Cloud uses Member 3's existing [library decision](../../docs/architecture/ml-kem-library-decision.md):
-`cryptography>=48`, with **50.0.1** retained in the workspace lockfile. It is now
+`cryptography>=48`, with **50.0.2** retained in the workspace lockfile. It is now
 a direct Cloud dependency, so Cloud does not depend on Gateway being installed
 to use ML-KEM. No existing package version changed. The only lockfile additions
 associate Cloud with this dependency. Production Cloud code never imports
 Gateway; Cloud-local interoperability tests import its existing wrapper/parser.
 
-## Library and contract verification (M4-17: partially verified)
+## Library and contract verification (M4-17: complete)
 
-**M4-17 is not fully verified. Its Cloud Docker environment compatibility
-sub-requirement is explicitly deferred to M4-81 and M4-83.** The evidence below
-supports the library selection and local interoperability only; it does not
-close that sub-requirement.
+The original local library/interoperability evidence below was later augmented
+by M4-81/M4-83 deployment work. The current Cloud Dockerfile installs from the
+frozen lock, and CI plus the Compose integration tests verify startup, SQLite,
+ML-KEM initialization, `/health`, and `/ready` in the containerized service.
 
 The selected PyCA library supplies ML-KEM-768 key generation, raw public-key
 serialization and decapsulation. The [official ML-KEM API documentation](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/mlkem/)
@@ -22,8 +22,8 @@ existing Gateway wrapper exposes `(ciphertext, shared_secret)`. Cloud's
 `crypto/mlkem.py` exposes `generate_keypair() -> (public_bytes, private_handle)`
 and `decapsulate(ciphertext, private_handle) -> shared_secret`.
 
-Verified locally on Python 3.12.14, Windows, cryptography 50.0.1 and its
-OpenSSL 4.0.2 backend. Tests generate Cloud keys, pass raw public bytes through
+Historical local verification ran on Python 3.12.14, Windows, cryptography
+50.0.1 and its OpenSSL 4.0.2 backend. Tests generate Cloud keys, pass raw public bytes through
 the existing Gateway encapsulation wrapper, and check equal secrets. Endpoint
 tests also use the existing Gateway public-response parser. No new algorithm,
 parameter negotiation, RNG or primitive implementation was introduced. Key
@@ -32,16 +32,15 @@ generation uses the maintained library's randomness; `FAILURE_SEED` is unused.
 This is implementation-level alignment with Member 3's recorded decision, not
 a claim of a new conversation or peer approval.
 
-### Strongest currently available container compatibility evidence
+### Historical and current container compatibility evidence
 
-The revision inspection confirmed that `cloud_service/Dockerfile` does not
-exist and `docker-compose.yml` contains only `services: {}`. Neither Docker nor
-Podman is available on PATH. The available WSL launcher returned usage text
-for `wsl --list --quiet`, so it did not establish a usable Linux runtime.
-There is no defined Cloud base image, architecture or container backend to
-verify without starting later deployment tasks.
+The following paragraph records the original pre-deployment inspection; it is
+historical evidence, not the current deployment state. The current repository
+has `cloud_service/Dockerfile` and Compose Cloud/Gateway services. CI builds the
+Cloud image and probes `/health` and `/ready`; the Compose E2E suite exercises
+Cloud startup and delivery in both security modes.
 
-Static inspection of `uv.lock` found cryptography 50.0.1 `cp39-abi3`
+At the time of that inspection, `uv.lock` contained cryptography 50.0.1 `cp39-abi3`
 manylinux and musllinux wheel entries, including x86_64 and aarch64, and cffi
 2.1.1 `cp312` Linux wheel entries. These are artifact candidates for Python
 3.12, not proof that the eventual image can install or run ML-KEM.
@@ -52,7 +51,7 @@ The following additional check succeeded on the current Python 3.12 host:
 uv sync --frozen --package cloud-service --no-dev --python-platform x86_64-unknown-linux-gnu --dry-run
 ```
 
-UV produced a Linux-target installation plan using the unchanged locked
+UV produced a Linux-target installation plan using the then-locked
 cryptography 50.0.1, cffi 2.1.1 and pydantic-core 2.46.5 versions. This was a
 **dry run**: it did not download/install Linux packages, build a Cloud image,
 execute a Linux backend, or alter the project environment or lockfile. The
@@ -60,20 +59,17 @@ target is a compatibility probe, not a decision about the future Docker image.
 Native Windows wrapper/lifecycle tests provide actual execution evidence only
 for the host described above.
 
-### Deferred verification and completion gate
+### Completion evidence
 
-| Task | Required evidence to close the deferred M4-17 sub-requirement |
+| Task | Completed evidence |
 | --- | --- |
-| M4-81 — Dockerize Cloud Service (Member 4) | Create the designated Cloud Dockerfile; use the required Python version and frozen uv installation; demonstrate successful crypto dependency installation on the chosen image/architecture. |
-| M4-83 — Docker readiness verification (Member 4, coordinated with Member 5 integration) | From a clean image build, verify Cloud startup, SQLite initialization, ML-KEM key initialization, `/health` and the then-complete `/ready`; run the Cloud ML-KEM/Gateway interoperability tests against that actual container backend without local-machine assumptions. |
+| M4-81 — Dockerize Cloud Service (Member 4) | `cloud_service/Dockerfile` uses Python 3.12 and a frozen `uv` install; the Cloud image is built by CI and Compose tests. |
+| M4-83 — Docker readiness verification (Member 4, coordinated with Member 5 integration) | CI starts the Cloud image in `mlkem` mode and probes `/health` and `/ready`; Compose tests verify Cloud startup, health/readiness, and delivery in both modes. |
 
-Record image/base, Python, crypto/backend versions and actual command results
-when those tasks run. **Until then, Cloud container runtime compatibility is
-unverified and M4-17 remains partially verified.** M4-81/M4-83 are not started
-by this revision. The current `/ready` returning 503 is not successful M4-83
-readiness evidence. Unsupported key initialization continues to fail closed.
-No Docker infrastructure, implementation, tests, dependency versions or
-lockfile changes were needed for this review revision.
+The pre-deployment statements above remain historical. Current container
+verification is recorded in the CI workflow and
+`tests/integration/test_gateway_compose_e2e.py`; unsupported key
+initialization continues to fail closed.
 
 ## Lifetime and mode behavior
 

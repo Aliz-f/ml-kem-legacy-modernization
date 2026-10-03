@@ -2,11 +2,11 @@
 
 This note records Member 3's review of the crypto dependencies in `uv.lock` and how the Gateway and Cloud source use them. It does not change a dependency, the lock, or the protocol.
 
-Reviewed areas: unnecessary packages, unmaintained packages, duplicate crypto libraries, and unsafe low-level usage. Checked on 2026-10-02 against `uv.lock`, `uv tree --frozen`, PyPI, and the OSV database.
+Reviewed areas: unnecessary packages, unmaintained packages, duplicate crypto libraries, and unsafe low-level usage. Checked on 2026-10-04 against `uv.lock`, `uv tree --frozen`, PyPI, and the OSV database.
 
 ## One crypto stack
 
-`cryptography` 50.0.1 from `pyca/cryptography` is the only crypto library in the lock. It provides ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. Its only dependency is `cffi` 2.1.1, which needs `pycparser` 3.0. Both are also PyCA projects. `edge_gateway` and `cloud_service` both declare `cryptography>=48`, so the lock resolves them to the same release.
+`cryptography` 50.0.2 from `pyca/cryptography` is the only crypto library in the lock. It provides ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. Its only dependency is `cffi` 2.1.1, which needs `pycparser` 3.0. Both are also PyCA projects. `edge_gateway` and `cloud_service` both declare `cryptography>=48`, so the lock resolves them to the same release.
 
 The lock has no `pycryptodome`, `pycryptodomex`, `pynacl`, `liboqs-python`, `pqcrypto`, `kyber-py`, or `quantcrypt`. No source file imports any of them. The library decision in `docs/architecture/ml-kem-library-decision.md` still holds.
 
@@ -25,7 +25,7 @@ The lock has no `pycryptodome`, `pycryptodomex`, `pynacl`, `liboqs-python`, `pqc
 
 On 2026-10-02, OSV returned no advisories for the locked versions of `cryptography`, `cffi`, `pycparser`, `fastapi`, `starlette`, `uvicorn`, `h11`, `pydantic`, `pydantic-core`, `anyio`, `idna`, `click`, `httpx`, `httpcore`, and `certifi`. All of them had a release in 2026.
 
-`cryptography` 50.0.2 was released on 2026-09-30. Its changelog says the wheels are built with OpenSSL 4.0.3 instead of 4.0.2, adds free-threaded CPython 3.15 wheels, and updates PyO3. It does not change the Python API that the Gateway or Cloud uses. Moving the lock to 50.0.2 is a dependency change and is left as a follow-up. It is not part of this review.
+`cryptography` 50.0.2 was released on 2026-09-30. Its changelog says the wheels are built with OpenSSL 4.0.3 instead of 4.0.2, adds free-threaded CPython 3.15 wheels, and updates PyO3. It does not change the Python API that the Gateway or Cloud uses. The lock now uses 50.0.2; this review remains scoped to the checked source and lock, not future advisories.
 
 ## Low-level usage
 
@@ -53,4 +53,4 @@ These items are not defects in protocol v1. They are recorded for M3-78.
 
 ## Review result
 
-The project uses one maintained crypto library for ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. No duplicate crypto library, unnecessary runtime package, known advisory, or unsafe low-level call was found. The one recommended follow-up is a separate dependency task to move the lock to `cryptography` 50.0.2.
+The project uses one maintained crypto library for ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. No duplicate crypto library, unnecessary runtime package, known advisory, or unsafe low-level call was found. The lock is updated to `cryptography` 50.0.2.

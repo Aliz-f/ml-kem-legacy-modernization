@@ -12,6 +12,7 @@ CRYPTO_SUITES = (
     "edge_gateway/tests/test_kdf.py",
     "edge_gateway/tests/test_symmetric.py",
     "edge_gateway/tests/test_secure_envelope.py",
+    "edge_gateway/tests/test_crypto_review_checklist.py",
     "edge_gateway/tests/test_transport_trust.py",
     "edge_gateway/tests/test_security_logging.py",
     "edge_gateway/tests/test_secure_transport.py",

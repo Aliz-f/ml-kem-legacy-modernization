@@ -1,4 +1,27 @@
-# Gateway security technical debt
+# Gateway technical debt
+
+## Application and operations debt
+
+The initial synchronous Gateway intentionally stays small. These limitations
+are recorded rather than hidden or expanded into unapproved infrastructure.
+
+| Technical debt | Impact | Future improvement |
+| --- | --- | --- |
+| In-memory sequence state | Accepted sequence state is lost on restart | Persistent lightweight state |
+| No message buffer | Cloud outage propagates to Legacy as a delivery failure | Store-and-forward queue |
+| Synchronous forwarding | Legacy response latency includes Cloud delivery | Asynchronous queue with an explicitly redesigned acceptance contract |
+| Simple retry policy | Independent Legacy and Gateway retries can amplify failures | Jitter, backoff, or circuit breaker after an approved retry-contract change |
+| No strong Legacy authentication | A network client can claim a device identifier | Provisioned device credentials and authenticated transport |
+| Single Gateway process | One process is a service availability limit | Multiple coordinated Gateway instances with shared sequence state |
+| Limited ingress protection | The 16 KiB body limit does not provide rate limiting or client authorization | Rate limiting and authenticated ingress |
+
+The current behavior remains deliberate: Gateway commits a valid observed
+sequence before Cloud delivery, returns `202` only after Cloud acceptance, and
+returns a classified failure when synchronous delivery cannot finish. Adding a
+queue or asynchronous acceptance would change those contracts and therefore
+requires an architecture update before implementation.
+
+## Security debt
 
 This register records the security limits Member 3 keeps for the course system. Each row names the debt, the risk, and a future improvement. These future improvements are recorded only. This course system does not add TLS, a persistent session store, an HSM, a replay window, or automated key rotation.
 

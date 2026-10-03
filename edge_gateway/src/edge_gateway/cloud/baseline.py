@@ -5,15 +5,20 @@ from __future__ import annotations
 import asyncio
 import http.client
 import json
+import logging
 import math
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass
+from threading import Condition
 from urllib.parse import urljoin, urlparse
 
+from edge_gateway.application_log import log_application
 from edge_gateway.correlation import baseline_headers
+from edge_gateway.transport import CloudDeliveryError
+from edge_gateway.metrics import GatewayMetrics
 
 
 _PATH = "api/v1/baseline/measurements"
@@ -22,7 +27,7 @@ _RETRYABLE_STATUS = frozenset({500, 502, 503, 504})
 _ACCEPTED_STATUS = frozenset({"accepted", "already_accepted"})
 
 
-class BaselineCloudError(Exception):
+class BaselineCloudError(CloudDeliveryError):
     """A classified baseline delivery failure without remote error details."""
 
     def __init__(self, message: str, *, retryable: bool, code: str | None = None) -> None:
@@ -52,6 +57,8 @@ class BaselineCloudClient:
     def __init__(
         self, *, cloud_url: str, timeout_seconds: float, max_retries: int,
         sleep: Callable[[float], None] = time.sleep,
+        before_attempt: Callable[[str], None] | None = None,
+        metrics: GatewayMetrics | None = None,
     ) -> None:
         if (
             isinstance(timeout_seconds, bool)
@@ -65,8 +72,26 @@ class BaselineCloudClient:
         self._endpoint = _endpoint(cloud_url)
         self._timeout_seconds = float(timeout_seconds)
         self._max_retries = max_retries
+        self._before_attempt = before_attempt
         self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
+        self.metrics = metrics or GatewayMetrics()
+        self._closed = False
+        self._io_condition = Condition()
+        self._active_attempts = 0
+
+    @property
+    def is_ready(self) -> bool:
+        return not self._closed
+
+    def shutdown(self) -> None:
+        """Reject new work and close after any current HTTP attempt finishes."""
+        with self._io_condition:
+            self._closed = True
+            self._io_condition.wait_for(lambda: self._active_attempts == 0)
+            if self._opener is not None:
+                self._opener.close()
+                self._opener = None
 
     async def send(
         self,
@@ -81,6 +106,8 @@ class BaselineCloudClient:
         received_at: str,
     ) -> BaselineAcceptance:
         """Serialize once, then retry only classified transient delivery failures."""
+        if self._closed:
+            raise BaselineCloudError("Baseline transport is closed.", retryable=False)
         body = _dump(
             gateway_id=gateway_id,
             device_id=device_id,
@@ -96,6 +123,10 @@ class BaselineCloudClient:
         """Retry the same logical baseline request at most ``max_retries`` times."""
         failure: BaselineCloudError | None = None
         for attempt in range(self._max_retries + 1):
+            if self._closed:
+                raise BaselineCloudError("Baseline transport is closed.", retryable=False)
+            if attempt:
+                self.metrics.increment("cloud_retries")
             try:
                 return self._post(body, request_id)
             except BaselineCloudError as exc:
@@ -103,6 +134,13 @@ class BaselineCloudClient:
                     raise
                 failure = exc
                 if attempt < self._max_retries:
+                    log_application(
+                        "cloud_delivery_retry", logging.WARNING,
+                        request_id=request_id,
+                        security_mode="classical",
+                        attempt=attempt + 2,
+                        reason="transport",
+                    )
                     # Frozen Gateway backoff: 1 second before retry two, then 2.
                     self._sleep(2.0**attempt)
         if failure is None:  # Defensive: every exhausted iteration is retryable.
@@ -110,6 +148,19 @@ class BaselineCloudClient:
         raise failure
 
     def _post(self, body: bytes, request_id: str) -> BaselineAcceptance:
+        with self._io_condition:
+            if self._closed:
+                raise BaselineCloudError("Baseline transport is closed.", retryable=False)
+            self._active_attempts += 1
+        try:
+            with self.metrics.cloud_attempt():
+                return self._post_request(body, request_id)
+        finally:
+            with self._io_condition:
+                self._active_attempts -= 1
+                self._io_condition.notify_all()
+
+    def _post_request(self, body: bytes, request_id: str) -> BaselineAcceptance:
         request = urllib.request.Request(
             self._endpoint,
             data=body,
@@ -117,6 +168,8 @@ class BaselineCloudClient:
             headers={"Content-Type": "application/json", **baseline_headers(request_id)},
         )
         try:
+            if self._before_attempt is not None:
+                self._before_attempt(request_id)
             with self._opener.open(request, timeout=self._timeout_seconds) as response:
                 payload = response.read(_MAX_BODY_BYTES + 1)
                 status = response.status

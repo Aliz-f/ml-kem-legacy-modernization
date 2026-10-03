@@ -22,6 +22,7 @@ DEFAULTS: dict[str, str] = {
     "FAILURE_MODE": "none",
     "FAILURE_RATE": "0.0",
     "FAILURE_SEED": "",
+    "FAILURE_DELAY_SECONDS": "2",
     "LOG_LEVEL": "INFO",
 }
 
@@ -65,6 +66,7 @@ class GatewayConfig:
     failure_rate: float
     failure_seed: str | None
     log_level: str
+    failure_delay_seconds: float = 2.0
 
 
 def load_config(environ: Mapping[str, str] | None = None) -> GatewayConfig:
@@ -84,6 +86,7 @@ def load_config(environ: Mapping[str, str] | None = None) -> GatewayConfig:
         ),
         failure_mode=_allowed_value(source, "FAILURE_MODE", KNOWN_FAILURE_MODES),
         failure_rate=_failure_rate(source),
+        failure_delay_seconds=_failure_delay(source),
         failure_seed=_value(source, "FAILURE_SEED").strip() or None,
         log_level=_required_text(source, "LOG_LEVEL").upper(),
     )
@@ -171,4 +174,14 @@ def _failure_rate(environ: Mapping[str, str]) -> float:
         raise ConfigurationError("FAILURE_RATE must be a number") from error
     if not math.isfinite(value) or not 0.0 <= value <= 1.0:
         raise ConfigurationError("FAILURE_RATE must be between 0.0 and 1.0")
+    return value
+
+
+def _failure_delay(environ: Mapping[str, str]) -> float:
+    try:
+        value = float(_value(environ, "FAILURE_DELAY_SECONDS"))
+    except (TypeError, ValueError) as error:
+        raise ConfigurationError("FAILURE_DELAY_SECONDS must be a number") from error
+    if not math.isfinite(value) or not 0 <= value <= 30:
+        raise ConfigurationError("FAILURE_DELAY_SECONDS must be between 0 and 30")
     return value

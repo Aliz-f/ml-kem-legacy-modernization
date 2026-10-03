@@ -1,4 +1,4 @@
-# AI Task 0129 — Harden secure transport error handling and message-phase metric
+# AI Task 0139 — Harden secure transport error handling and message-phase metric
 
 **Status:** Complete
 

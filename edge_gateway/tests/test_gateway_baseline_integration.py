@@ -77,9 +77,7 @@ def live_service(app, logger_name):
             url = f"http://127.0.0.1:{listener.getsockname()[1]}"
             with httpx.Client(base_url=url, timeout=5, trust_env=False) as query:
                 assert query.get("/health").status_code == 200
-                # Cloud now checks dependencies; Gateway readiness is still a placeholder.
-                expected_ready = 200 if logger_name == "cloud_service" else 503
-                assert query.get("/ready").status_code == expected_ready
+                assert query.get("/ready").status_code == 200
                 yield url, query
         finally:
             server.should_exit = True

@@ -2,6 +2,9 @@
 
 ## Application skeleton (M2-02)
 
+The completed Member 2 implementation and its final M2-53 through M2-69 audit
+are indexed in [PR13 final evaluation](docs/pr13-final-evaluation.md).
+
 From the repository root:
 
 ```bash
@@ -19,17 +22,18 @@ start a server. Invalid configuration prevents startup with a sanitized error.
 | Route | Current behavior |
 | --- | --- |
 | `GET /health` | `200 {"status":"ok"}` while the application is running |
-| `GET /ready` | `503 SERVICE_UNAVAILABLE` pending the operational readiness task |
+| `GET /ready` | `200 {"status":"ready","security_mode":"..."}` when the configured transport is initialized; otherwise `503 SERVICE_UNAVAILABLE` |
 | `POST /api/v1/measurements` | Invalid JSON → `400`; invalid schema/domain values → `422`; duplicate/out-of-order → `409`; `202` only after confirmed Cloud acceptance; unavailable delivery → `503` |
-| `GET /metrics` | Prometheus text with bounded `gateway_service_info` and PQC counters. `gateway_pqc_fallback_total` stays 0 |
+| `GET /metrics` | Prometheus text with application, Cloud-attempt, injection, and PQC metrics. `gateway_pqc_fallback_total` stays 0 |
 
 M2-12 connects validation, sequence tracking, normalization, correlation, and
 selected transport delivery for roadmap Phase 3 / Member 2 Gate A. M2-13 now
 constructs the baseline HTTP client automatically for explicit
 `SECURITY_MODE=classical`; M2-14 adds its bounded retry loop. `create_app` still
-accepts transport dependencies for tests and secure-mode composition. Readiness
-remains unavailable pending M2-30/M2-31; it does not depend on an active secure
-session. There is no plaintext fallback.
+accepts transport dependencies for tests and secure-mode composition. M2-29
+through M2-31 provide liveness and local transport readiness. Secure readiness
+does not establish or require an active session and does not probe Cloud. There
+is no plaintext fallback.
 
 `create_app(load_config(mapping))` supports isolated test configuration.
 Routes obtain settings through `get_config`, which tests can replace with
@@ -105,7 +109,7 @@ codes. Application exception handlers always return
 | `OUT_OF_ORDER_SEQUENCE` | 409 | Older sequence rejected |
 | `CLOUD_UNAVAILABLE` | 503 | Cloud/secure delivery unavailable after its retry policy |
 | `INTERNAL_ERROR` | 500 | Unexpected application failure |
-| `SERVICE_UNAVAILABLE` | 503 | Operational readiness placeholder |
+| `SERVICE_UNAVAILABLE` | 503 | Gateway is not running or its configured transport is not initialized |
 
 Later sequence and transport stages can raise `GatewayError(code)` once their
 own policies determine a failure. M2-06 defines their error contracts only;
@@ -171,7 +175,8 @@ uv run pytest edge_gateway/tests/test_gateway_baseline_integration.py -q
 This covers the Member 2 client boundary and complements the Cloud-local
 serializer harness. The M2-17 tests below extend it through the Legacy boundary.
 Cloud health and dependency readiness both return `200`. Gateway readiness
-remains a `503` placeholder pending its owning readiness task.
+returns `200` after its configured local transport is initialized; it does not
+probe Cloud connectivity.
 
 ## First full baseline E2E support (M2-17)
 
@@ -206,9 +211,15 @@ This is Member 2's transformation evidence for the Phase 5 baseline milestone.
 Member 5 retains ownership of shared E2E orchestration, deployment, and baseline
 freeze coordination. These tests use the deterministic send path, not the
 continuous sensor loop or Docker Compose. Both services' `/health` endpoints
-return `200`; Cloud `/ready` returns `200`, while Gateway `/ready` remains a
-`503` placeholder. Compose currently has no
-service definitions, so this does not establish container deployment readiness.
+return `200`; both services' `/ready` endpoints also return `200` after their
+local dependencies initialize. The M2-49 through M2-52 container regression
+now covers the same contract through the real Gateway and Cloud images; see
+[Gateway Docker and container regression](docs/gateway-docker-e2e.md).
+
+The current Gateway `/ready` response reports local application and transport
+readiness. It deliberately does not establish an ML-KEM session or contact
+Cloud, so a later measurement can still receive `503 CLOUD_UNAVAILABLE` if
+Cloud cannot be reached. See [Gateway operations](docs/gateway-operations.md).
 
 ## Baseline Gateway measurements (M2-18)
 
@@ -341,7 +352,8 @@ failures after commit, another update during pending delivery, and concurrent
 equal/different sequences, alongside the M2-10 policy cases. These are component
 tests using delivery stubs. M2-12 adds HTTP route tests with transport stubs that
 verify commit timing, concurrent requests, and failure retention. Real Cloud
-integration and application metrics remain separate tasks.
+integration is covered by M2-16/17; application metrics are documented in
+[PR9 metrics and operations](docs/gateway-pr9.md).
 ## Legacy measurement endpoint (M2-12)
 
 `POST /api/v1/measurements` captures UTC receipt time, parses JSON, validates
@@ -367,8 +379,9 @@ sanitized `500 INTERNAL_ERROR`. The route performs no extra retry loop.
 Only confirmed delivery returns `202 {"status":"accepted"}`. Cloud record IDs
 and transport details are not exposed to Legacy. The optional async
 `processing_hook(canonical, request_id)` runs after sequence commit and before
-Cloud delivery; no hook is active by default. Concrete processing fault modes
-remain M2-19 onward. Exceptions from the hook use the existing safe error mapping.
+Cloud delivery. Configured application faults run at this boundary before the
+optional hook; faults are disabled by default. Exceptions use the existing safe
+error mapping.
 
 A failed delivery or processing hook never rolls sequence state back. For
 example, sequence `10` followed by a Cloud failure returns `503`; resending `10`
@@ -385,6 +398,15 @@ They do not claim real baseline Cloud persistence or baseline E2E readiness.
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_measurements.py
 ```
+
+## Secure transport integration (M2-26 through M2-28)
+
+The application processor uses a mode-independent `CloudTransport` contract.
+`CloudDispatch` selects the classical or ML-KEM path once from validated
+configuration and never falls back to plaintext after a secure failure. The
+Legacy endpoint and payload remain unchanged in both modes. See
+[the integration note](docs/secure-transport-integration.md) for ownership,
+behavior, and live compatibility evidence.
 
 ## Baseline Cloud client (M2-13)
 
@@ -436,8 +458,8 @@ When a secure transport is attached, Gateway shutdown stops accepting work, clos
 The Gateway crypto dependencies install from the frozen lock as Linux wheels.
 `edge_gateway/docker/crypto-image.Dockerfile` is a Python 3.12 bookworm image
 with no compiler. It runs `uv sync --frozen --package edge-gateway --no-dev`
-and then checks ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. The service image
-`edge_gateway/Dockerfile` remains Member 2's task. Details are in
+and then checks ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. The production
+`edge_gateway/Dockerfile` now supplies the Member 2 service image. Details are in
 [docs/crypto-image.md](docs/crypto-image.md).
 
 ## Clean-container crypto test (M3-62)
@@ -475,11 +497,12 @@ The Gateway security facts stay in the frozen Edge Gateway design and the
 shared protocol specification. This note points at those sections. It does not replace the frozen architecture. Details are in
 [docs/security.md](docs/security.md).
 
-## Security technical debt (M3-68)
+## Gateway technical debt (M2-57 and M3-68)
 
-The course system keeps simplified public-key trust, in-memory sessions, an
-ephemeral Cloud key, and no cryptographic replay window. The register records
-those limits and their future improvements. It does not add those future controls.
+The course system keeps synchronous Cloud forwarding, in-memory sequence and
+session state, limited Legacy ingress protection, simplified public-key trust,
+an ephemeral Cloud key, and no cryptographic replay window. The register records
+those application and security limits and their future improvements. It does not add those future controls.
 Details are in [docs/technical-debt.md](docs/technical-debt.md).
 
 ## Threat model (M3-69)
@@ -566,6 +589,7 @@ read its configuration directly from the environment.
 | `SESSION_TTL_SECONDS` | `300` | Exactly `300` for protocol v1 |
 | `PQC_FAILURE_POLICY` | `fail_closed` | `fail_closed` only for protocol v1 |
 | `FAILURE_MODE` | `none` | A documented Gateway failure mode |
+| `FAILURE_DELAY_SECONDS` | `2` | Processing delay, finite and between 0 and 30 seconds |
 | `FAILURE_RATE` | `0.0` | Number from 0.0 to 1.0 inclusive |
 | `FAILURE_SEED` | empty | Optional deterministic-test seed; empty means unset |
 | `LOG_LEVEL` | `INFO` | Non-empty |
@@ -574,7 +598,7 @@ read its configuration directly from the environment.
 `mlkem` setting selects only the supplied secure transport; missing or failed
 secure delivery returns `503` without a plaintext fallback.
 
-## Application failure-injection framework (M2-19)
+## Application failure injection (M2-19 through M2-25)
 
 `edge_gateway.failure.FailureInjector.from_config(config)` builds a local
 selector using `FAILURE_MODE`, `FAILURE_RATE`, and optional `FAILURE_SEED`.
@@ -591,12 +615,12 @@ injector per application and select once after validation, sequence acceptance,
 normalization, and request-ID creation; retain that decision across boundaries.
 Failure selection must never bypass validation or roll back sequence state.
 
-This task provides selection infrastructure only. M2-20 through M2-24 implement
-fault execution and route/transport wiring; setting an application failure mode
-does not yet inject a fault into live requests. The existing processing hook is
-available for that wiring. Execution hooks must log actual injection, preserve
-bounded transport retries, and never return success for a dropped measurement.
-The selector logs enablement and debug selection without claiming execution.
+The application composes the selector and execution hooks in both security modes.
+See [the task-by-task guide](docs/application-failure-injection.md) for behavior,
+configuration, verification, and limitations. Enabled application simulation emits
+`WARNING event=failure_injection_enabled` during startup. Applied faults emit
+`event=failure_injected` with the request ID and increment the existing
+`gateway_injected_failures_total{failure_type="..."}` counter.
 
 Member 3's crypto injector remains separate; crypto modes select no application
 fault. This framework does not generate keys/nonces/request IDs, mutate payloads,
@@ -605,3 +629,18 @@ or add network fields. Its private PRNG does not change global random state.
 ```bash
 uv run pytest edge_gateway/tests/test_gateway_failure_injector.py
 ```
+
+## Gateway test-suite hardening (M2-38 through M2-41)
+
+PR11 consolidates the Member 2 unit, route, exact validation-boundary, and
+sequence-policy requirements without moving Member 3's crypto tests. The route
+matrix uses a transport stub and the sequence tests preserve the frozen
+validation → sequence commit → Cloud delivery order, including after failure
+and under concurrent requests. See [the PR11 test-suite audit](docs/gateway-test-suite.md)
+for requirement-to-test mappings and the focused verification command.
+
+The remaining PR11 contract and failure work is documented in
+[Gateway contract and failure hardening](docs/gateway-contract-hardening.md).
+It covers frozen sequence timing, real Legacy/Gateway and baseline Cloud HTTP
+contracts, secure-contract reuse, bounded failure propagation, retry
+amplification, and validation-bypass prevention for M2-42 through M2-48.

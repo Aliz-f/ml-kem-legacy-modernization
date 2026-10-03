@@ -76,7 +76,7 @@ def test_crypto_review_checklist_requires_a_human_pass() -> None:
         "completes this checklist."
     ) in document
     assert "A passing test suite does not replace this checklist." in document
-    assert "Decision records are a later task." in document
+    assert "[ai-decisions.md](ai-decisions.md)" in document
     for item in CHECKS:
         assert f"\n- {item}\n" in document
 
@@ -133,4 +133,4 @@ def test_checklist_anchors_still_match_the_gateway() -> None:
         assert term not in handler
     ready = app.split("async def ready", 1)[1].split("@app.post", 1)[0]
     assert "session" not in ready
-    assert "_unavailable()" in ready
+    assert "dispatch.is_ready" in ready

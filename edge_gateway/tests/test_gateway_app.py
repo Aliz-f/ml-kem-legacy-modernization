@@ -20,29 +20,29 @@ def test_lifecycle_and_health(caplog):
             assert response.json() == {"status": "ok"}
         assert not app.state.running
     assert "event=gateway_starting component=edge_gateway security_mode=classical" in caplog.text
+    assert "event=gateway_ready component=edge_gateway security_mode=classical" in caplog.text
     assert "event=gateway_shutting_down component=edge_gateway" in caplog.text
-    assert "gateway_ready" not in caplog.text
 
 
 @pytest.mark.parametrize("mode", ["classical", "mlkem"])
-def test_registered_routes_never_claim_readiness_or_acceptance(mode):
+def test_readiness_is_local_and_delivery_still_requires_cloud(mode):
     config = load_config({
         "SECURITY_MODE": mode, "CLOUD_URL": "http://unreachable.invalid", "CLOUD_MAX_RETRIES": "0",
     })
     with TestClient(create_app(config)) as client:
         assert client.get("/health").status_code == 200
-        for response, code, message in [
-            (client.get("/ready"), "SERVICE_UNAVAILABLE", "service is not ready"),
-            (client.post("/api/v1/measurements", json={
-                "device_id": "sensor-001", "temperature_c": 21.7,
-                "humidity_pct": 42.5, "timestamp": "2026-09-21T13:45:31Z",
-                "sequence_number": 184,
-            }), "CLOUD_UNAVAILABLE", "cloud service is unavailable"),
-        ]:
-            assert response.status_code == 503
-            assert response.json() == {
-                "error": {"code": code, "message": message},
-            }
+        assert client.get("/ready").json() == {
+            "status": "ready", "security_mode": mode,
+        }
+        response = client.post("/api/v1/measurements", json={
+            "device_id": "sensor-001", "temperature_c": 21.7,
+            "humidity_pct": 42.5, "timestamp": "2026-09-21T13:45:31Z",
+            "sequence_number": 184,
+        })
+        assert response.status_code == 503
+        assert response.json() == {
+            "error": {"code": "CLOUD_UNAVAILABLE", "message": "cloud service is unavailable"},
+        }
         metrics = client.get("/metrics")
         assert metrics.status_code == 200
         assert metrics.headers["content-type"].startswith("text/plain; version=0.0.4")
@@ -68,6 +68,30 @@ def test_shutdown_runs_on_exception():
         with TestClient(app):
             raise RuntimeError("test exit")
     assert not app.state.running
+
+
+def test_mlkem_readiness_requires_initialized_transport_but_not_active_session():
+    class Secure:
+        is_ready = True
+
+        async def send(self, **fields):
+            raise AssertionError("readiness must not send or establish a session")
+
+        def shutdown(self):
+            self.is_ready = False
+
+    secure = Secure()
+    app = create_app(load_config({"SECURITY_MODE": "mlkem"}), secure_transport=secure)
+    assert app.state.pqc_metrics.active_session == 0
+    with TestClient(app) as client:
+        response = client.get("/ready")
+        assert response.status_code == 200
+        assert response.json() == {"status": "ready", "security_mode": "mlkem"}
+        secure.is_ready = False
+        response = client.get("/ready")
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
+    assert app.state.pqc_metrics.active_session == 0
 
 
 @pytest.mark.parametrize(("name", "value"), [

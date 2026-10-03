@@ -16,10 +16,12 @@ import logging
 from dataclasses import dataclass
 from typing import Protocol
 
+from edge_gateway.application_log import log_application
 from edge_gateway.config import GatewayConfig
 from edge_gateway.crypto.metrics import PqcMetrics
 from edge_gateway.crypto.secure_transport import SecureAcceptance, SecureTransport, SecureTransportError
 from edge_gateway.crypto.security_log import log_security
+from edge_gateway.transport import CloudDeliveryError
 
 
 class BaselineTransport(Protocol):
@@ -87,6 +89,19 @@ class CloudDispatch:
         """PQC counters. Fail-closed delivery does not increment the fallback counter."""
         return self._pqc_metrics
 
+    @property
+    def is_ready(self) -> bool:
+        """Report whether the configured local transport dependency is initialized.
+
+        This deliberately does not establish or require an ML-KEM session and
+        does not probe Cloud. Sessions remain lazy and delivery owns connectivity
+        failures.
+        """
+        if self._mode == "classical":
+            return self._baseline is not None and bool(getattr(self._baseline, "is_ready", True))
+        secure = self._secure
+        return secure is not None and bool(getattr(secure, "is_ready", True))
+
     async def send(
         self,
         *,
@@ -99,26 +114,55 @@ class CloudDispatch:
         received_at: str,
     ) -> object:
         """Deliver one measurement. A secure failure does not change mode."""
-        if self._mode == "classical":
-            return await self._baseline.send(
-                request_id=request_id,
-                gateway_id=self._gateway_id,
-                device_id=device_id,
-                temperature_c=temperature_c,
-                humidity_pct=humidity_pct,
-                measured_at=measured_at,
-                sequence_number=sequence_number,
-                received_at=received_at,
-            )
-        return await self._send_secure(
+        log_application(
+            "cloud_delivery_started",
             request_id=request_id,
-            device_id=device_id,
-            temperature_c=temperature_c,
-            humidity_pct=humidity_pct,
-            measured_at=measured_at,
             sequence_number=sequence_number,
-            received_at=received_at,
+            gateway_id=self._gateway_id,
+            security_mode=self._mode,
         )
+        try:
+            if self._mode == "classical":
+                result = await self._baseline.send(
+                    request_id=request_id,
+                    gateway_id=self._gateway_id,
+                    device_id=device_id,
+                    temperature_c=temperature_c,
+                    humidity_pct=humidity_pct,
+                    measured_at=measured_at,
+                    sequence_number=sequence_number,
+                    received_at=received_at,
+                )
+            else:
+                result = await self._send_secure(
+                    request_id=request_id,
+                    device_id=device_id,
+                    temperature_c=temperature_c,
+                    humidity_pct=humidity_pct,
+                    measured_at=measured_at,
+                    sequence_number=sequence_number,
+                    received_at=received_at,
+                )
+        except (CloudDeliveryError, TimeoutError, ConnectionError):
+            log_application(
+                "cloud_delivery_failed",
+                logging.WARNING,
+                request_id=request_id,
+                sequence_number=sequence_number,
+                gateway_id=self._gateway_id,
+                security_mode=self._mode,
+                reason="transport",
+            )
+            raise
+        log_application(
+            "cloud_delivery_succeeded",
+            request_id=request_id,
+            sequence_number=sequence_number,
+            gateway_id=self._gateway_id,
+            security_mode=self._mode,
+            status=getattr(result, "status", None),
+        )
+        return result
 
     async def _send_secure(
         self,

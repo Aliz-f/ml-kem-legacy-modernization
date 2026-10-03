@@ -1,2 +1,49 @@
-# Service definitions will be added when implementations exist.
-services: {}
+services:
+  cloud-service:
+    build:
+      context: .
+      dockerfile: cloud_service/Dockerfile
+    environment:
+      HOST: 0.0.0.0
+      PORT: 9000
+      CLOUD_ID: ${CLOUD_ID:-cloud-001}
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/cloud.db}
+      SECURITY_MODE: ${SECURITY_MODE:-classical}
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-300}
+      FAILURE_MODE: ${CLOUD_FAILURE_MODE:-none}
+      FAILURE_RATE: ${CLOUD_FAILURE_RATE:-0.0}
+      FAILURE_SEED: ${CLOUD_FAILURE_SEED:-3}
+      FAILURE_DELAY_SECONDS: ${CLOUD_FAILURE_DELAY_SECONDS:-2}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "127.0.0.1:${CLOUD_HOST_PORT:-9000}:9000"
+    volumes:
+      - cloud-data:/data
+
+  edge-gateway:
+    build:
+      context: .
+      dockerfile: edge_gateway/Dockerfile
+    depends_on:
+      cloud-service:
+        condition: service_healthy
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8000
+      GATEWAY_ID: ${GATEWAY_ID:-gateway-001}
+      CLOUD_URL: http://cloud-service:9000
+      CLOUD_TIMEOUT_SECONDS: ${CLOUD_TIMEOUT_SECONDS:-3}
+      CLOUD_MAX_RETRIES: ${CLOUD_MAX_RETRIES:-2}
+      SECURITY_MODE: ${SECURITY_MODE:-classical}
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-300}
+      PQC_FAILURE_POLICY: fail_closed
+      FAILURE_MODE: ${GATEWAY_FAILURE_MODE:-none}
+      FAILURE_RATE: ${GATEWAY_FAILURE_RATE:-0.0}
+      FAILURE_SEED: ${GATEWAY_FAILURE_SEED:-2}
+      FAILURE_DELAY_SECONDS: ${GATEWAY_FAILURE_DELAY_SECONDS:-2}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "127.0.0.1:${GATEWAY_HOST_PORT:-8000}:8000"
+
+volumes:
+  cloud-data:

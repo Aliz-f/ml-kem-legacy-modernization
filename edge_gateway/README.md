@@ -209,8 +209,9 @@ Member 5 retains ownership of shared E2E orchestration, deployment, and baseline
 freeze coordination. These tests use the deterministic send path, not the
 continuous sensor loop or Docker Compose. Both services' `/health` endpoints
 return `200`; both services' `/ready` endpoints also return `200` after their
-local dependencies initialize. Compose currently has no service definitions,
-so this does not establish container deployment readiness.
+local dependencies initialize. The M2-49 through M2-52 container regression
+now covers the same contract through the real Gateway and Cloud images; see
+[Gateway Docker and container regression](docs/gateway-docker-e2e.md).
 
 The current Gateway `/ready` response reports local application and transport
 readiness. It deliberately does not establish an ML-KEM session or contact
@@ -454,8 +455,8 @@ When a secure transport is attached, Gateway shutdown stops accepting work, clos
 The Gateway crypto dependencies install from the frozen lock as Linux wheels.
 `edge_gateway/docker/crypto-image.Dockerfile` is a Python 3.12 bookworm image
 with no compiler. It runs `uv sync --frozen --package edge-gateway --no-dev`
-and then checks ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. The service image
-`edge_gateway/Dockerfile` remains Member 2's task. Details are in
+and then checks ML-KEM-768, HKDF-SHA-256, and AES-256-GCM. The production
+`edge_gateway/Dockerfile` now supplies the Member 2 service image. Details are in
 [docs/crypto-image.md](docs/crypto-image.md).
 
 ## Clean-container crypto test (M3-62)

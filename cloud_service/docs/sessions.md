@@ -117,6 +117,7 @@ uv run pytest
 uv run ai-history check
 ```
 
-No dependency, Gateway or shared protocol changes are required. M4-30 and
-later work are not started. The M4-17 Docker runtime verification deferral to
-M4-81/M4-83 remains unchanged.
+No dependency, Gateway or shared protocol changes were required for this
+original session task. At that time M4-30 and later work had not started;
+current secure-route and Docker verification is documented in
+`final-integration-and-operations.md`.

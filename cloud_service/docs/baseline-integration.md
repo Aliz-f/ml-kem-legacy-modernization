@@ -8,10 +8,11 @@ in explicit `classical` mode with a fresh file-backed SQLite database.
 
 This verifies serializer-to-Cloud integration. It is **not a full Gateway HTTP
 client integration**: Gateway routing, normalization, sequence policy, retries,
-Legacy delivery, Docker networking and secure transport are not exercised. The
-full baseline E2E milestone still requires Member 2's Gateway application/client
-and Member 5's system integration. No Gateway source or production Cloud code
-was changed for these tasks. M4-16 is not started.
+Legacy delivery, Docker networking and secure transport are not exercised. At
+the time of these tasks, the full baseline E2E milestone still required Member
+2's Gateway application/client and Member 5's system integration, and M4-16
+had not started. No Gateway source or production Cloud code was changed for
+these tasks.
 
 ## Reproduce
 
@@ -37,8 +38,9 @@ Checks cover all seven canonical fields (timestamps compared as UTC instants),
 `cloud_received_at`, the absence of `request_id` from the body and stored model,
 request/record correlation in Cloud logs, list/detail responses, duplicate
 identity, and persistence after server shutdown and database reopening.
-`/health` returns 200. `/ready` remains the existing 503 placeholder; this work
-does not claim full readiness or deployment verification.
+`/health` returned 200. At the time of this baseline task `/ready` was a 503
+placeholder; current mode-aware readiness and deployment verification are
+documented in `final-integration-and-operations.md`.
 
 ## Measurement method
 

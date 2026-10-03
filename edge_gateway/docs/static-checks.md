@@ -28,7 +28,7 @@ uv run pytest tests/integration/test_gateway_cloud_secure.py \
 | AI history | Passed |
 | Secure integration tests | 54 passed, 2 skipped |
 
-The two skips are `test_clean_container_crypto.py` and `test_gateway_crypto_image.py`. Docker is not installed on the machine that ran this check, so the container runs did not happen here. CI or a machine with Docker must run them before a release.
+The two skips are `test_clean_container_crypto.py` and `test_gateway_crypto_image.py`. Docker was not installed on the machine that ran this historical check, so the container runs did not happen there. They were subsequently run on 2026-10-04 with Docker available: `uv run pytest -q tests/integration/test_clean_container_crypto.py tests/integration/test_gateway_crypto_image.py` passed 8 tests.
 
 ## Diff inspection
 
@@ -48,4 +48,4 @@ In the unmerged diff, the words `shared_secret`, `session_key`, and `private_key
 
 ## Review result
 
-The required checks pass. The inspection found no secret logging, key file, PEM block, debug print, or `.env` value. The Docker image tests still need a run on a machine with Docker.
+The required checks pass. The inspection found no secret logging, key file, PEM block, debug print, or `.env` value. The Docker image tests subsequently passed on a machine with Docker on 2026-10-04.

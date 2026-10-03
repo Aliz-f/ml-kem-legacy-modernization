@@ -55,8 +55,9 @@ baseline ingestion remains unavailable. In `classical` mode secure ingestion
 is unavailable and baseline accepts canonical measurements only. No failure
 path tries plaintext, another format or another algorithm. Logs use bounded,
 quoted correlation metadata; bodies, crypto material and vendor diagnostics
-are not logged. `/ready` remains the existing placeholder, not a claim of full
-service readiness.
+are not logged. At the time of this secure-ingestion task `/ready` was a
+placeholder; the current mode-aware readiness behavior is documented in
+`final-integration-and-operations.md`.
 
 ## Verification scope
 
@@ -70,8 +71,10 @@ internal errors, both mode guards, the exact byte limit, and streaming overflow
 without reading the remainder. This is Cloud HTTP application integration with
 Gateway primitives, not full Legacy/Gateway/Cloud deployment E2E.
 
-M4-41 and later tasks remain unstarted, including runtime failure injection.
-M4-17 Docker verification stays deferred to M4-81/M4-83. No dependencies changed.
+At the time of this task, M4-41 and later work, including runtime failure
+injection, had not started. Current failure-injection and Docker verification
+is documented in `final-integration-and-operations.md`. No dependencies changed
+for this task.
 
 ## Response and encoding contracts (M4-37 through M4-40)
 

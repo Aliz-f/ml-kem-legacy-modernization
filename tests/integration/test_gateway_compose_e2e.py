@@ -46,6 +46,18 @@ def _wait_json(url: str) -> object:
     raise AssertionError(f"service did not become available: {type(last_error).__name__}")
 
 
+def _wait_unavailable(url: str) -> None:
+    deadline = time.monotonic() + 20
+    while time.monotonic() < deadline:
+        try:
+            with urlopen(url, timeout=2):
+                pass
+        except Exception:
+            return
+        time.sleep(0.2)
+    raise AssertionError("service did not become unavailable")
+
+
 @pytest.mark.parametrize("security_mode", ["classical", "mlkem"])
 def test_legacy_contract_persists_through_compose_in_both_modes(security_mode: str) -> None:
     if shutil.which("docker") is None:
@@ -117,6 +129,79 @@ def test_legacy_contract_persists_through_compose_in_both_modes(security_mode: s
         assert "gateway_shutting_down" in logs
         assert "Application shutdown complete" in logs
         assert "Traceback" not in logs and "ERROR" not in logs
+    finally:
+        _compose(
+            project, environment, "down", "--volumes", "--remove-orphans",
+            "--timeout", "10", check=False,
+        )
+
+
+def test_compose_cloud_restart_recovers_readiness_and_delivery() -> None:
+    """A Cloud outage is visible to delivery and recovery restores a fresh request."""
+    if shutil.which("docker") is None:
+        pytest.skip("Docker is not installed")
+    gateway_port, cloud_port = _port(), _port()
+    project = f"mlkem-compose-recovery-{os.getpid()}"
+    environment = {
+        **os.environ,
+        "SECURITY_MODE": "classical",
+        "GATEWAY_HOST_PORT": str(gateway_port),
+        "CLOUD_HOST_PORT": str(cloud_port),
+        "DATABASE_URL": "sqlite:////data/cloud.db",
+        "CLOUD_MAX_RETRIES": "0",
+        "GATEWAY_FAILURE_MODE": "none",
+        "GATEWAY_FAILURE_RATE": "0",
+        "CLOUD_FAILURE_MODE": "none",
+        "CLOUD_FAILURE_RATE": "0",
+        "LOG_LEVEL": "INFO",
+    }
+    gateway_url = f"http://127.0.0.1:{gateway_port}"
+    cloud_url = f"http://127.0.0.1:{cloud_port}"
+    try:
+        started = _compose(
+            project, environment, "up", "--detach", "--build", "--wait",
+            "cloud-service", "edge-gateway", check=False,
+        )
+        assert started.returncode == 0, started.stdout + started.stderr
+        assert _wait_json(f"{cloud_url}/ready") == {"status": "ready", "storage": "ok"}
+        assert _wait_json(f"{gateway_url}/ready") == {
+            "status": "ready", "security_mode": "classical",
+        }
+
+        stopped = _compose(project, environment, "stop", "--timeout", "10", "cloud-service")
+        assert stopped.returncode == 0
+        _wait_unavailable(f"{cloud_url}/health")
+        # Gateway readiness reports its initialized local transport, not Cloud reachability.
+        assert _wait_json(f"{gateway_url}/ready") == {
+            "status": "ready", "security_mode": "classical",
+        }
+
+        failed = GatewayClient(gateway_url, request_timeout_seconds=15, max_retries=0).send({
+            "device_id": "sensor-compose-recovery",
+            "temperature_c": 22.5,
+            "humidity_pct": 44.0,
+            "timestamp": "2026-09-21T12:00:00Z",
+            "sequence_number": 1,
+        })
+        assert not failed.success and failed.status_code == 503 and failed.attempt_count == 1
+
+        restarted = _compose(
+            project, environment, "up", "--detach", "--wait", "cloud-service", check=False,
+        )
+        assert restarted.returncode == 0, restarted.stdout + restarted.stderr
+        assert _wait_json(f"{cloud_url}/health") == {"status": "ok"}
+        assert _wait_json(f"{cloud_url}/ready") == {"status": "ready", "storage": "ok"}
+
+        recovered = GatewayClient(gateway_url, request_timeout_seconds=15, max_retries=0).send({
+            "device_id": "sensor-compose-recovery",
+            "temperature_c": 22.5,
+            "humidity_pct": 44.0,
+            "timestamp": "2026-09-21T12:01:00Z",
+            "sequence_number": 2,
+        })
+        assert recovered.success and recovered.status_code == 202 and recovered.attempt_count == 1
+        listing = _wait_json(f"{cloud_url}/api/v1/measurements")
+        assert [item["sequence_number"] for item in listing["items"]] == [2]
     finally:
         _compose(
             project, environment, "down", "--volumes", "--remove-orphans",

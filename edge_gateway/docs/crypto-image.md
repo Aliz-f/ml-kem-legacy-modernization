@@ -41,7 +41,7 @@ aarch64-unknown-linux-gnu
 x86_64-unknown-linux-gnu
 ```
 
-`cryptography` 50.0.1, `cffi`, and `pydantic-core` are the native packages in
+`cryptography` 50.0.2, `cffi`, and `pydantic-core` are the native packages in
 that install. Their selected artifacts are manylinux wheels. The sdist remains
 in the lock as the upstream source archive and is not the install artifact for
 these platforms.

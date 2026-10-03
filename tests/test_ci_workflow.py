@@ -52,3 +52,10 @@ def test_repository_quality_workflow_runs_contract_stage_after_unit_tests() -> N
     contract_tests = workflow.index(stage)
     crypto_tests = workflow.index("name: Run Gateway crypto checks")
     assert unit_tests < contract_tests < crypto_tests
+
+
+def test_repository_quality_workflow_runs_the_compose_recovery_regression() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "name: Run Compose recovery regression" in workflow
+    assert "uv run pytest tests/integration/test_gateway_compose_e2e.py" in workflow

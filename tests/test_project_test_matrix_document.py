@@ -21,7 +21,7 @@ def test_project_matrix_covers_the_required_areas_and_test_layers() -> None:
     assert "| Unit | Contract | Integration | E2E | Failure / security |" in document
 
 
-def test_project_matrix_indexes_real_evidence_and_one_owned_gap() -> None:
+def test_project_matrix_indexes_real_evidence_and_the_resolved_compose_gap() -> None:
     document = MATRIX.read_text(encoding="utf-8")
 
     for path in (
@@ -32,9 +32,9 @@ def test_project_matrix_indexes_real_evidence_and_one_owned_gap() -> None:
         "docs/testing/M5_FAILURE_AUTOMATION.md",
     ):
         assert path in document
-    assert "TM-1" in document
-    assert "Member 5" in document
-    assert "M5-73" in document
+    assert "TM-1 was\nresolved" in document
+    assert "test_compose_cloud_restart_recovers_readiness_and_delivery" in document
+    assert "selected explicitly in CI" in document
 
 
 def test_project_matrix_preserves_evaluation_and_protocol_scope_limits() -> None:

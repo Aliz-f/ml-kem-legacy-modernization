@@ -52,7 +52,8 @@ development/demo restart, attach a **named volume at `/data`**. For isolated
 tests, use a fresh temporary volume or `DATABASE_URL=sqlite:///:memory:`.
 The database schema holds measurements only, so a volume does not persist
 ML-KEM private keys or sessions. Member 5 owns Compose wiring; the current
-`docker-compose.yml` has no services. CI builds the Cloud image from the clean
+`docker-compose.yml` declares `cloud-service` and `edge-gateway` and their
+named Cloud data volume. CI builds the Cloud image from the clean
 repository context, starts it with `SECURITY_MODE=mlkem`, and verifies both
 `/ready` and `/health`; this proves that SQLite initialization, the ML-KEM key
 pair, and the KDF/AEAD dependencies are usable in the image. Local
@@ -65,9 +66,11 @@ The secure live E2E test uses the normal `create_app` composition in
 `SECURITY_MODE=mlkem`: the Gateway creates its existing session manager and
 fail-closed secure transport at startup. Thus the Legacy client, Gateway HTTP
 route, and Cloud secure endpoint are exercised without test-only transport
-injection. Likewise M4-77 observes two retry attempts and Cloud 503 responses;
-Gateway `PqcMetrics` currently has no generic retry counter, so its requested
-counter increment is an external metrics dependency.
+injection. M4-77 observes two retry attempts and Cloud 503 responses; the
+Gateway application metrics export `gateway_cloud_retries_total`, and the
+baseline and secure transport tests assert its increment. The Compose recovery
+test additionally stops and restarts Cloud, then verifies Cloud readiness and
+fresh Gateway delivery recovery.
 
 ## Measured local sample
 
@@ -143,8 +146,9 @@ replay controls require a new design and protocol review, not silent v1 changes.
   ML-KEM-768 metadata/decapsulation, identical Gateway/Cloud HKDF output,
   four-field AAD, 12-byte nonce, exact envelope fields, bounded 409 recovery,
   byte-identical ordinary retry, fail-closed behavior, and implicit-rejection
-  assumptions. No protocol mismatch was observed in these checks. The Gateway
-  executable composition and generic retry counter gaps above remain.
+assumptions. No protocol mismatch was observed in these checks. The Gateway
+executable composes its fail-closed secure transport, and ordinary retry metrics
+are exported by `gateway_cloud_retries_total`.
 - **M4-97 Member 2 baseline contract review:**
   `test_shared_canonical_fixture_is_accepted_and_preserves_the_baseline_contract`
   checks shared field names, timestamp forms, header-only request ID,
@@ -152,8 +156,9 @@ replay controls require a new design and protocol review, not silent v1 changes.
   application models. The new live three-component test additionally exercises
   the actual Legacy and Gateway HTTP boundary.
 - **M4-98 Member 5 deployment review:** Cloud's port, DB URL, named-volume
-  target, environment, and readiness are specified above. Compose and Docker
-  runtime verification remain Member 5/deployment dependencies.
+  target, environment, and readiness are specified above. CI and the Compose
+  regressions verify the current Docker runtime behavior; Member 5 retains
+  deployment ownership.
 - **M4-99 dependency review:** Cloud directly uses FastAPI, Uvicorn,
   `cryptography` (HKDF/AES-GCM), and the maintained ML-KEM library through
   `cloud_service.crypto.mlkem`; SQLite and metrics use the standard library.

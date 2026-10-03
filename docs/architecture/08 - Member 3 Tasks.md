@@ -2384,8 +2384,8 @@ ML-KEM wrapper tests
 KDF tests
 AEAD tests
 secure-envelope tests
-key-confirmation tests
-replay limitation tests
+key-confirmation-absence and trust-limitation tests
+replay-limitation tests
 secure integration tests
 secret-leakage tests
 ```

@@ -13,18 +13,17 @@ configuration through this PR13 review. The recent contiguous records are:
 
 | Scope | Record |
 | --- | --- |
-| Application failure injection, M2-20–25 | `0123` |
-| Secure transport integration, M2-26–28 | `0130` |
-| Health, readiness, and logging, M2-29–33 | `0131` |
-| Metrics and operations, M2-34–37 | `0132` |
-| Unit-suite hardening, M2-38–41 | `0133` |
-| Contract and failure hardening, M2-42–48 | `0134` |
-| Docker and container regression, M2-49–52 | `0135` |
-| Final evaluation and documentation, M2-53–69 | `0136` |
+| Application failure injection, M2-20–25 | `0141` |
+| Secure transport integration, M2-26–28 | `0142` |
+| Health, readiness, and logging, M2-29–33 | `0143` |
+| Metrics and operations, M2-34–37 | `0144` |
+| Unit-suite hardening, M2-38–41 | `0145` |
+| Contract and failure hardening, M2-42–48 | `0146` |
+| Docker and container regression, M2-49–52 | `0147` |
+| Final evaluation and documentation, M2-53–69 | `0148` |
 
-Every earlier record above is `Complete`. Record `0136` contains the exact
-human prompt for this work and must pass through output, human review, and final
-verification before the PR13 changes are committed.
+Every record above is `Complete`. Record `0148` contains the exact human prompt
+for the final M2-53–69 work and its completed human review and verification.
 
 ## M2-54 — Manual review checklist
 
@@ -41,9 +40,8 @@ Member 3 secure transport boundary.
 | Security | Pass | Oversized or malformed input stops before delivery, error bodies are sanitized, secure mode fails closed, and no secret is logged. |
 | Testability | Pass | Configuration, clock/request IDs, transports, failure selection, retry sleep, and metrics have focused injection seams. |
 
-This table is review evidence, not human acceptance. The reviewer must still
-inspect the diff and provide the real Accepted, Modified, or Rejected decision
-in AI-history task `0136`.
+This table is AI review evidence, distinct from the completed human acceptance
+recorded in AI-history task `0148`.
 
 ## M2-55 — Accepted, modified, and rejected decisions
 
@@ -53,7 +51,7 @@ examples include:
 
 - **Accepted:** the route delegates sequence, normalization, correlation, and
   selected delivery to application components instead of embedding Cloud or
-  cryptographic logic in the handler (`0091`, `0130`).
+  cryptographic logic in the handler (`0091`, `0142`).
 - **Modified by explicit human direction:** the initial model task stopped on
   unspecified extra-field behavior; the human required exact-field rejection,
   and the protocol documents, model, and tests were aligned before acceptance
@@ -62,7 +60,7 @@ examples include:
   retrying permanent `4xx` responses, crypto logic in the route, and automatic
   plaintext fallback. The implemented and tested policies retain observed
   sequence state, retry only classified transient failures, isolate Member 3’s
-  transport, and fail closed (`0076`, `0094`, `0130`, `0134`).
+  transport, and fail closed (`0076`, `0094`, `0142`, `0146`).
 
 Crypto-specific accepted, modified, and rejected proposals are retained in
 `edge_gateway/docs/ai-decisions.md`.

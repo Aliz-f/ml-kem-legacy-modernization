@@ -54,6 +54,12 @@ through the Cloud query API before producing the report.
 | `successful_messages` / `persisted_rows` | Accepted Legacy sends and rows queried from Cloud |
 | `gateway_cloud_retry_count` | Observed Cloud requests minus logical messages |
 
+For runs of two or more messages, `first_message` reports the first request and
+`steady_state` reports requests two onward using the same timing boundaries.
+Classical mode has no session setup, but this split makes its workload directly
+comparable with the corresponding modernized report without averaging the
+first secure handshake into steady-state observations.
+
 All durations use `perf_counter()` and are observations, not acceptance
 thresholds. Harness middleware and timing wrappers add local measurement
 overhead. The run does not measure a Docker deployment, network latency beyond

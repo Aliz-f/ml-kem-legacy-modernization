@@ -1,8 +1,9 @@
 # Project-wide secret-logging review
 
 This is the Member 5 M5-49 review record. It coordinates existing
-component-owned secret-safety tests and records the manual inspection boundary;
-it is not a replacement for M5-50's future secure-E2E log-capture regression.
+component-owned secret-safety tests and records the manual inspection boundary.
+The M5-50 secure-E2E log-capture regression below complements, rather than
+replaces, the component-owned checks.
 
 ## Review scope and result
 
@@ -49,6 +50,7 @@ tests that capture logs or error text using generated/synthetic markers:
 | Cloud | `cloud_service/tests/test_cloud_mlkem.py::test_vendor_failures_are_safe` | Vendor diagnostic marker is suppressed from exceptions and logs. |
 | Cloud | `cloud_service/tests/test_cloud_aead.py::test_gateway_encryption_cloud_decryption` | AES-GCM interoperability emits no log text for synthetic key/plaintext inputs. |
 | Cloud | `cloud_service/tests/test_cloud_aead.py::test_vendor_error_diagnostics_are_suppressed` | Vendor diagnostic marker is absent from exception and log output. |
+| System | `tests/integration/test_observability_integration.py::test_live_end_to_end_trace_is_correlated_safe_and_observable[mlkem]` | A real ML-KEM session's captured shared secret and derived session key are absent from combined Gateway/Cloud logs during secure delivery. |
 
 ## Repeatable review procedure
 
@@ -58,5 +60,6 @@ tests that capture logs or error text using generated/synthetic markers:
    crypto/session code for prohibited values and raw payload rendering.
 3. Add or update a component-owned marker test when a sensitive path changes.
 4. Run `uv run ruff check .`, `uv run pytest`, and `uv run ai-history check`.
-5. For a secure end-to-end log capture and CI-specific regression, proceed to
-   M5-50 after secure E2E prerequisites are complete.
+5. Run `uv run pytest tests/integration/test_observability_integration.py` for
+   the M5-50 live baseline and secure-E2E regression. The repository CI runs
+   this targeted check as well as the full test suite.

@@ -95,8 +95,15 @@ def test_legacy_contract_persists_through_compose_in_both_modes(security_mode: s
         assert stored["sequence_number"] == payload["sequence_number"]
         assert stored["gateway_id"] == "gateway-001"
 
+        with urlopen(f"http://127.0.0.1:{gateway_port}/metrics", timeout=5) as response:
+            gateway_metrics = response.read().decode()
         with urlopen(f"http://127.0.0.1:{cloud_port}/metrics", timeout=5) as response:
             metrics = response.read().decode()
+        assert f'gateway_service_info{{security_mode="{security_mode}"}} 1' in gateway_metrics
+        assert "gateway_measurements_received_total 1" in gateway_metrics
+        assert "gateway_measurements_accepted_total 1" in gateway_metrics
+        assert "gateway_cloud_requests_total 1" in gateway_metrics
+        assert f'cloud_service_info{{security_mode="{security_mode}"}} 1' in metrics
         if security_mode == "classical":
             assert "cloud_baseline_requests_total 1" in metrics
             assert "cloud_secure_requests_total 0" in metrics

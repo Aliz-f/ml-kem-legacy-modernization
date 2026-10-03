@@ -14,6 +14,8 @@ CLI_OUTPUT = {
     "edge_gateway/docker/clean_container_crypto.py",
     "edge_gateway/tests/test_gateway_baseline_integration.py",
     "scripts/measure_baseline_e2e.py",
+    "scripts/measure_mode_comparison.py",
+    "scripts/measure_modernized_e2e.py",
     "src/ai_history/cli.py",
 }
 
@@ -47,8 +49,9 @@ def test_no_private_key_blocks_or_debug_prints() -> None:
         assert not pem.search(text), name
         if debug.search(text):
             printing.add(name)
-    assert printing == CLI_OUTPUT
-    for name in CLI_OUTPUT:
+    tracked_cli_output = CLI_OUTPUT.intersection(_tracked())
+    assert printing == tracked_cli_output
+    for name in tracked_cli_output:
         prints = re.findall(r"print\((.*)", _text(name))
         assert prints and not any(s in p for p in prints for s in SECRET_NAMES), name
 

@@ -20,6 +20,7 @@ def test_harness_observes_real_classical_end_to_end_path() -> None:
     assert report["security_mode"] == "classical"
     assert report["configuration"] == {
         "failure_mode": "none",
+        "log_level": "WARNING",
         "legacy_request_timeout_seconds": 5,
         "legacy_max_retries": 0,
         "gateway_cloud_timeout_seconds": 5,

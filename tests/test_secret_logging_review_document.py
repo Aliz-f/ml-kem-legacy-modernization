@@ -30,8 +30,9 @@ def test_secret_logging_review_indexes_component_owned_marker_tests() -> None:
     assert "uv run pytest" in document
 
 
-def test_secret_logging_review_keeps_m5_50_as_a_separate_follow_up() -> None:
+def test_secret_logging_review_records_the_m5_50_system_regression() -> None:
     document = REVIEW.read_text(encoding="utf-8")
 
     assert "M5-50" in document
-    assert "not a replacement" in document
+    assert "tests/integration/test_observability_integration.py" in document
+    assert "shared secret and derived session key" in document

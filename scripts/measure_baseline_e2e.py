@@ -122,6 +122,7 @@ def run(samples: int = 10) -> dict[str, object]:
                     "DATABASE_URL": database_url,
                     "SECURITY_MODE": "classical",
                     "FAILURE_MODE": "none",
+                    "LOG_LEVEL": "WARNING",
                 }
             )
         )
@@ -150,6 +151,7 @@ def run(samples: int = 10) -> dict[str, object]:
                         "CLOUD_TIMEOUT_SECONDS": "5",
                         "CLOUD_MAX_RETRIES": "0",
                         "FAILURE_MODE": "none",
+                        "LOG_LEVEL": "WARNING",
                     }
                 )
             )
@@ -208,6 +210,7 @@ def run(samples: int = 10) -> dict[str, object]:
         "security_mode": "classical",
         "configuration": {
             "failure_mode": "none",
+            "log_level": "WARNING",
             "legacy_request_timeout_seconds": 5,
             "legacy_max_retries": 0,
             "gateway_cloud_timeout_seconds": 5,
@@ -217,6 +220,17 @@ def run(samples: int = 10) -> dict[str, object]:
         "samples": samples,
         "successful_messages": samples,
         "persisted_rows": len(rows),
+        "first_message": {
+            "legacy_gateway_end_to_end_ms": distribution(end_to_end_ms[:1]),
+            "gateway_request_ms": distribution(gateway_request_ms[:1]),
+            "gateway_cloud_request_ms": distribution(cloud_request_ms[:1]),
+        },
+        "steady_state": {
+            "legacy_gateway_end_to_end_ms": distribution(end_to_end_ms[1:]),
+            "gateway_request_ms": distribution(gateway_request_ms[1:]),
+            "gateway_cloud_request_ms": distribution(cloud_request_ms[1:]),
+            "cloud_storage_ms": distribution(repository.storage_ms[1:]),
+        } if samples > 1 else None,
         "legacy_gateway_end_to_end_ms": distribution(end_to_end_ms),
         "gateway_request_ms": distribution(gateway_request_ms),
         "gateway_cloud_request_ms": distribution(cloud_request_ms),

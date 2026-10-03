@@ -13,6 +13,7 @@ CLI_OUTPUT = {
     "edge_gateway/docker/check_crypto.py",
     "edge_gateway/docker/clean_container_crypto.py",
     "edge_gateway/tests/test_gateway_baseline_integration.py",
+    "scripts/measure_baseline_e2e.py",
     "src/ai_history/cli.py",
 }
 

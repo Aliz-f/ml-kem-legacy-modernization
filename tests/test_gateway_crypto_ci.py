@@ -29,4 +29,4 @@ def test_quality_workflow_names_the_gateway_crypto_suites() -> None:
     assert crypto_step < workflow.index("uv run ai-history check")
     for path in CRYPTO_SUITES:
         assert (ROOT / path).is_file()
-        assert workflow.index(path) > crypto_step
+        assert workflow.index(path, crypto_step) > crypto_step

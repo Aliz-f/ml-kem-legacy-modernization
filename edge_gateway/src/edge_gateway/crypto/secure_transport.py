@@ -21,6 +21,7 @@ from collections.abc import Callable
 from typing import Protocol
 from urllib.parse import urljoin, urlparse
 
+from edge_gateway.application_log import log_application
 from edge_gateway.crypto.aad import AadError
 from edge_gateway.crypto.encoding import EncodingError, decode_binary, encode_binary
 from edge_gateway.crypto.envelope import SecureEnvelope, build_secure_envelope
@@ -30,6 +31,8 @@ from edge_gateway.crypto.plaintext import PlaintextError
 from edge_gateway.crypto.security_log import log_security
 from edge_gateway.crypto.session import SecureSession, SessionEstablishmentError
 from edge_gateway.crypto.symmetric import AeadError
+from edge_gateway.transport import CloudDeliveryError
+from edge_gateway.metrics import GatewayMetrics
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +43,7 @@ _SESSION_CODES = frozenset({"SESSION_INVALID", "SESSION_EXPIRED"})
 _ACCEPTED_STATUS = frozenset({"accepted", "already_accepted"})
 
 
-class SecureTransportError(Exception):
+class SecureTransportError(CloudDeliveryError):
     """The secure measurement was not accepted."""
 
     def __init__(self, message: str, *, retryable: bool, code: str | None = None) -> None:
@@ -111,6 +114,8 @@ class SecureTransport:
         injector: CryptoFailureInjector | None = None,
         metrics: PqcMetrics | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        before_attempt: Callable[[str], None] | None = None,
+        application_metrics: GatewayMetrics | None = None,
     ) -> None:
         if isinstance(max_retries, bool) or not isinstance(max_retries, int) or max_retries < 0:
             raise ValueError("max_retries must be a non-negative integer.")
@@ -130,9 +135,11 @@ class SecureTransport:
         self._metrics = metrics or (
             session_metrics if isinstance(session_metrics, PqcMetrics) else PqcMetrics()
         )
+        self._before_attempt = before_attempt
         self._sleep = sleep
         self._opener = urllib.request.build_opener(_RejectRedirect)
         self._closed = False
+        self.application_metrics = application_metrics or GatewayMetrics()
 
     def shutdown(self) -> None:
         """Stop secure work, close the HTTP client, then clear the session.
@@ -155,6 +162,11 @@ class SecureTransport:
     def metrics(self) -> PqcMetrics:
         """Return the process registry used by this secure transport."""
         return self._metrics
+
+    @property
+    def is_ready(self) -> bool:
+        """Report local transport usability without establishing a session."""
+        return not self._closed and self._opener is not None
 
     async def send(
         self,
@@ -354,11 +366,21 @@ class SecureTransport:
         body = _dump(envelope)
         failure: _RetryableTransport | None = None
         for attempt in range(self._max_retries + 1):
+            if attempt:
+                self.application_metrics.increment("cloud_retries")
             try:
                 return self._post(body, envelope.request_id, envelope.session_id)
             except _RetryableTransport as exc:
                 failure = exc
                 if attempt < self._max_retries:
+                    log_application(
+                        "cloud_delivery_retry", logging.WARNING,
+                        request_id=envelope.request_id,
+                        gateway_id=envelope.gateway_id,
+                        security_mode="mlkem",
+                        attempt=attempt + 2,
+                        reason="transport",
+                    )
                     # The frozen Gateway policy waits 1s before retry two and
                     # 2s before retry three. The body remains byte-identical.
                     self._sleep(2.0**attempt)
@@ -376,6 +398,10 @@ class SecureTransport:
         ) from failure
 
     def _post(self, body: bytes, request_id: str, session_id: str) -> SecureAcceptance:
+        with self.application_metrics.cloud_attempt():
+            return self._post_request(body, request_id, session_id)
+
+    def _post_request(self, body: bytes, request_id: str, session_id: str) -> SecureAcceptance:
         request = urllib.request.Request(
             self._endpoint,
             data=body,
@@ -397,6 +423,8 @@ class SecureTransport:
             )
             raise SecureTransportError("Secure transport is closed.", retryable=False)
         try:
+            if self._before_attempt is not None:
+                self._before_attempt(request_id)
             with opener.open(request, timeout=self._timeout_seconds) as response:
                 payload = response.read(_MAX_BODY_BYTES + 1)
                 status = response.status

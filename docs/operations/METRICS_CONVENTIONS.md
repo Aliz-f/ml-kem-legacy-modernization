@@ -2,9 +2,11 @@
 
 This Member 5 contract implements M5-52, M5-53, and M5-55. It defines the
 minimum metric families that component owners implement and Member 5 validates.
-It does not claim that every family is already emitted: the current Gateway
-endpoint has service/PQC metrics and the current Cloud endpoint has service
-information; remaining families are component-owned follow-up work.
+The Gateway endpoint exports the minimum application, Cloud-attempt, injection,
+and PQC families; its exact observation points are documented in
+[Member 2 PR9 operations](../../edge_gateway/docs/gateway-pr9.md). Component
+implementations and their tests establish which families are emitted; this
+contract defines the required meanings.
 
 Metrics use Prometheus naming conventions. A `_total` family is a counter,
 `_duration_seconds` is a histogram/summary duration family, and active-session

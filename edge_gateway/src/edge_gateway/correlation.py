@@ -1,10 +1,9 @@
 """Gateway-generated tracing IDs, separate from canonical measurement data."""
 
-import logging
 from uuid import uuid4
 
+from edge_gateway.application_log import log_application
 
-logger = logging.getLogger("edge_gateway")
 
 
 def create_request_id() -> str:
@@ -15,11 +14,7 @@ def create_request_id() -> str:
     header contributes to the generated value.
     """
     request_id = f"req-{uuid4()}"
-    logger.info(
-        "event=gateway_request_created component=edge_gateway request_id=%s",
-        request_id,
-        extra={"request_id": request_id},
-    )
+    log_application("gateway_request_created", request_id=request_id)
     return request_id
 
 

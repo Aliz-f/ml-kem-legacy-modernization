@@ -2,7 +2,12 @@
 
 Member 2 owns application lifecycle, including Ctrl+C, SIGTERM, and Docker stop. Member 3 owns the security cleanup that runs when a secure transport is attached.
 
-The lifespan first marks the Gateway as not running. It then calls `SecureTransport.shutdown` when `app.state.secure_transport` is set. That method follows section 53 of `docs/architecture/02 - Edge Gateway.md`:
+The lifespan first marks the Gateway as not running and rejects new Legacy work.
+It closes the baseline HTTP client when present, then calls
+`SecureTransport.shutdown` when `app.state.secure_transport` is set. Uvicorn
+drains requests before lifespan cleanup. See [PR9 operations](gateway-pr9.md)
+for signal handling and shutdown limitations. Secure cleanup follows section 53
+of `docs/architecture/02 - Edge Gateway.md`:
 
 1. Stop accepting secure work.
 2. Close the HTTP client and drop it.

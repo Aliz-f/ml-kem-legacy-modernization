@@ -1,6 +1,6 @@
 # Gateway crypto human review checklist
 
-Generated Gateway crypto code is untrusted until a human completes this checklist. A passing test suite does not replace this checklist. Record the review through the workflow in [ai-history.md](ai-history.md). Decision records are a later task.
+Generated Gateway crypto code is untrusted until a human completes this checklist. A passing test suite does not replace this checklist. Record the review through the workflow in [ai-history.md](ai-history.md). Accepted, modified, and rejected proposals are recorded in [ai-decisions.md](ai-decisions.md).
 
 Review every generated security artifact for the items below. The file pointers are the current Gateway locations for those checks.
 

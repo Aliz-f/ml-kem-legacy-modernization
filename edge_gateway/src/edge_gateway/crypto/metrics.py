@@ -12,6 +12,11 @@ from dataclasses import dataclass, field
 
 HANDSHAKE_REASONS = ("injected", "transport", "rejected", "cryptographic", "unexpected")
 INJECTED_FAILURES = (
+    "processing_error",
+    "processing_delay",
+    "cloud_timeout",
+    "cloud_unavailable",
+    "drop_message",
     "mlkem_handshake_failure",
     "corrupt_ciphertext",
     "session_missing",
@@ -104,7 +109,7 @@ class PqcMetrics:
         self.encryption_failures_total += 1
 
     def record_injected(self, failure_type: str) -> None:
-        """Record one configured crypto fault."""
+        """Record one configured Gateway fault."""
         if failure_type in self.injected_failures:
             self.injected_failures[failure_type] += 1
 
@@ -174,7 +179,7 @@ class PqcMetrics:
             lines,
             "gateway_injected_failures_total",
             "counter",
-            "Configured crypto faults that were applied.",
+            "Configured Gateway faults that were applied.",
             [
                 f'gateway_injected_failures_total{{failure_type="{failure_type}"}} {count}'
                 for failure_type, count in self.injected_failures.items()

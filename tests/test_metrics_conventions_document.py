@@ -50,8 +50,9 @@ def test_metrics_conventions_preserve_fail_closed_and_cardinality_rules() -> Non
         assert permitted in document
 
 
-def test_metrics_conventions_do_not_claim_missing_metrics_are_implemented() -> None:
+def test_metrics_conventions_link_component_observation_points() -> None:
     document = CONVENTIONS.read_text(encoding="utf-8")
 
-    assert "does not claim that every family is already emitted" in document
+    assert "../../edge_gateway/docs/gateway-pr9.md" in document
+    assert "Component\nimplementations and their tests" in document
     assert "M5-54" in document

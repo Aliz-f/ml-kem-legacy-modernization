@@ -114,11 +114,13 @@ def test_handshake_failure_stays_closed_without_a_session(tmp_path: Path) -> Non
                 "GATEWAY_ID": "gateway-001",
                 "LOG_LEVEL": "WARNING",
                 "CLOUD_MAX_RETRIES": "0",
+                "PQC_FAILURE_POLICY": "fail_closed",
                 "FAILURE_MODE": "mlkem_handshake_failure",
                 "FAILURE_RATE": "1.0",
             }
         )
         injector = CryptoFailureInjector.from_config(config)
+        assert config.pqc_failure_policy == "fail_closed"
         sessions = SessionManager(
             config.gateway_id,
             cloud.url,

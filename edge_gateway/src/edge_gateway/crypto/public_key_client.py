@@ -6,6 +6,7 @@ in the parser. The client does not encapsulate.
 
 from __future__ import annotations
 
+import http.client
 import json
 import urllib.error
 import urllib.request
@@ -73,6 +74,12 @@ def fetch_public_key(cloud_url: str, timeout_seconds: float) -> CloudPublicKey:
             else "Cloud public-key request failed."
         )
         raise PublicKeyTransportError(message, retryable=True) from exc
+    except (http.client.HTTPException, OSError) as exc:
+        # A reset or truncated body while reading is not wrapped in URLError.
+        raise PublicKeyTransportError(
+            "Cloud public-key request failed.",
+            retryable=True,
+        ) from exc
     if status != 200:
         raise PublicKeyTransportError(
             f"Cloud public-key request failed with HTTP {status}.",

@@ -46,7 +46,7 @@ def test_review_matches_dispatch_and_correlation() -> None:
 def test_review_matches_bounded_session_recovery() -> None:
     review = _text("edge_gateway/docs/member2-integration-review.md")
     transport = _text("edge_gateway/src/edge_gateway/crypto/secure_transport.py")
-    send = transport.split("async def send", 1)[1].split("def _session_is_active", 1)[0]
+    send = transport.split("async def send", 1)[1].split("def _handshakes_completed", 1)[0]
     recover = transport.split("async def _recover", 1)[1].split("def _seal", 1)[0]
 
     assert send.count("_recover(") == 1

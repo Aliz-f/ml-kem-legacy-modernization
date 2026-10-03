@@ -3,6 +3,8 @@
 import asyncio
 import json
 import logging
+import socket
+import struct
 import threading
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -74,6 +76,8 @@ class _Cloud:
             ).encode()
         if self.mode == "unavailable":
             return 503, b"{}"
+        if self.mode == "reset":
+            return 0, b""
         shared_secret = self.private_key.decapsulate(ciphertext)
         self.session_key = derive_session_key(shared_secret)
         return 200, json.dumps(
@@ -84,6 +88,18 @@ class _Cloud:
                 "expires_at": _stamp(self.clock.now + timedelta(minutes=5)),
             }
         ).encode()
+
+
+def _reset_mid_body(handler: BaseHTTPRequestHandler, status: int) -> None:
+    """Send headers and a partial body, then abort the connection with RST."""
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json")
+    handler.send_header("Content-Length", "100")
+    handler.end_headers()
+    handler.wfile.write(b'{"sta')
+    handler.connection.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
+    handler.connection.close()
+    handler.close_connection = True
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -106,6 +122,9 @@ class _Handler(BaseHTTPRequestHandler):
         self._send(status, body)
 
     def _send(self, status: int, body: bytes) -> None:
+        if status == 0:
+            _reset_mid_body(self, 200)
+            return
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
@@ -310,6 +329,24 @@ def test_unavailable_cloud_is_retryable_and_leaves_no_session(cloud_url):
 
     caught = asyncio.run(recover())
     assert caught.value.retryable is True
+    assert cloud.posts == 2
+
+
+def test_connection_reset_during_session_post_is_retryable(cloud_url):
+    url, cloud, clock = cloud_url
+    manager = _manager(url, clock)
+    cloud.mode = "reset"
+
+    async def recover():
+        with pytest.raises(SessionEstablishmentError) as caught:
+            await manager.get_or_establish()
+        cloud.mode = "ok"
+        await manager.get_or_establish()
+        return caught
+
+    caught = asyncio.run(recover())
+    assert caught.value.retryable is True
+    assert manager.metrics.handshake_failures["transport"] == 1
     assert cloud.posts == 2
 
 

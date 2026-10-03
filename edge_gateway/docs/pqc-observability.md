@@ -25,7 +25,7 @@ gateway_secure_message_duration_seconds_count{phase="first"} 1
 gateway_secure_message_duration_seconds_count{phase="steady"} 2
 ```
 
-The Gateway clock is then set to the held session `expires_at`. Measurement 4 establishes a new handshake. That increment is `gateway_mlkem_handshakes_total`, not `gateway_session_reestablishments_total`, because the session expired locally before delivery. The delivery phase is chosen before the session is opened, so this measurement is counted as steady while the handshake counter moves to 2:
+The Gateway clock is then set to the held session `expires_at`. Measurement 4 establishes a new handshake. That increment is `gateway_mlkem_handshakes_total`, not `gateway_session_reestablishments_total`, because the session expired locally before delivery. The delivery phase follows whether opening the session ran a handshake, so this measurement is counted as first while the handshake counter moves to 2:
 
 ```text
 gateway_mlkem_handshakes_total{result="success"} 2
@@ -34,8 +34,8 @@ gateway_session_reestablishments_total{result="success"} 0
 gateway_session_reestablishments_total{result="failure"} 0
 gateway_active_session 1
 gateway_pqc_fallback_total 0
-gateway_secure_message_duration_seconds_count{phase="first"} 1
-gateway_secure_message_duration_seconds_count{phase="steady"} 3
+gateway_secure_message_duration_seconds_count{phase="first"} 2
+gateway_secure_message_duration_seconds_count{phase="steady"} 2
 ```
 
 The scrape has no session identifier and no request identifier. Duration samples are present and are not a performance limit. `gateway_pqc_fallback_total` stays 0.

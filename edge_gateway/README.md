@@ -633,3 +633,9 @@ matrix uses a transport stub and the sequence tests preserve the frozen
 validation → sequence commit → Cloud delivery order, including after failure
 and under concurrent requests. See [the PR11 test-suite audit](docs/gateway-test-suite.md)
 for requirement-to-test mappings and the focused verification command.
+
+The remaining PR11 contract and failure work is documented in
+[Gateway contract and failure hardening](docs/gateway-contract-hardening.md).
+It covers frozen sequence timing, real Legacy/Gateway and baseline Cloud HTTP
+contracts, secure-contract reuse, bounded failure propagation, retry
+amplification, and validation-bypass prevention for M2-42 through M2-48.

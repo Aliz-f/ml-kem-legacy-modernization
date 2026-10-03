@@ -2,6 +2,9 @@
 
 ## Application skeleton (M2-02)
 
+The completed Member 2 implementation and its final M2-53 through M2-69 audit
+are indexed in [PR13 final evaluation](docs/pr13-final-evaluation.md).
+
 From the repository root:
 
 ```bash
@@ -494,11 +497,12 @@ The Gateway security facts stay in the frozen Edge Gateway design and the
 shared protocol specification. This note points at those sections. It does not replace the frozen architecture. Details are in
 [docs/security.md](docs/security.md).
 
-## Security technical debt (M3-68)
+## Gateway technical debt (M2-57 and M3-68)
 
-The course system keeps simplified public-key trust, in-memory sessions, an
-ephemeral Cloud key, and no cryptographic replay window. The register records
-those limits and their future improvements. It does not add those future controls.
+The course system keeps synchronous Cloud forwarding, in-memory sequence and
+session state, limited Legacy ingress protection, simplified public-key trust,
+an ephemeral Cloud key, and no cryptographic replay window. The register records
+those application and security limits and their future improvements. It does not add those future controls.
 Details are in [docs/technical-debt.md](docs/technical-debt.md).
 
 ## Threat model (M3-69)

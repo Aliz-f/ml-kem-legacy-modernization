@@ -1,4 +1,4 @@
-# AI Task 0162 — M1-10 Complete Legacy Device unit-test suite
+# AI Task 0169 — M1-10 Complete Legacy Device unit-test suite
 
 **Status:** Complete
 
@@ -77,7 +77,7 @@ Audited and completed the Legacy Device unit-test suite for task M1-10. Hardened
 
 ## Files Created
 
-- docs/ai/history/0162-m1-10-complete-legacy-device-unit-test-suite.md
+- docs/ai/history/0169-m1-10-complete-legacy-device-unit-test-suite.md
 
 ## Files Modified
 
@@ -127,7 +127,7 @@ Addressed human review requested modifications for task M1-10. Refined test_meas
 
 ## Files Created
 
-- docs/ai/history/0162-m1-10-complete-legacy-device-unit-test-suite.md
+- docs/ai/history/0169-m1-10-complete-legacy-device-unit-test-suite.md
 
 ## Files Modified
 
@@ -180,3 +180,4 @@ I inspected the final implementation and tests, confirmed the requested modifica
 # Final Outcome
 
 **Status:** Complete
+

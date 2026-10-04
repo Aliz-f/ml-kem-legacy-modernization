@@ -68,3 +68,28 @@ def test_no_cloud_or_crypto_imports_in_legacy_src() -> None:
                         assert not node.module.startswith(forbidden), (
                             f"Forbidden cross-boundary import '{node.module}' in {py_file}:{node.lineno}"
                         )
+
+
+def test_legacy_architecture_operations_documentation_exists_and_complete() -> None:
+    """Verify that legacy_system/docs/architecture-operations.md exists and covers all required areas."""
+    doc_path = LEGACY_ROOT / "docs" / "architecture-operations.md"
+    assert doc_path.is_file(), f"Expected documentation file at {doc_path}"
+    content = doc_path.read_text(encoding="utf-8")
+
+    required_sections = [
+        "Purpose and Architectural Role",
+        "Module Architecture",
+        "Data Model and Wire Contract",
+        "Configuration Management",
+        "Normal Operation Cycle",
+        "Retry Semantics and Error Classification",
+        "Failure Simulation and Safety Safeguards",
+        "Logging and Observability",
+        "Testing Strategy",
+        "Docker Container Behavior",
+        "Known Limitations and Operational Boundaries",
+        "Technical Debt",
+    ]
+    for section in required_sections:
+        assert section.lower() in content.lower(), f"Missing required section '{section}' in {doc_path}"
+

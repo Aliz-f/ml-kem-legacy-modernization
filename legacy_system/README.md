@@ -16,3 +16,10 @@ and does not expose a separate `close()` operation.
 The installed `legacy-device` console script uses the same `main.py`
 composition root. The Docker image likewise runs `python -m
 legacy_system.main`; its `SIGTERM` follows the same shutdown path.
+
+## Architecture and Operations
+
+For complete architectural details, module responsibilities, JSON wire contract,
+failure-injection mechanics, retry algorithms, and operational procedures, see
+[architecture-operations.md](docs/architecture-operations.md).
+

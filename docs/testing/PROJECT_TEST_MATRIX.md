@@ -23,7 +23,7 @@ and failure/security regression.
 | Cloud API and crypto | Evidence | Evidence | Evidence | Evidence | Evidence | `cloud_service/tests/test_cloud_*.py`; `cloud_service/tests/test_gateway_cloud_baseline_contract.py`; `tests/integration/test_gateway_cloud_secure.py`; `tests/integration/test_mlkem_handshake_failure_demo.py` |
 | SQLite storage | Evidence | N/A | Evidence | Evidence | Evidence | `cloud_service/tests/test_cloud_storage.py`; `cloud_service/tests/test_baseline_integration.py`; `tests/integration/test_end_to_end.py`; `tests/integration/test_gateway_cloud_secure.py` |
 | Cross-component protocol | N/A | Evidence | Evidence | Evidence | Evidence | CI runs the protocol-contract selection in `.github/workflows/ai-history.yml`; `tests/integration/test_gateway_cloud_secure_session.py`; `tests/integration/test_gateway_compose_e2e.py`; `docs/testing/M5_FAILURE_AUTOMATION.md` |
-| Deployment and CI | N/A | N/A | Evidence | Evidence | Evidence | `tests/test_ci_workflow.py`; `tests/integration/test_gateway_crypto_image.py`; `tests/integration/test_gateway_compose_e2e.py` covers normal delivery and a Cloud outage/restart recovery; Docker readiness and the Compose recovery regression are selected explicitly in CI. |
+| Deployment and CI | N/A | N/A | Evidence | Evidence | Evidence | `tests/test_ci_workflow.py`; `tests/integration/test_gateway_crypto_image.py`; `tests/integration/test_gateway_compose_e2e.py` covers normal delivery, Cloud outage/restart, Gateway session loss, and ML-KEM stale-session recovery; Docker readiness and the Compose recovery regression are selected explicitly in CI. |
 | Observability | Evidence | Evidence | Evidence | Evidence | Evidence | `cloud_service/tests/test_cloud_metrics.py`; `tests/test_metrics_conventions_document.py`; `tests/integration/test_observability_integration.py`; `tests/integration/test_pqc_observability.py` |
 
 Storage has no separate wire-level contract: its observable contract is the
@@ -34,9 +34,9 @@ layer.
 ## Coordinated gap register
 
 No currently identified project-wide test-matrix gap remains open. TM-1 was
-resolved by `test_compose_cloud_restart_recovers_readiness_and_delivery`, which
-stops and restarts the Cloud container, verifies health/readiness recovery, and
-is selected explicitly in CI.
+resolved by the Compose recovery regressions, which stop and restart Cloud or
+Gateway containers, verify health/readiness and ML-KEM session recovery, and
+are selected explicitly in CI.
 
 ## Boundaries retained by this matrix
 

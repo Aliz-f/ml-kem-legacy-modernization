@@ -58,6 +58,27 @@ def _wait_unavailable(url: str) -> None:
     raise AssertionError("service did not become unavailable")
 
 
+def _metrics(url: str) -> str:
+    with urlopen(url, timeout=5) as response:
+        return response.read().decode()
+
+
+def _measurement(device_id: str, sequence_number: int) -> dict[str, object]:
+    return {
+        "device_id": device_id,
+        "temperature_c": 22.5,
+        "humidity_pct": 44.0,
+        "timestamp": f"2026-09-21T12:{sequence_number:02d}:00Z",
+        "sequence_number": sequence_number,
+    }
+
+
+def _send(gateway_url: str, device_id: str, sequence_number: int):
+    return GatewayClient(
+        gateway_url, request_timeout_seconds=15, max_retries=0,
+    ).send(_measurement(device_id, sequence_number))
+
+
 @pytest.mark.parametrize("security_mode", ["classical", "mlkem"])
 def test_legacy_contract_persists_through_compose_in_both_modes(security_mode: str) -> None:
     if shutil.which("docker") is None:
@@ -208,6 +229,125 @@ def test_compose_cloud_restart_recovers_readiness_and_delivery() -> None:
         assert recovered.success and recovered.status_code == 202 and recovered.attempt_count == 1
         listing = _wait_json(f"{cloud_url}/api/v1/measurements")
         assert [item["sequence_number"] for item in listing["items"]] == [2]
+    finally:
+        _compose(
+            project, environment, "down", "--volumes", "--remove-orphans",
+            "--timeout", "10", check=False,
+        )
+
+
+def test_compose_gateway_restart_establishes_a_fresh_mlkem_session() -> None:
+    """M5-77/M5-78: Gateway restart loses its local session and handshakes again."""
+    if shutil.which("docker") is None:
+        pytest.skip("Docker is not installed")
+    gateway_port, cloud_port = _port(), _port()
+    project = f"mlkem-compose-gateway-restart-{os.getpid()}"
+    environment = {
+        **os.environ,
+        "SECURITY_MODE": "mlkem",
+        "GATEWAY_HOST_PORT": str(gateway_port),
+        "CLOUD_HOST_PORT": str(cloud_port),
+        "DATABASE_URL": "sqlite:////data/cloud.db",
+        "GATEWAY_FAILURE_MODE": "none",
+        "GATEWAY_FAILURE_RATE": "0",
+        "CLOUD_FAILURE_MODE": "none",
+        "CLOUD_FAILURE_RATE": "0",
+        "LOG_LEVEL": "INFO",
+    }
+    gateway_url = f"http://127.0.0.1:{gateway_port}"
+    cloud_url = f"http://127.0.0.1:{cloud_port}"
+    device_id = "sensor-compose-gateway-restart"
+    try:
+        started = _compose(
+            project, environment, "up", "--detach", "--build", "--wait",
+            "cloud-service", "edge-gateway", check=False,
+        )
+        assert started.returncode == 0, started.stdout + started.stderr
+        assert _send(gateway_url, device_id, 1).success
+        assert "cloud_mlkem_sessions_created_total 1" in _metrics(f"{cloud_url}/metrics")
+
+        stopped = _compose(project, environment, "stop", "--timeout", "10", "edge-gateway")
+        assert stopped.returncode == 0
+        _wait_unavailable(f"{gateway_url}/health")
+        restarted = _compose(
+            project, environment, "up", "--detach", "--wait", "edge-gateway", check=False,
+        )
+        assert restarted.returncode == 0, restarted.stdout + restarted.stderr
+        assert _wait_json(f"{gateway_url}/ready") == {
+            "status": "ready", "security_mode": "mlkem",
+        }
+
+        assert _send(gateway_url, device_id, 2).success
+        cloud_metrics = _metrics(f"{cloud_url}/metrics")
+        gateway_metrics = _metrics(f"{gateway_url}/metrics")
+        assert "cloud_mlkem_sessions_created_total 2" in cloud_metrics
+        assert 'gateway_mlkem_handshakes_total{result="success"} 1' in gateway_metrics
+        assert "gateway_pqc_fallback_total 0" in gateway_metrics
+        listing = _wait_json(f"{cloud_url}/api/v1/measurements")
+        assert [item["sequence_number"] for item in listing["items"]] == [1, 2]
+    finally:
+        _compose(
+            project, environment, "down", "--volumes", "--remove-orphans",
+            "--timeout", "10", check=False,
+        )
+
+
+def test_compose_cloud_restart_recovers_stale_mlkem_session_without_fallback() -> None:
+    """M5-77/M5-79: a Cloud restart rejects the stale session and recovers once."""
+    if shutil.which("docker") is None:
+        pytest.skip("Docker is not installed")
+    gateway_port, cloud_port = _port(), _port()
+    project = f"mlkem-compose-cloud-restart-{os.getpid()}"
+    environment = {
+        **os.environ,
+        "SECURITY_MODE": "mlkem",
+        "GATEWAY_HOST_PORT": str(gateway_port),
+        "CLOUD_HOST_PORT": str(cloud_port),
+        "DATABASE_URL": "sqlite:////data/cloud.db",
+        "GATEWAY_FAILURE_MODE": "none",
+        "GATEWAY_FAILURE_RATE": "0",
+        "CLOUD_FAILURE_MODE": "none",
+        "CLOUD_FAILURE_RATE": "0",
+        "LOG_LEVEL": "INFO",
+    }
+    gateway_url = f"http://127.0.0.1:{gateway_port}"
+    cloud_url = f"http://127.0.0.1:{cloud_port}"
+    device_id = "sensor-compose-cloud-restart"
+    try:
+        started = _compose(
+            project, environment, "up", "--detach", "--build", "--wait",
+            "cloud-service", "edge-gateway", check=False,
+        )
+        assert started.returncode == 0, started.stdout + started.stderr
+        initial_key = _wait_json(f"{cloud_url}/api/v1/crypto/public-key")["key_id"]
+        assert _send(gateway_url, device_id, 1).success
+
+        stopped = _compose(project, environment, "stop", "--timeout", "10", "cloud-service")
+        assert stopped.returncode == 0
+        _wait_unavailable(f"{cloud_url}/health")
+        restarted = _compose(
+            project, environment, "up", "--detach", "--wait", "cloud-service", check=False,
+        )
+        assert restarted.returncode == 0, restarted.stdout + restarted.stderr
+        assert _wait_json(f"{cloud_url}/ready") == {
+            "status": "ready", "storage": "ok", "mlkem": "available",
+        }
+        assert _wait_json(f"{cloud_url}/api/v1/crypto/public-key")["key_id"] != initial_key
+
+        # The Gateway first submits through its stale session. Cloud responds
+        # SESSION_INVALID; the frozen recovery rebuilds this logical request
+        # under one replacement session rather than using the baseline route.
+        recovered = _send(gateway_url, device_id, 2)
+        assert recovered.success and recovered.status_code == 202
+        gateway_metrics = _metrics(f"{gateway_url}/metrics")
+        cloud_metrics = _metrics(f"{cloud_url}/metrics")
+        assert 'gateway_mlkem_handshakes_total{result="success"} 2' in gateway_metrics
+        assert 'gateway_session_reestablishments_total{result="success"} 1' in gateway_metrics
+        assert "gateway_pqc_fallback_total 0" in gateway_metrics
+        assert "cloud_baseline_requests_total 0" in cloud_metrics
+        assert "cloud_mlkem_sessions_created_total 1" in cloud_metrics
+        listing = _wait_json(f"{cloud_url}/api/v1/measurements")
+        assert [item["sequence_number"] for item in listing["items"]] == [1, 2]
     finally:
         _compose(
             project, environment, "down", "--volumes", "--remove-orphans",

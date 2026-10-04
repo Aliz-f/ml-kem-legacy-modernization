@@ -312,12 +312,13 @@ read the actual diff and history, verify claims against code, review security an
 failure paths, and leave actionable comments. Resolve comments, rerun relevant
 checks, and push follow-ups.
 
-Current CI sets up Python 3.12 and `uv`, then runs `uv sync --frozen`,
-`uv run ruff check .`, and the full test suite on push and pull request. It
-also explicitly selects observability/metrics, protocol-contract, Gateway
-crypto, Cloud, cross-component integration, and full E2E tests; validates the
-AI-history CLI and tracked records; verifies Cloud Docker readiness; and runs
-the Compose recovery regression. See the
+Current CI separates `quality`, `unit-tests`, `integration-tests`, `secure-e2e`,
+`docker-build`, and `clean-environment` jobs. Each Python job uses Python 3.12,
+the committed lockfile through `uv sync --frozen`, and the `setup-uv`
+dependency cache. The workflow validates formatting and AI history; component,
+contract, crypto, integration, and E2E tests; and builds the Legacy Device,
+Gateway, and Cloud images. Its final clean-runner job validates Compose and
+runs the Compose recovery regression. See the
 [developer testing guide](testing/DEVELOPER_TESTING_GUIDE.md) for the exact
 local selections and current two-service Compose boundary.
 Merge only when final human verification is recorded, peer review is approved,

@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 DOCKERFILE = ROOT / "edge_gateway" / "Dockerfile"
 CLOUD_DOCKERFILE = ROOT / "cloud_service" / "Dockerfile"
+LEGACY_DOCKERFILE = ROOT / "legacy_system" / "Dockerfile"
 COMPOSE = ROOT / "docker-compose.yml"
 
 
@@ -32,6 +33,16 @@ def test_cloud_service_image_is_frozen_non_root_and_readiness_aware() -> None:
     assert "STOPSIGNAL SIGTERM" in text
     assert 'CMD ["cloud-service"]' in text
     assert "/ready" in text
+
+
+def test_legacy_device_image_uses_the_locked_workspace_runtime() -> None:
+    text = LEGACY_DOCKERFILE.read_text(encoding="utf-8")
+    assert "FROM python:3.12-slim-bookworm" in text
+    assert "ghcr.io/astral-sh/uv:0.12.19" in text
+    assert "uv sync --frozen --package legacy-system --no-dev --no-editable" in text
+    assert "USER 10001:10001" in text
+    assert "STOPSIGNAL SIGTERM" in text
+    assert 'CMD ["python", "-m", "legacy_system.main"]' in text
 
 
 def test_compose_uses_internal_dns_and_service_scoped_failure_sources() -> None:

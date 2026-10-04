@@ -7,7 +7,7 @@ WORKFLOW = Path(__file__).parents[1] / ".github/workflows/ai-history.yml"
 AI_HISTORY_README = Path(__file__).parents[1] / "docs/ai/README.md"
 
 
-def test_repository_quality_workflow_runs_required_foundation_checks() -> None:
+def test_repository_quality_workflow_separates_required_ci_jobs_and_caches_uv() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     assert "name: Repository quality" in workflow
@@ -16,15 +16,17 @@ def test_repository_quality_workflow_runs_required_foundation_checks() -> None:
     assert "actions/setup-python@v5" in workflow
     assert 'python-version: "3.12"' in workflow
     assert "astral-sh/setup-uv@v5" in workflow
+    assert "enable-cache: true" in workflow
+    for job in (
+        "quality:", "unit-tests:", "integration-tests:", "secure-e2e:",
+        "docker-build:", "clean-environment:",
+    ):
+        assert job in workflow
 
-    commands = (
-        "uv sync --frozen",
-        "uv run ruff check .",
-        "uv run pytest",
-        "uv run ai-history check",
-    )
-    positions = [workflow.index(command) for command in commands]
-    assert positions == sorted(positions)
+    quality = workflow[workflow.index("  quality:") : workflow.index("  unit-tests:")]
+    assert "uv sync --frozen" in quality
+    assert "uv run ruff check ." in quality
+    assert "uv run ai-history check" in quality
 
 
 def test_repository_quality_workflow_runs_contract_stage_after_unit_tests() -> None:
@@ -49,7 +51,7 @@ def test_repository_quality_workflow_runs_contract_stage_after_unit_tests() -> N
     ):
         assert path in workflow
 
-    unit_tests = workflow.index("- run: uv run pytest")
+    unit_tests = workflow.index("name: Run unit and repository tests")
     contract_tests = workflow.index(stage)
     crypto_tests = workflow.index("name: Run Gateway crypto checks")
     assert unit_tests < contract_tests < crypto_tests
@@ -91,7 +93,7 @@ def test_repository_quality_workflow_runs_explicit_integration_and_e2e_stages() 
         assert path in workflow
 
     assert workflow.index(integration_stage) < workflow.index(e2e_stage)
-    assert workflow.index(e2e_stage) < workflow.index("uv run ai-history check")
+    assert "needs: [quality, unit-tests, integration-tests]" in workflow
 
 
 def test_repository_quality_workflow_smoke_tests_ai_history_cli() -> None:
@@ -108,6 +110,33 @@ def test_repository_quality_workflow_smoke_tests_ai_history_cli() -> None:
         assert command in workflow
 
     assert workflow.index("uv sync --frozen") < workflow.index(stage)
+
+
+def test_repository_quality_workflow_builds_all_images_and_runs_clean_compose() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    for dockerfile in (
+        "legacy_system/Dockerfile",
+        "edge_gateway/Dockerfile",
+        "cloud_service/Dockerfile",
+    ):
+        assert f"docker build --file {dockerfile}" in workflow
+
+    clean_environment = workflow[workflow.index("  clean-environment:") :]
+    assert "needs: [secure-e2e, docker-build]" in clean_environment
+    assert "uv sync --frozen" in clean_environment
+    assert "docker compose config --quiet" in clean_environment
+    assert "uv run pytest tests/integration/test_gateway_compose_e2e.py" in clean_environment
+
+
+def test_integration_job_keeps_the_complete_integration_suite() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    integration = workflow[
+        workflow.index("  integration-tests:") : workflow.index("  secure-e2e:")
+    ]
+
+    assert "name: Run all integration tests" in integration
+    assert "uv run pytest tests/integration" in integration
 
 
 def test_ai_history_readme_documents_the_clean_ci_compatibility_commands() -> None:

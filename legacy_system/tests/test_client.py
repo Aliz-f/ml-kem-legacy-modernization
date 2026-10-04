@@ -125,6 +125,7 @@ def test_http_statuses_are_classified_by_retryability(
         (URLError("connection refused"), ErrorCategory.CONNECTION),
         (ConnectionError(), ErrorCategory.CONNECTION),
         (HTTPException("invalid response"), ErrorCategory.CONNECTION),
+        (OSError("network unreachable"), ErrorCategory.CONNECTION),
     ],
 )
 def test_transport_failures_are_stable_and_retryable(

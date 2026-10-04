@@ -13570,7 +13570,7 @@
       "file_type": "code",
       "norm_label": "test_compose_cloud_restart_recovers_stale_mlkem_session_without_fallback()",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L295"
+      "source_location": "L296"
     },
     {
       "id": "tests_integration_test_gateway_compose_e2e_test_compose_gateway_restart_establishes_a_fresh_mlkem_session",
@@ -26058,7 +26058,7 @@
       "source_location": "L240"
     },
     {
-      "id": "tests_integration_test_gateway_compose_e2e_rationale_296",
+      "id": "tests_integration_test_gateway_compose_e2e_rationale_297",
       "label": "M5-77/M5-79: a Cloud restart rejects the stale session and recovers once.",
       "_origin": "ast",
       "community": 4,
@@ -26066,7 +26066,7 @@
       "file_type": "rationale",
       "norm_label": "m5-77/m5-79: a cloud restart rejects the stale session and recovers once.",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L296"
+      "source_location": "L297"
     },
     {
       "id": "tests_integration_test_gateway_crypto_image_rationale_1",
@@ -48519,7 +48519,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L299",
+      "source_location": "L300",
       "weight": 1.0
     },
     {
@@ -48531,7 +48531,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L317",
+      "source_location": "L318",
       "weight": 1.0
     },
     {
@@ -48543,7 +48543,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L322",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -48555,7 +48555,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L323",
+      "source_location": "L324",
       "weight": 1.0
     },
     {
@@ -48567,7 +48567,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L327",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -48579,7 +48579,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L342",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -48651,7 +48651,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L276",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -87981,7 +87981,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L295",
+      "source_location": "L296",
       "weight": 1.0
     },
     {
@@ -98908,14 +98908,14 @@
       "weight": 1.0
     },
     {
-      "source": "tests_integration_test_gateway_compose_e2e_rationale_296",
+      "source": "tests_integration_test_gateway_compose_e2e_rationale_297",
       "target": "tests_integration_test_gateway_compose_e2e_test_compose_cloud_restart_recovers_stale_mlkem_session_without_fallback",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/integration/test_gateway_compose_e2e.py",
-      "source_location": "L296",
+      "source_location": "L297",
       "weight": 1.0
     },
     {

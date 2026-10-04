@@ -270,7 +270,8 @@ def test_compose_gateway_restart_establishes_a_fresh_mlkem_session() -> None:
         assert stopped.returncode == 0
         _wait_unavailable(f"{gateway_url}/health")
         restarted = _compose(
-            project, environment, "up", "--detach", "--wait", "edge-gateway", check=False,
+            project, environment, "up", "--detach", "--force-recreate", "--wait",
+            "edge-gateway", check=False,
         )
         assert restarted.returncode == 0, restarted.stdout + restarted.stderr
         assert _wait_json(f"{gateway_url}/ready") == {

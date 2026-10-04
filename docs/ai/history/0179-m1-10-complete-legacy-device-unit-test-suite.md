@@ -1,4 +1,4 @@
-# AI Task 0169 — M1-10 Complete Legacy Device unit-test suite
+# AI Task 0179 — M1-10 Complete Legacy Device unit-test suite
 
 **Status:** Complete
 
@@ -180,4 +180,3 @@ I inspected the final implementation and tests, confirmed the requested modifica
 # Final Outcome
 
 **Status:** Complete
-

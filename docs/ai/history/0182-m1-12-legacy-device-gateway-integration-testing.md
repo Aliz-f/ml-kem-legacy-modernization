@@ -1,4 +1,4 @@
-# AI Task 0171 — M1-12 Legacy Device Gateway integration testing
+# AI Task 0182 — M1-12 Legacy Device Gateway integration testing
 
 **Status:** Complete
 

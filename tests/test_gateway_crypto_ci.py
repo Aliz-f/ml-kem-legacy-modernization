@@ -22,12 +22,12 @@ CRYPTO_SUITES = (
 
 
 def test_quality_workflow_names_the_gateway_crypto_suites() -> None:
-    """CI runs the crypto suites after the full pytest command."""
+    """The split unit-test job retains the named Gateway crypto suites."""
     workflow = WORKFLOW.read_text(encoding="utf-8")
-    full_suite = workflow.index("run: uv run pytest\n")
+    unit_tests = workflow.index("  unit-tests:")
     crypto_step = workflow.index("name: Run Gateway crypto checks")
-    assert full_suite < crypto_step
-    assert crypto_step < workflow.index("uv run ai-history check")
+    integration_tests = workflow.index("  integration-tests:")
+    assert unit_tests < crypto_step < integration_tests
     for path in CRYPTO_SUITES:
         assert (ROOT / path).is_file()
         assert workflow.index(path, crypto_step) > crypto_step

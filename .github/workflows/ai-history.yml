@@ -2,6 +2,9 @@ name: Repository quality
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -11,11 +14,32 @@ jobs:
         with:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
       - run: uv sync --frozen
       - run: uv run ruff check .
-      - run: uv run pytest
-      - name: Run observability integration regressions
-        run: uv run pytest tests/integration/test_observability_integration.py
+      - name: Verify AI-history CLI compatibility
+        run: |
+          uv run ai-history --help
+          uv run ai-history status
+          uv run ai-history list
+          uv run ai-history check
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Run unit and repository tests
+        run: >-
+          uv run pytest legacy_system/tests edge_gateway/tests cloud_service/tests
+          tests/ai_history tests/test_*.py
       - name: Run protocol contract tests
         run: >-
           uv run pytest
@@ -45,27 +69,84 @@ jobs:
           edge_gateway/tests/test_secure_transport.py
           tests/integration/test_secure_message_tamper.py
           tests/integration/test_gateway_cloud_secure.py
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Run all integration tests
+        run: uv run pytest tests/integration
+      - name: Run observability and metrics sanity regressions
+        run: >-
+          uv run pytest
+          tests/integration/test_observability_integration.py
+          tests/integration/test_metrics_sanity.py
       - name: Run Cloud unit and cross-component checks
         run: >-
           uv run pytest
           cloud_service/tests
           tests/integration/test_gateway_cloud_secure.py
-      - run: uv run ai-history check
-      - name: Build and verify Cloud container readiness
-        run: |
-          docker build --file cloud_service/Dockerfile --tag course-cloud-readiness .
-          docker run --detach --rm --name course-cloud-readiness \
-            --publish 127.0.0.1:9000:9000 \
-            --env SECURITY_MODE=mlkem \
-            course-cloud-readiness
-          trap 'docker logs course-cloud-readiness; docker stop course-cloud-readiness || true' EXIT
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent --show-error http://127.0.0.1:9000/ready \
-              && curl --fail --silent --show-error http://127.0.0.1:9000/health; then
-              exit 0
-            fi
-            sleep 1
-          done
-          exit 1
+      - name: Run cross-component integration tests
+        run: >-
+          uv run pytest
+          tests/integration/test_legacy_gateway.py
+          tests/integration/test_gateway_cloud_baseline.py
+          tests/integration/test_mlkem_session_orchestration.py
+          tests/integration/test_gateway_cloud_secure_session.py
+          tests/integration/test_gateway_cloud_secure.py
+
+  secure-e2e:
+    needs: [quality, unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Run full end-to-end tests
+        run: >-
+          uv run pytest
+          tests/integration/test_end_to_end.py
+          tests/integration/test_modernized_end_to_end.py
+          tests/integration/test_legacy_mode_success_compatibility.py
+
+  docker-build:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Legacy Device image
+        run: docker build --file legacy_system/Dockerfile --tag course-legacy-device .
+      - name: Build Edge Gateway image
+        run: docker build --file edge_gateway/Dockerfile --tag course-edge-gateway .
+      - name: Build Cloud Service image
+        run: docker build --file cloud_service/Dockerfile --tag course-cloud-service .
+
+  clean-environment:
+    needs: [secure-e2e, docker-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install from the committed lockfile
+        run: uv sync --frozen
+      - name: Validate the Compose configuration
+        run: docker compose config --quiet
       - name: Run Compose recovery regression
         run: uv run pytest tests/integration/test_gateway_compose_e2e.py

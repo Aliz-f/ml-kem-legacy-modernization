@@ -41,7 +41,7 @@ services:
       HOST: 0.0.0.0
       PORT: 8000
       GATEWAY_ID: ${GATEWAY_ID:-gateway-001}
-      CLOUD_URL: http://cloud-service:9000
+      CLOUD_URL: ${CLOUD_URL:-http://cloud-service:9000}
       CLOUD_TIMEOUT_SECONDS: ${CLOUD_TIMEOUT_SECONDS:-3}
       CLOUD_MAX_RETRIES: ${CLOUD_MAX_RETRIES:-2}
       SECURITY_MODE: ${SECURITY_MODE:-classical}
@@ -74,7 +74,7 @@ services:
         condition: service_healthy
     environment:
       DEVICE_ID: ${DEVICE_ID:-sensor-001}
-      GATEWAY_URL: http://edge-gateway:8000
+      GATEWAY_URL: ${GATEWAY_URL:-http://edge-gateway:8000}
       SEND_INTERVAL_SECONDS: ${SEND_INTERVAL_SECONDS:-5}
       REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-3}
       MAX_RETRIES: ${MAX_RETRIES:-2}

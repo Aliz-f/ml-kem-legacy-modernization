@@ -49,7 +49,7 @@ def test_compose_uses_internal_dns_and_service_scoped_failure_sources() -> None:
     text = COMPOSE.read_text(encoding="utf-8")
     assert "dockerfile: edge_gateway/Dockerfile" in text
     assert "dockerfile: cloud_service/Dockerfile" in text
-    assert "CLOUD_URL: http://cloud-service:9000" in text
+    assert "CLOUD_URL: ${CLOUD_URL:-http://cloud-service:9000}" in text
     assert "FAILURE_MODE: ${GATEWAY_FAILURE_MODE:-none}" in text
     assert "FAILURE_RATE: ${GATEWAY_FAILURE_RATE:-0.0}" in text
     assert "FAILURE_SEED: ${GATEWAY_FAILURE_SEED:-2}" in text

@@ -79,7 +79,7 @@ def test_compose_legacy_device_uses_internal_dns_endpoint() -> None:
     text = COMPOSE.read_text(encoding="utf-8")
     assert "legacy-device:" in text
     legacy_section = text.split("legacy-device:")[1]
-    assert "GATEWAY_URL: http://edge-gateway:8000" in legacy_section
+    assert "GATEWAY_URL: ${GATEWAY_URL:-http://edge-gateway:8000}" in legacy_section
     assert "localhost" not in legacy_section
 
 

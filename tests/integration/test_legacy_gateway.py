@@ -141,6 +141,28 @@ def test_parsed_invalid_legacy_payload_is_rejected_without_delivery(
     assert transport.calls == []
 
 
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "invalid_temperature_measurement.json",
+        "invalid_humidity_measurement.json",
+        "invalid_timestamp_measurement.json",
+        "missing_field_measurement.json",
+    ],
+    ids=("invalid-temperature", "invalid-humidity", "invalid-timestamp", "missing-field"),
+)
+def test_all_invalid_integration_fixtures_are_rejected_without_delivery(fixture_name: str) -> None:
+    body = fixture_payload(fixture_name)
+    with live_gateway() as (gateway_url, transport):
+        status, response = post_raw(gateway_url, json.dumps(body).encode("utf-8"))
+
+    assert (status, response) == (
+        422,
+        {"error": {"code": "INVALID_MEASUREMENT", "message": "measurement validation failed"}},
+    )
+    assert transport.calls == []
+
+
 def test_malformed_legacy_json_is_rejected_without_delivery() -> None:
     with live_gateway() as (gateway_url, transport):
         status, response = post_raw(gateway_url, b'{"device_id":')

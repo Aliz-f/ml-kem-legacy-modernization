@@ -1,0 +1,8 @@
+{
+  "device_id": "sensor-test",
+  "temperature_c": 85.1,
+  "humidity_pct": 44.0,
+  "timestamp": "2026-09-21T12:00:00Z",
+  "sequence_number": 1
+}
+

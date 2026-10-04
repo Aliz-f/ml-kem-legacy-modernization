@@ -15,13 +15,22 @@ def _fixture(name: str) -> dict[str, object]:
 
 def test_shared_fixtures_match_the_frozen_legacy_and_canonical_shapes() -> None:
     legacy = _fixture("valid_legacy_measurement.json")
+    invalid_temperature = _fixture("invalid_temperature_measurement.json")
     invalid_humidity = _fixture("invalid_humidity_measurement.json")
+    invalid_timestamp = _fixture("invalid_timestamp_measurement.json")
+    missing_field = _fixture("missing_field_measurement.json")
     canonical = _fixture("canonical_measurement.json")
 
     assert set(legacy) == {
         "device_id", "temperature_c", "humidity_pct", "timestamp", "sequence_number",
     }
+    assert invalid_temperature == {**legacy, "temperature_c": 85.1}
     assert invalid_humidity == {**legacy, "humidity_pct": 100.1}
+    assert invalid_timestamp == {**legacy, "timestamp": "not-a-timestamp"}
+    assert missing_field == {k: v for k, v in legacy.items() if k != "timestamp"}
+    assert set(missing_field) == {
+        "device_id", "temperature_c", "humidity_pct", "sequence_number",
+    }
     assert set(canonical) == {
         "device_id", "temperature_c", "humidity_pct", "measured_at",
         "sequence_number", "received_at", "gateway_id",

@@ -1,0 +1,7 @@
+{
+  "device_id": "sensor-test",
+  "temperature_c": 22.5,
+  "humidity_pct": 44.0,
+  "sequence_number": 1
+}
+

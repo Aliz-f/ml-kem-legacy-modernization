@@ -37,8 +37,12 @@ def serialize_canonical_measurement(
     gateway_id: str,
 ) -> bytes:
     """Return deterministic UTF-8 JSON for one canonical measurement."""
+    # Device identity has already passed Legacy domain validation. Preserve
+    # surrounding whitespace just as baseline delivery and Cloud validation do.
+    if not isinstance(device_id, str) or not device_id.strip():
+        raise PlaintextError("device_id must be a non-empty string.")
     payload = {
-        "device_id": _require_id(device_id, "device_id"),
+        "device_id": device_id,
         "temperature_c": _require_number(temperature_c, "temperature_c"),
         "humidity_pct": _require_number(humidity_pct, "humidity_pct"),
         "measured_at": _require_utc_timestamp(measured_at, "measured_at"),

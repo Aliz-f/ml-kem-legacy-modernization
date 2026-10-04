@@ -1,8 +1,9 @@
 """M1-17 failure simulation validation test suite.
 
 Demonstrates that every failure mode in the Legacy Device failure injector matrix
-is handled according to protocol contracts against Gateway validation semantics:
-- Normal (none) -> 202 Accepted
+has the expected wire shape and retry behavior against a strict loopback
+contract receiver:
+- Normal (none) -> synthetic 202 acknowledgement
 - Syntax error -> 400 Bad Request (0 retries)
 - Domain / schema errors -> 422 Unprocessable Entity (0 retries)
 - Sequence collisions / reversals -> 409 Conflict (0 retries)
@@ -11,10 +12,11 @@ is handled according to protocol contracts against Gateway validation semantics:
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import logging
+import math
 import threading
 from typing import Any
 import urllib.request
@@ -28,10 +30,15 @@ from legacy_system.failure import FailureInjector
 from legacy_system.sensor import Sensor
 
 
-class _GatewayValidationHandler(BaseHTTPRequestHandler):
-    """Simulates Gateway validation, sequencing, and status-code boundaries."""
+class _LegacyContractReceiver(BaseHTTPRequestHandler):
+    """Loopback receiver enforcing the frozen Legacy request contract.
 
-    server: _GatewayValidationServer
+    This test double exercises the Legacy client's wire and retry behavior only.
+    Its synthetic 202 acknowledgement is not evidence of Gateway-to-Cloud
+    forwarding or Cloud persistence; those behaviors belong to integration tests.
+    """
+
+    server: _LegacyContractServer
 
     def do_POST(self) -> None:  # noqa: N802
         if self.path != "/api/v1/measurements":
@@ -51,7 +58,7 @@ class _GatewayValidationHandler(BaseHTTPRequestHandler):
             self._respond(400, {"detail": "Malformed JSON syntax"})
             return
 
-        # 2. Schema / missing field check -> 422 Unprocessable Entity
+        # 2. Schema check -> 422 Unprocessable Entity
         required_fields = {
             "device_id",
             "temperature_c",
@@ -59,26 +66,45 @@ class _GatewayValidationHandler(BaseHTTPRequestHandler):
             "timestamp",
             "sequence_number",
         }
-        if not required_fields.issubset(payload.keys()):
+        if not isinstance(payload, dict) or set(payload) != required_fields:
             self.server.rejections_422 += 1
-            self._respond(422, {"detail": "Missing required field"})
+            self._respond(422, {"detail": "Legacy request schema mismatch"})
             return
 
         # 3. Domain value validation -> 422 Unprocessable Entity
         try:
-            device_id = str(payload["device_id"])
-            if not device_id:
+            device_id = payload["device_id"]
+            if not isinstance(device_id, str) or not device_id.strip():
                 raise ValueError("Empty device_id")
-            temp = float(payload["temperature_c"])
-            if not (-40.0 <= temp <= 85.0):
+            temp = payload["temperature_c"]
+            if (
+                isinstance(temp, bool)
+                or not isinstance(temp, (int, float))
+                or not math.isfinite(temp)
+                or not (-40.0 <= temp <= 85.0)
+            ):
                 raise ValueError("Temperature out of range")
-            humidity = float(payload["humidity_pct"])
-            if not (0.0 <= humidity <= 100.0):
+            humidity = payload["humidity_pct"]
+            if (
+                isinstance(humidity, bool)
+                or not isinstance(humidity, (int, float))
+                or not math.isfinite(humidity)
+                or not (0.0 <= humidity <= 100.0)
+            ):
                 raise ValueError("Humidity out of range")
-            datetime.fromisoformat(str(payload["timestamp"]))
-            seq = int(payload["sequence_number"])
-            if seq < 0:
-                raise ValueError("Negative sequence number")
+            timestamp = payload["timestamp"]
+            if not isinstance(timestamp, str):
+                raise ValueError("Timestamp must be a string")
+            parsed_timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            if parsed_timestamp.utcoffset() != timedelta(0):
+                raise ValueError("Timestamp must be UTC")
+            seq = payload["sequence_number"]
+            if (
+                isinstance(seq, bool)
+                or not isinstance(seq, int)
+                or not 0 <= seq <= 9223372036854775807
+            ):
+                raise ValueError("Invalid sequence number")
         except Exception as exc:
             self.server.rejections_422 += 1
             self._respond(422, {"detail": f"Domain validation error: {exc}"})
@@ -93,12 +119,14 @@ class _GatewayValidationHandler(BaseHTTPRequestHandler):
                 return
             if seq < last_seq:
                 self.server.rejections_409 += 1
-                self._respond(409, {"detail": f"Out of order sequence number: {seq} < {last_seq}"})
+                self._respond(
+                    409, {"detail": f"Out of order sequence number: {seq} < {last_seq}"}
+                )
                 return
 
         self.server.last_sequences[device_id] = seq
         self.server.accepted_payloads.append(payload)
-        self._respond(202, {"status": "accepted"})
+        self._respond(202, {"status": "loopback_acknowledged"})
 
     def _respond(self, status: int, data: dict[str, Any]) -> None:
         self.send_response(status)
@@ -110,9 +138,9 @@ class _GatewayValidationHandler(BaseHTTPRequestHandler):
         pass
 
 
-class _GatewayValidationServer(HTTPServer):
+class _LegacyContractServer(HTTPServer):
     def __init__(self, server_address: tuple[str, int]) -> None:
-        super().__init__(server_address, _GatewayValidationHandler)
+        super().__init__(server_address, _LegacyContractReceiver)
         self.total_attempts: int = 0
         self.rejections_400: int = 0
         self.rejections_422: int = 0
@@ -121,8 +149,8 @@ class _GatewayValidationServer(HTTPServer):
         self.last_sequences: dict[str, int] = {}
 
 
-def _start_gateway_server() -> tuple[_GatewayValidationServer, str, threading.Thread]:
-    server = _GatewayValidationServer(("127.0.0.1", 0))
+def _start_contract_receiver() -> tuple[_LegacyContractServer, str, threading.Thread]:
+    server = _LegacyContractServer(("127.0.0.1", 0))
     host, port = server.server_address
     url = f"http://{host}:{port}"
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -143,8 +171,8 @@ def _start_gateway_server() -> tuple[_GatewayValidationServer, str, threading.Th
 def test_data_failure_modes_rejected_or_accepted_without_retry(
     mode: FailureMode, expected_status: int
 ) -> None:
-    """Verify each data failure mode produces expected Gateway status and zero client retries."""
-    server, gateway_url, _ = _start_gateway_server()
+    """Verify each data failure mode produces the expected status and no retries."""
+    server, gateway_url, _ = _start_contract_receiver()
     try:
         sleeps: list[float] = []
         client = GatewayClient(
@@ -180,9 +208,59 @@ def test_data_failure_modes_rejected_or_accepted_without_retry(
         server.server_close()
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("device_id", 1),
+        ("temperature_c", "21.5"),
+        ("humidity_pct", True),
+        ("timestamp", "2026-10-04T12:00:00"),
+        ("timestamp", "2026-10-04T12:00:00+03:00"),
+        ("sequence_number", 1.0),
+        ("sequence_number", 9223372036854775808),
+    ],
+)
+def test_contract_receiver_rejects_wrong_types_and_domains_without_retry(
+    field: str, value: object
+) -> None:
+    """Lock the loopback receiver to the frozen Legacy schema and domain rules."""
+    server, gateway_url, _ = _start_contract_receiver()
+    try:
+        client = GatewayClient(gateway_url, request_timeout_seconds=2.0, max_retries=2)
+        payload = Sensor(device_id="sensor-001").read().to_payload()
+        payload[field] = value
+
+        result = client.send(payload)
+
+        assert result.status_code == 422
+        assert result.attempt_count == 1
+        assert result.retryable is False
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_contract_receiver_rejects_extra_fields_without_retry() -> None:
+    """The Legacy request schema has exactly five fields; extras are a 422."""
+    server, gateway_url, _ = _start_contract_receiver()
+    try:
+        client = GatewayClient(gateway_url, request_timeout_seconds=2.0, max_retries=2)
+        payload = Sensor(device_id="sensor-001").read().to_payload()
+        payload["unexpected"] = "field"
+
+        result = client.send(payload)
+
+        assert result.status_code == 422
+        assert result.attempt_count == 1
+        assert result.retryable is False
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
 def test_sequence_failure_modes_trigger_409_without_retry() -> None:
     """Verify duplicate and out-of-order sequence faults trigger 409 with zero retries."""
-    server, gateway_url, _ = _start_gateway_server()
+    server, gateway_url, _ = _start_contract_receiver()
     try:
         sleeps: list[float] = []
         client = GatewayClient(
@@ -242,7 +320,7 @@ def test_sequence_failure_modes_trigger_409_without_retry() -> None:
 
 def test_malformed_wire_body_is_400_without_retry() -> None:
     """Verify malformed JSON syntax is rejected with 400 Bad Request and not retried."""
-    server, gateway_url, _ = _start_gateway_server()
+    server, gateway_url, _ = _start_contract_receiver()
     try:
         # Directly post unparseable bytes to test the syntax boundary
         endpoint = f"{gateway_url}/api/v1/measurements"
@@ -265,7 +343,7 @@ def test_malformed_wire_body_is_400_without_retry() -> None:
 
 def test_random_failure_mode_generates_mixed_controlled_outcomes() -> None:
     """Verify random mode injects mixed valid and faulty payloads deterministically."""
-    server, gateway_url, _ = _start_gateway_server()
+    server, gateway_url, _ = _start_contract_receiver()
     try:
         client = GatewayClient(
             gateway_url=gateway_url,
@@ -305,7 +383,7 @@ def test_failure_rejections_logged_with_structured_attributes(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Verify structured log events for failure occurrences reflect error category and status."""
-    server, gateway_url, _ = _start_gateway_server()
+    server, gateway_url, _ = _start_contract_receiver()
     try:
         client = GatewayClient(
             gateway_url=gateway_url,
@@ -336,7 +414,7 @@ def test_failure_rejections_logged_with_structured_attributes(
 
 def test_device_controller_runs_through_fault_injections_without_crashing() -> None:
     """Verify DeviceController continues generating measurements when faults are injected."""
-    server, gateway_url, _ = _start_gateway_server()
+    server, gateway_url, _ = _start_contract_receiver()
     try:
         config = Config(
             device_id="sensor-fault-loop",

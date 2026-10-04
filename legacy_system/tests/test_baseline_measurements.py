@@ -1,8 +1,8 @@
 """M1-16 baseline measurement test suite and data collection.
 
-Measures the Legacy Device simulator performance, payload sizes, delivery
-rates, and retry behaviors on the Legacy-to-Gateway boundary without
-introducing benchmark targets or changing production runtime code.
+Measures Legacy Device client serialization, loopback acknowledgement, and
+retry behavior without introducing benchmark targets or changing production
+runtime code.
 """
 
 from __future__ import annotations
@@ -21,10 +21,14 @@ from legacy_system.device import DeviceController
 from legacy_system.sensor import Sensor
 
 
-class _BaselineGatewayHandler(BaseHTTPRequestHandler):
-    """Minimal loopback HTTP handler simulating the Edge Gateway endpoint."""
+class _BaselineLoopbackReceiver(BaseHTTPRequestHandler):
+    """Minimal loopback receiver for client-only baseline measurements.
 
-    server: _BaselineServer
+    It deliberately does not model Gateway validation, forwarding, or Cloud
+    persistence. A 202 from this receiver is only a synthetic acknowledgement.
+    """
+
+    server: _BaselineLoopbackServer
 
     def do_POST(self) -> None:  # noqa: N802
         if self.path != "/api/v1/measurements":
@@ -41,7 +45,7 @@ class _BaselineGatewayHandler(BaseHTTPRequestHandler):
             self.send_response(self.server.response_status)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"detail": "Simulated Gateway failure"}')
+            self.wfile.write(b'{"detail": "Simulated loopback receiver failure"}')
             return
 
         try:
@@ -51,7 +55,7 @@ class _BaselineGatewayHandler(BaseHTTPRequestHandler):
             self.send_response(202)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"status": "accepted"}')
+            self.wfile.write(b'{"status": "loopback_acknowledged"}')
         except Exception:
             self.send_response(400)
             self.send_header("Content-Type", "application/json")
@@ -63,17 +67,17 @@ class _BaselineGatewayHandler(BaseHTTPRequestHandler):
         pass
 
 
-class _BaselineServer(HTTPServer):
+class _BaselineLoopbackServer(HTTPServer):
     def __init__(self, server_address: tuple[str, int]) -> None:
-        super().__init__(server_address, _BaselineGatewayHandler)
+        super().__init__(server_address, _BaselineLoopbackReceiver)
         self.received_payloads: list[dict[str, Any]] = []
         self.received_bytes: list[int] = []
         self.attempts: int = 0
         self.response_status: int = 202
 
 
-def _start_loopback_gateway() -> tuple[_BaselineServer, str, threading.Thread]:
-    server = _BaselineServer(("127.0.0.1", 0))
+def _start_loopback_receiver() -> tuple[_BaselineLoopbackServer, str, threading.Thread]:
+    server = _BaselineLoopbackServer(("127.0.0.1", 0))
     host, port = server.server_address
     url = f"http://{host}:{port}"
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -97,9 +101,9 @@ def _calculate_distribution(values: list[float] | list[int]) -> dict[str, float]
     }
 
 
-def test_baseline_healthy_workload_100_measurements() -> None:
-    """Collect baseline evidence across 100 sequential valid measurements."""
-    server, gateway_url, _ = _start_loopback_gateway()
+def test_client_loopback_workload_100_measurements() -> None:
+    """Measure client serialization and loopback acknowledgement only."""
+    server, gateway_url, _ = _start_loopback_receiver()
     try:
         client = GatewayClient(
             gateway_url=gateway_url,
@@ -110,7 +114,7 @@ def test_baseline_healthy_workload_100_measurements() -> None:
 
         payload_sizes: list[int] = []
         latencies_ms: list[float] = []
-        delivery_successes: int = 0
+        loopback_acknowledgements: int = 0
         total_retries: int = 0
 
         for _ in range(100):
@@ -125,11 +129,11 @@ def test_baseline_healthy_workload_100_measurements() -> None:
 
             latencies_ms.append(latency)
             if result.success and result.status_code == 202:
-                delivery_successes += 1
-            total_retries += (result.attempt_count - 1)
+                loopback_acknowledgements += 1
+            total_retries += result.attempt_count - 1
 
         # Basic assertions
-        assert delivery_successes == 100
+        assert loopback_acknowledgements == 100
         assert total_retries == 0
         assert len(server.received_payloads) == 100
         assert server.attempts == 100
@@ -139,16 +143,17 @@ def test_baseline_healthy_workload_100_measurements() -> None:
 
         report = {
             "task": "M1-16",
-            "scenario": "healthy_baseline_100_sequential",
+            "scenario": "client_loopback_100_sequential",
             "messages_generated": 100,
-            "messages_delivered": delivery_successes,
-            "delivery_success_rate_pct": (delivery_successes / 100.0) * 100.0,
+            "loopback_acknowledgements": loopback_acknowledgements,
+            "loopback_acknowledgement_rate_pct": (loopback_acknowledgements / 100.0)
+            * 100.0,
             "total_retries": total_retries,
             "payload_bytes": payload_dist,
             "latency_ms": latency_dist,
         }
-        assert report["messages_delivered"] == 100
-        assert report["delivery_success_rate_pct"] == 100.0
+        assert report["loopback_acknowledgements"] == 100
+        assert report["loopback_acknowledgement_rate_pct"] == 100.0
 
         # Payload sizes: standard sensor payload is ~130-175 bytes depending on float precision
         assert 120 <= payload_dist["min"] <= 180
@@ -162,10 +167,10 @@ def test_baseline_healthy_workload_100_measurements() -> None:
         server.server_close()
 
 
-def test_baseline_gateway_unavailable_bounded_retries() -> None:
-    """Verify bounded retry count and non-crashing sequence progression when Gateway is down."""
+def test_baseline_receiver_unavailable_bounded_retries() -> None:
+    """Verify bounded retries and sequence progression when the receiver is down."""
     # Pick a port that is guaranteed not listening
-    dummy_server = _BaselineServer(("127.0.0.1", 0))
+    dummy_server = _BaselineLoopbackServer(("127.0.0.1", 0))
     _, unused_port = dummy_server.server_address
     dummy_server.server_close()
 
@@ -199,9 +204,9 @@ def test_baseline_gateway_unavailable_bounded_retries() -> None:
     assert result2.attempt_count == 3
 
 
-def test_baseline_gateway_http_503_controlled_failure() -> None:
-    """Verify bounded retries when Gateway returns 503 Service Unavailable."""
-    server, gateway_url, _ = _start_loopback_gateway()
+def test_baseline_receiver_http_503_controlled_failure() -> None:
+    """Verify bounded retries when the loopback receiver returns 503."""
+    server, gateway_url, _ = _start_loopback_receiver()
     server.response_status = 503
     try:
         sleeps: list[float] = []
@@ -228,9 +233,9 @@ def test_baseline_gateway_http_503_controlled_failure() -> None:
         server.server_close()
 
 
-def test_baseline_validation_failure_no_retries() -> None:
-    """Verify validation failure (422) is not retried."""
-    server, gateway_url, _ = _start_loopback_gateway()
+def test_baseline_receiver_422_no_retries() -> None:
+    """Verify a synthetic 422 response is not retried."""
+    server, gateway_url, _ = _start_loopback_receiver()
     server.response_status = 422
     try:
         sleeps: list[float] = []
@@ -258,9 +263,9 @@ def test_baseline_validation_failure_no_retries() -> None:
 
 
 def test_baseline_device_controller_graceful_continuity_on_failure() -> None:
-    """Verify DeviceController continues periodic execution through downstream failure."""
-    server, gateway_url, _ = _start_loopback_gateway()
-    server.response_status = 500  # Gateway failure
+    """Verify DeviceController continues periodic execution through receiver failure."""
+    server, gateway_url, _ = _start_loopback_receiver()
+    server.response_status = 500  # Loopback receiver failure
     try:
         config = Config(
             device_id="sensor-test",

@@ -9,6 +9,7 @@ from collections.abc import Callable
 
 
 _Clock = Callable[[], datetime]
+MAX_SEQUENCE_NUMBER = 2**63 - 1
 
 
 class Sensor:
@@ -73,8 +74,8 @@ class Measurement:
             self.sequence_number, int
         ):
             raise TypeError("sequence_number must be an integer")
-        if self.sequence_number < 0:
-            raise ValueError("sequence_number must be non-negative")
+        if not 0 <= self.sequence_number <= MAX_SEQUENCE_NUMBER:
+            raise ValueError("sequence_number must be between 0 and 9223372036854775807")
 
     def to_payload(self) -> dict[str, object]:
         """Return an independent JSON-compatible Legacy Gateway payload."""

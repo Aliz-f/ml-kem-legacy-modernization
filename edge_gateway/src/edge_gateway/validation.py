@@ -4,6 +4,8 @@ import json
 
 from edge_gateway.models import LegacyMeasurement
 
+MAX_SEQUENCE_NUMBER = 2**63 - 1
+
 
 class LegacyJSONError(ValueError):
     """The request body cannot be parsed as JSON."""
@@ -25,8 +27,8 @@ def validate_legacy_measurement(measurement: LegacyMeasurement) -> LegacyMeasure
         raise LegacyMeasurementDomainError("temperature_c must be between -40 and 85")
     if not 0 <= measurement.humidity_pct <= 100:
         raise LegacyMeasurementDomainError("humidity_pct must be between 0 and 100")
-    if measurement.sequence_number < 0:
-        raise LegacyMeasurementDomainError("sequence_number must be non-negative")
+    if not 0 <= measurement.sequence_number <= MAX_SEQUENCE_NUMBER:
+        raise LegacyMeasurementDomainError("sequence_number must be between 0 and 9223372036854775807")
     return measurement
 
 

@@ -104,7 +104,7 @@ Rules:
 |`temperature_c`|normal generation around 15–30°C|
 |`humidity_pct`|normal generation around 30–70%|
 |`timestamp`|ISO-8601 UTC|
-|`sequence_number`|integer `>= 0`|
+|`sequence_number`|integer `0 <= value <= 9223372036854775807`|
 
 Member 1 must verify that these match:
 

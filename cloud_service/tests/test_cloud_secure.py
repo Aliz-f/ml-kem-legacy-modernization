@@ -50,17 +50,18 @@ def establish(client):
     return response.json()["session_id"], derive_session_key(secret)
 
 
-def envelope(client):
+def envelope(client, **overrides):
     session_id, key = establish(client)
-    return build_secure_envelope(key=key, session_id=session_id, request_id="req-1", **canonical()).as_dict()
+    return build_secure_envelope(key=key, session_id=session_id, request_id="req-1", **(canonical() | overrides)).as_dict()
 
 
 def forbid(*args, **kwargs):
     pytest.fail("Rejected input reached a forbidden processing stage")
 
 
-def test_gateway_envelope_persistence_query_and_identical_retry(client, caplog):
-    wire = envelope(client)
+@pytest.mark.parametrize("sequence", [1, 2**63 - 1])
+def test_gateway_envelope_persistence_query_and_identical_retry(client, caplog, sequence):
+    wire = envelope(client, sequence_number=sequence)
     with caplog.at_level(logging.DEBUG):
         first = client.post(PATH, json=wire)
         repeat = client.post(PATH, json=wire)
@@ -68,7 +69,7 @@ def test_gateway_envelope_persistence_query_and_identical_retry(client, caplog):
     assert first.json()["status"] == "accepted"
     assert repeat.json() == {"status": "already_accepted", "record_id": first.json()["record_id"]}
     row = client.get(f"/api/v1/measurements/{first.json()['record_id']}").json()
-    expected = canonical()
+    expected = canonical() | {"sequence_number": sequence}
     expected["gateway_received_at"] = expected.pop("received_at")
     for field, value in expected.items():
         if field.endswith("_at"):
@@ -194,6 +195,7 @@ def test_session_lookup_ownership_expiry_order(client, monkeypatch):
 
 @pytest.mark.parametrize("plaintext", [b"not JSON", b"\xff", b"[]", b"{}", b'{"x":1,"x":2}',
     json.dumps(canonical() | {"humidity_pct": 101}).encode(),
+    json.dumps(canonical() | {"sequence_number": 2**63}).encode(),
     json.dumps(canonical() | {"gateway_id": "other"}).encode()])
 def test_authenticated_invalid_measurement_is_not_stored(client, monkeypatch, plaintext):
     session_id, key = establish(client)

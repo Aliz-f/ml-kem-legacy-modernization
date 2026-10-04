@@ -1,9 +1,11 @@
-# Failure simulation validation in real system (M1-17)
+# Failure simulation wire-contract validation (M1-17)
 
 This record implements Member 1 task **M1-17: Validate failure simulation in real
-system**. It provides concrete evidence demonstrating that the Legacy Device's
-failure simulation subsystem operates in accordance with the frozen protocol
-specification and Edge Gateway validation contracts.
+wire-contract validation**. It provides concrete evidence that the Legacy
+Device's failure simulation subsystem produces the expected wire shapes and
+that the Legacy client follows the frozen retry rules. The suite uses a strict
+loopback contract receiver; it is not a real Gateway/Cloud integration test and
+does not demonstrate forwarding or Cloud persistence.
 
 ---
 
@@ -24,17 +26,17 @@ fault injection.
 
 ## 2. Failure simulation demonstration matrix
 
-| Failure mode | Injected fault condition | Gateway status | Client attempts | Client retries | Outcome | Cloud contacted? |
+| Failure mode | Injected fault condition | Loopback receiver status | Client attempts | Client retries | Outcome | Cloud persistence |
 | --- | --- | :---: | :---: | :---: | --- | :---: |
-| `none` | Clean, valid sensor measurement | `202 Accepted` | 1 | 0 | Accepted & forwarded | Yes (normal delivery) |
-| `invalid_temperature` | `temperature_c = 150.0` (> 85.0 °C limit) | `422 Unprocessable` | 1 | 0 | Rejection without retry | No |
-| `invalid_humidity` | `humidity_pct = -10.0` (< 0.0 % limit) | `422 Unprocessable` | 1 | 0 | Rejection without retry | No |
-| `missing_field` | Removed `timestamp` field | `422 Unprocessable` | 1 | 0 | Rejection without retry | No |
-| `invalid_timestamp` | Non-ISO timestamp string (`"invalid-iso"`) | `422 Unprocessable` | 1 | 0 | Rejection without retry | No |
-| `duplicate_sequence` | Repeated previous `sequence_number` | `409 Conflict` | 1 | 0 | Rejection without retry | No |
-| `out_of_order_sequence` | Lower `sequence_number` than seen | `409 Conflict` | 1 | 0 | Rejection without retry | No |
-| `random` (seed `12345`) | Controlled mixture of valid and faulty | `202` / `409` / `422` | 1 per req | 0 | Mixed, deterministic | Only for `202` |
-| *(Wire syntax control)* | Unparseable JSON body (`{"unclosed`) | `400 Bad Request` | 1 | 0 | Rejection without retry | No |
+| `none` | Clean, valid sensor measurement | synthetic `202` | 1 | 0 | Loopback acknowledgement only | Not tested |
+| `invalid_temperature` | `temperature_c = 150.0` (> 85.0 °C limit) | `422 Unprocessable` | 1 | 0 | Rejection without retry | Not tested |
+| `invalid_humidity` | `humidity_pct = -10.0` (< 0.0 % limit) | `422 Unprocessable` | 1 | 0 | Rejection without retry | Not tested |
+| `missing_field` | Removed `timestamp` field | `422 Unprocessable` | 1 | 0 | Rejection without retry | Not tested |
+| `invalid_timestamp` | Non-ISO timestamp string (`"invalid-iso"`) | `422 Unprocessable` | 1 | 0 | Rejection without retry | Not tested |
+| `duplicate_sequence` | Repeated previous `sequence_number` | `409 Conflict` | 1 | 0 | Rejection without retry | Not tested |
+| `out_of_order_sequence` | Lower `sequence_number` than seen | `409 Conflict` | 1 | 0 | Rejection without retry | Not tested |
+| `random` (seed `12345`) | Controlled mixture of valid and faulty | synthetic `202` / `409` / `422` | 1 per req | 0 | Mixed, deterministic | Not tested |
+| *(Wire syntax control)* | Unparseable JSON body (`{"unclosed`) | `400 Bad Request` | 1 | 0 | Rejection without retry | Not tested |
 
 ---
 

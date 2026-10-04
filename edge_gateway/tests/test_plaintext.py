@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from edge_gateway.crypto.plaintext import PlaintextError, serialize_canonical_measurement
@@ -49,7 +51,7 @@ def test_non_finite_numbers_booleans_and_local_timestamps_are_rejected():
         {"sequence_number": False},
         {"sequence_number": 1.5},
         {"device_id": ""},
-        {"device_id": " sensor-001"},
+        {"device_id": " \t\n"},
         {"gateway_id": "gateway-001 "},
         {"measured_at": "2026-09-21T13:45:31"},
         {"received_at": "2026-09-21T13:45:31+03:00"},
@@ -58,3 +60,7 @@ def test_non_finite_numbers_booleans_and_local_timestamps_are_rejected():
     ):
         with pytest.raises(PlaintextError):
             _measurement(**overrides)
+
+
+def test_device_id_whitespace_is_preserved_like_baseline_delivery():
+    assert json.loads(_measurement(device_id=" sensor-001 "))["device_id"] == " sensor-001 "

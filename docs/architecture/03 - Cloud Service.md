@@ -1006,8 +1006,12 @@ temperature within allowed range
 humidity within allowed range
 measured_at valid UTC datetime
 received_at valid UTC datetime
-sequence_number >= 0
+0 <= sequence_number <= 9223372036854775807
 ```
+
+Out-of-range parsed integers return `422 INVALID_MEASUREMENT` before storage,
+in baseline and secure ingestion. This domain matches SQLite's signed 64-bit
+`INTEGER`; retain exact integer values through persistence and query.
 
 Also ensure:
 
@@ -4284,4 +4288,3 @@ The final Cloud Service can be summarized as:
 > A dedicated configurable failure-injection subsystem allows controlled simulation of ML-KEM wrapper/decapsulation failures, invalid or expired sessions, decryption failures, storage failures, service unavailability, processing delay, and related negative scenarios. These injected failures are operational test hooks and are not used to claim that every modified valid-length ML-KEM ciphertext naturally causes an explicit decapsulation exception. Failure injection is disabled by default, never leaks secret material, and is intended only to make failure/security behavior repeatable and observable during testing.
 > 
 > The Cloud Service never logs ML-KEM private keys, shared secrets, derived session keys, credentials, or other secret material. Cryptographic rejection occurs before storage, runtime fallback to weaker communication is not implemented; modernized mode fails closed, and externally returned errors avoid exposing detailed cryptographic internals. Known limitations—including ephemeral ML-KEM keys, in-memory session management, simplified gateway authentication, SQLite storage, absence of dedicated cryptographic anti-replay counter/window, and lack of high availability—are explicitly documented as technical debt rather than hidden.
-

@@ -10,6 +10,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import uvicorn
+import pytest
 
 from cloud_service.app import create_app as create_cloud_app
 from cloud_service.config import load_config as load_cloud_config
@@ -76,13 +77,15 @@ def _deliver(tmp_path: Path, mode: str, payload: dict[str, object]) -> dict[str,
     return rows[0]
 
 
-def test_same_legacy_client_payload_succeeds_in_both_security_modes(tmp_path: Path) -> None:
+@pytest.mark.parametrize("device_id", ["sensor-compatibility", " sensor-compatibility "])
+@pytest.mark.parametrize("sequence", [1, 2**63 - 1])
+def test_same_legacy_client_payload_succeeds_in_both_security_modes(tmp_path: Path, device_id: str, sequence: int) -> None:
     payload = {
-        "device_id": "sensor-compatibility",
+        "device_id": device_id,
         "temperature_c": 22.5,
         "humidity_pct": 44.0,
         "timestamp": "2026-09-21T12:00:00Z",
-        "sequence_number": 1,
+        "sequence_number": sequence,
     }
     classical = _deliver(tmp_path, "classical", payload)
     mlkem = _deliver(tmp_path, "mlkem", payload)

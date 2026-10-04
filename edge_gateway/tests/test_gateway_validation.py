@@ -109,6 +109,7 @@ def test_domain_bounds_remain_a_separate_stage(payload):
 @pytest.mark.parametrize(("field", "value"), [
     ("temperature_c", -40), ("temperature_c", 85), ("temperature_c", -25),
     ("humidity_pct", 0), ("humidity_pct", 100), ("sequence_number", 0),
+    ("sequence_number", 2**63 - 1),
     ("device_id", " sensor-001 "),
     ("timestamp", "2026-09-21T13:45:31Z"),
     ("timestamp", "2026-09-21T13:45:31.123456+00:00"),
@@ -129,6 +130,7 @@ def test_domain_valid_values_are_preserved(client, payload, field, value):
     ("humidity_pct", -0.1), ("humidity_pct", 100.1),
     ("humidity_pct", -0.01), ("humidity_pct", 100.01),
     ("device_id", ""), ("device_id", " \t\n"), ("sequence_number", -1),
+    ("sequence_number", 2**63), ("sequence_number", 10**100),
 ])
 def test_domain_invalid_values_are_422_before_cloud(client, payload, field, value, caplog):
     payload["device_id"] = "private-device-marker"

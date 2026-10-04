@@ -20,8 +20,9 @@ uv run pytest legacy_system/tests/test_baseline_measurements.py -q -s
 ```
 
 The test runs a 100-sample healthy workload over a loopback HTTP socket, checks
-status codes, delivery counts, payload sizes, latencies, and monotonic sequence
-order, and runs controlled failure scenarios.
+client acknowledgements, payload sizes, latencies, and monotonic sequence order,
+and runs controlled failure scenarios. It does not run the Gateway or Cloud and
+therefore is not evidence of forwarding or Cloud persistence.
 
 ---
 
@@ -29,10 +30,10 @@ order, and runs controlled failure scenarios.
 
 | Parameter | Healthy baseline workload | Controlled failure scenarios |
 | --- | --- | --- |
-| Number of messages | 100 sequential measurements | 1 message per failure scenario |
+| Number of messages | 100 sequential client requests | 1 request per failure scenario |
 | Device ID | `sensor-001` | `sensor-001` / `sensor-test` |
 | Failure mode | `none` | `none` (server-side faults tested) |
-| Sequence numbers | 0 through 99 (monotonic) | Increments monotonically across failures |
+| Sequence numbers | 0 through 99 (monotonic) | Increments monotonically across client failures |
 | Client timeout | 3.0 seconds | 0.5 – 1.0 seconds |
 | Client max retries | 2 retries | 2 retries (exponential backoff 1s, 2s) |
 | Transport | HTTP/1.1 POST over loopback | HTTP/1.1 POST over loopback |
@@ -45,8 +46,8 @@ order, and runs controlled failure scenarios.
 | Metric | Boundary & calculation |
 | --- | --- |
 | **Legacy JSON payload size** | Exact serialized UTF-8 bytes (`len(json.dumps(payload).encode("utf-8"))`). Excludes HTTP headers. |
-| **Legacy → Gateway request latency** | Client-side round-trip duration from `GatewayClient.send()` invocation until HTTP response status is parsed. Measured with `time.perf_counter()`. |
-| **Delivery success rate** | Ratio of HTTP `202 Accepted` responses to total generated messages (`delivered / generated * 100%`). |
+| **Legacy client → loopback receiver latency** | Client-side round-trip duration from `GatewayClient.send()` invocation until a synthetic loopback acknowledgement is parsed. Measured with `time.perf_counter()`. It is not Gateway-to-Cloud latency. |
+| **Loopback acknowledgement rate** | Ratio of synthetic HTTP `202` loopback acknowledgements to total generated messages. It does not establish Cloud acceptance or persistence. |
 | **Retry count** | Additional HTTP attempts beyond the initial attempt (`attempt_count - 1`). |
 | **Sequence continuity** | Monotonic increment of `sequence_number` in `Sensor` across successful and failed delivery attempts. |
 
@@ -63,8 +64,8 @@ Collected on 2026-10-04 using the locked repository environment.
 | Observation | Value |
 | --- | --- |
 | Messages generated | 100 |
-| Messages delivered (`202 Accepted`) | 100 |
-| Delivery success rate | **100.0%** |
+| Loopback acknowledgements (synthetic `202`) | 100 |
+| Loopback acknowledgement rate | **100.0%** |
 | Total retries triggered | 0 |
 | Sequence progression | Monotonic (0 through 99 received in order) |
 
@@ -82,7 +83,7 @@ Collected on 2026-10-04 using the locked repository environment.
 | ---: | ---: | ---: | ---: | ---: | ---: |
 | 100 | 0.51 ms | 1.10 ms | 0.58 ms | 0.84 ms | 20.35 ms |
 
-*Note: Latency includes local loopback TCP socket connection, JSON serialization, HTTP request transmission, server handling, and HTTP response parsing. The maximum latency reflects one-time first-request connection setup.*
+*Note: Latency includes local loopback TCP socket connection, JSON serialization, HTTP request transmission, receiver handling, and HTTP response parsing. It does not include real Gateway validation/forwarding or Cloud persistence. The maximum latency reflects one-time first-request connection setup.*
 
 ---
 
@@ -90,10 +91,10 @@ Collected on 2026-10-04 using the locked repository environment.
 
 | Scenario | Injected condition | Observed client behavior | Retries | Sequence outcome |
 | --- | --- | --- | ---: | --- |
-| **Gateway unavailable** | Port closed / connection refused | 3 attempts (`attempt_count=3`), exponential backoff (1s, 2s), `error_category in {connection, timeout}` | 2 | Monotonic sequence continues (`seq=0` -> `seq=1`) |
-| **Gateway 503 error** | Server returns `503 Service Unavailable` | 3 attempts, `result.status_code=503`, `retryable=True` | 2 | Bounded retries exhausted; device continues |
-| **Validation failure (422)** | Server returns `422 Unprocessable Entity` | 1 attempt, `result.status_code=422`, `retryable=False` | 0 | Non-retryable per protocol; no retry storm |
-| **Device controller loop** | Persistent `500 Internal Server Error` | Bounded retries per cycle; controller loop does not crash; graceful shutdown on stop event | 1 per cycle | Monotonic sequence increments each cycle |
+| **Receiver unavailable** | Port closed / connection refused | 3 attempts (`attempt_count=3`), exponential backoff (1s, 2s), `error_category in {connection, timeout}` | 2 | Monotonic sequence continues (`seq=0` -> `seq=1`) |
+| **Receiver 503 error** | Loopback server returns `503 Service Unavailable` | 3 attempts, `result.status_code=503`, `retryable=True` | 2 | Bounded retries exhausted; device continues |
+| **Synthetic 422 response** | Loopback server returns `422 Unprocessable Entity` | 1 attempt, `result.status_code=422`, `retryable=False` | 0 | Non-retryable per protocol; no retry storm |
+| **Device controller loop** | Persistent loopback `500 Internal Server Error` | Bounded retries per cycle; controller loop does not crash; graceful shutdown on stop event | 1 per cycle | Monotonic sequence increments each cycle |
 
 ---
 

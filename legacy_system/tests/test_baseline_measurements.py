@@ -15,8 +15,6 @@ import threading
 from time import perf_counter
 from typing import Any
 
-import pytest
-
 from legacy_system.client import ErrorCategory, GatewayClient
 from legacy_system.config import Config, FailureMode
 from legacy_system.device import DeviceController
@@ -99,7 +97,7 @@ def _calculate_distribution(values: list[float] | list[int]) -> dict[str, float]
     }
 
 
-def test_baseline_healthy_workload_100_measurements(capsys: pytest.CaptureFixture[str]) -> None:
+def test_baseline_healthy_workload_100_measurements() -> None:
     """Collect baseline evidence across 100 sequential valid measurements."""
     server, gateway_url, _ = _start_loopback_gateway()
     try:
@@ -149,10 +147,8 @@ def test_baseline_healthy_workload_100_measurements(capsys: pytest.CaptureFixtur
             "payload_bytes": payload_dist,
             "latency_ms": latency_dist,
         }
-
-        # Print report for capsys inspection / capture
-        print("\n=== M1-16 Baseline Measurement Report ===")
-        print(json.dumps(report, indent=2))
+        assert report["messages_delivered"] == 100
+        assert report["delivery_success_rate_pct"] == 100.0
 
         # Payload sizes: standard sensor payload is ~130-175 bytes depending on float precision
         assert 120 <= payload_dist["min"] <= 180

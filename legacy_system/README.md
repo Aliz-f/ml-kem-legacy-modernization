@@ -23,3 +23,7 @@ For complete architectural details, module responsibilities, JSON wire contract,
 failure-injection mechanics, retry algorithms, and operational procedures, see
 [architecture-operations.md](docs/architecture-operations.md).
 
+For the AI decision register (Task M1-24), see [ai-decisions.md](docs/ai-decisions.md).
+For technical debt and operational limitations (Task M1-25), see [technical-debt.md](docs/technical-debt.md).
+
+

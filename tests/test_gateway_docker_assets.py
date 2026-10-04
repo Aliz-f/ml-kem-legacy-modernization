@@ -1,10 +1,11 @@
-"""M2-49/50 static Gateway image and Compose contract checks."""
+"""M5-09/10/13 static Gateway and Cloud container contract checks."""
 
 from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
 DOCKERFILE = ROOT / "edge_gateway" / "Dockerfile"
+CLOUD_DOCKERFILE = ROOT / "cloud_service" / "Dockerfile"
 COMPOSE = ROOT / "docker-compose.yml"
 
 
@@ -21,6 +22,18 @@ def test_gateway_service_image_is_frozen_non_root_and_signal_aware() -> None:
     assert "--reload" not in text
 
 
+def test_cloud_service_image_is_frozen_non_root_and_readiness_aware() -> None:
+    text = CLOUD_DOCKERFILE.read_text(encoding="utf-8")
+    assert "FROM python:3.12-slim-bookworm" in text
+    assert "ghcr.io/astral-sh/uv:0.12.19" in text
+    assert "uv sync --frozen --package cloud-service --no-dev --no-editable" in text
+    assert "USER 10001:10001" in text
+    assert "EXPOSE 9000" in text
+    assert "STOPSIGNAL SIGTERM" in text
+    assert 'CMD ["cloud-service"]' in text
+    assert "/ready" in text
+
+
 def test_compose_uses_internal_dns_and_service_scoped_failure_sources() -> None:
     text = COMPOSE.read_text(encoding="utf-8")
     assert "dockerfile: edge_gateway/Dockerfile" in text
@@ -33,3 +46,6 @@ def test_compose_uses_internal_dns_and_service_scoped_failure_sources() -> None:
     assert "SECURITY_MODE: ${SECURITY_MODE:-classical}" in text
     assert "condition: service_healthy" in text
     assert "localhost" not in text
+    assert "http://127.0.0.1:9000/health" in text
+    assert "http://127.0.0.1:8000/health" in text
+    assert text.count("healthcheck:") == 2

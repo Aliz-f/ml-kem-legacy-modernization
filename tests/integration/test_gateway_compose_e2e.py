@@ -82,6 +82,12 @@ def test_legacy_contract_persists_through_compose_in_both_modes(security_mode: s
             "cloud-service", "edge-gateway", check=False,
         )
         assert started.returncode == 0, started.stdout + started.stderr
+        assert _wait_json(f"http://127.0.0.1:{cloud_port}/health") == {"status": "ok"}
+        expected_cloud_ready = {"status": "ready", "storage": "ok"}
+        if security_mode == "mlkem":
+            expected_cloud_ready["mlkem"] = "available"
+        # Neither mode requires an active Gateway session: sessions are lazy.
+        assert _wait_json(f"http://127.0.0.1:{cloud_port}/ready") == expected_cloud_ready
         assert _wait_json(f"http://127.0.0.1:{gateway_port}/health") == {"status": "ok"}
         ready = _wait_json(f"http://127.0.0.1:{gateway_port}/ready")
         assert ready == {"status": "ready", "security_mode": security_mode}

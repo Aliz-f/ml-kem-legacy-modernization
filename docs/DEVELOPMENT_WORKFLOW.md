@@ -313,9 +313,13 @@ failure paths, and leave actionable comments. Resolve comments, rerun relevant
 checks, and push follow-ups.
 
 Current CI sets up Python 3.12 and `uv`, then runs `uv sync --frozen`,
-`uv run ruff check .`, `uv run pytest`, and `uv run ai-history check` on push
-and pull request. Contract, integration, Docker, and E2E stages follow only
-when their implementation prerequisites are complete.
+`uv run ruff check .`, and the full test suite on push and pull request. It
+also explicitly selects observability/metrics, protocol-contract, Gateway
+crypto, Cloud, cross-component integration, and full E2E tests; validates the
+AI-history CLI and tracked records; verifies Cloud Docker readiness; and runs
+the Compose recovery regression. See the
+[developer testing guide](testing/DEVELOPER_TESTING_GUIDE.md) for the exact
+local selections and current two-service Compose boundary.
 Merge only when final human verification is recorded, peer review is approved,
 CI is green, conflicts are resolved, and the branch contains only the intended
 task. The team periodically merges reviewed `develop` into `main` as an

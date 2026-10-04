@@ -82,3 +82,10 @@ def test_legacy_ai_decisions_register_exists() -> None:
     doc_path = LEGACY_ROOT / "docs" / "ai-decisions.md"
     assert doc_path.is_file(), f"Expected AI decision register at {doc_path}"
     assert doc_path.stat().st_size > 0, f"Expected non-empty AI decision register at {doc_path}"
+
+
+def test_legacy_technical_debt_register_exists() -> None:
+    """Verify that legacy_system/docs/technical-debt.md exists and is non-empty."""
+    doc_path = LEGACY_ROOT / "docs" / "technical-debt.md"
+    assert doc_path.is_file(), f"Expected technical debt register at {doc_path}"
+    assert doc_path.stat().st_size > 0, f"Expected non-empty technical debt register at {doc_path}"

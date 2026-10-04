@@ -5,6 +5,9 @@ description = "Simulated legacy system component."
 requires-python = ">=3.12"
 dependencies = []
 
+[project.scripts]
+legacy-device = "legacy_system.main:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

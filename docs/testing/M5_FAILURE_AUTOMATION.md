@@ -19,6 +19,18 @@ The `3 × 3 = 9` maximum is intentional, bounded course-scale behavior, not a
 claim that retry layering is cost-free. It remains technical debt to revisit if
 the system gains higher request rates or more retrying intermediaries.
 
+## M5-80 Legacy continuity evidence
+
+`tests/integration/test_end_to_end.py::test_legacy_controller_continues_after_bounded_cloud_delivery_failure`
+starts production Legacy, Gateway, and Cloud application instances in
+Classical Mode. It injects one Cloud storage failure, verifies the Legacy
+client's retry is bounded, and then removes the injected Cloud failure before
+the next controller iteration. The test proves that the Legacy controller
+generates sequence `0` and later sequence `1`, logs the failed first delivery,
+and persists only sequence `1` after recovery. It therefore documents the
+intentional no-queue behavior: a delivery failure may discard a measurement,
+but must not permanently stall future Legacy measurements.
+
 ## Scope limits
 
 Protocol v1 has no cryptographic replay counter or window. M5-44 proves only

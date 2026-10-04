@@ -15,10 +15,15 @@ import uvicorn
 from fastapi import Request
 
 from cloud_service.app import create_app as create_cloud_app
+from cloud_service.config import FailureMode as CloudFailureMode
 from cloud_service.config import load_config as load_cloud_config
+from cloud_service.failure import FailureInjector as CloudFailureInjector
 from edge_gateway.app import create_app as create_gateway_app
 from edge_gateway.config import load_config as load_gateway_config
 from legacy_system.client import GatewayClient
+from legacy_system.config import Config as LegacyConfig
+from legacy_system.config import FailureMode as LegacyFailureMode
+from legacy_system.device import DeviceController
 from legacy_system.sensor import Measurement
 
 
@@ -147,3 +152,100 @@ def test_baseline_measurement_flows_from_legacy_to_persisted_cloud_row(
         and f"request_id={request_id!r} " in record.getMessage()
         for record in caplog.records
     )
+
+
+def test_legacy_controller_continues_after_bounded_cloud_delivery_failure(
+    tmp_path: Path, caplog
+) -> None:
+    """M5-80: a downstream failure drops one measurement but cannot stall Legacy."""
+    cloud = create_cloud_app(
+        load_cloud_config(
+            {
+                "DATABASE_URL": f"sqlite:///{(tmp_path / 'continuity.db').as_posix()}",
+                "SECURITY_MODE": "classical",
+                "FAILURE_MODE": "storage_failure",
+                "FAILURE_RATE": "1.0",
+                "FAILURE_DELAY_SECONDS": "0",
+            }
+        )
+    )
+    generated_sequences: list[int] = []
+    stop_event = threading.Event()
+    sleeps = 0
+
+    class TrackingSensor:
+        def __init__(self) -> None:
+            self._next_sequence = 0
+
+        def read(self) -> Measurement:
+            sequence_number = self._next_sequence
+            self._next_sequence += 1
+            generated_sequences.append(sequence_number)
+            return Measurement(
+                device_id="sensor-m5-80",
+                temperature_c=22.5,
+                humidity_pct=44.0,
+                timestamp=datetime.fromisoformat("2026-09-21T12:00:00+00:00"),
+                sequence_number=sequence_number,
+            )
+
+    with caplog.at_level(logging.INFO):
+        with serve(cloud, "m5-80-cloud") as cloud_url:
+            gateway = create_gateway_app(
+                load_gateway_config(
+                    {
+                        "GATEWAY_ID": "gateway-m5-80",
+                        "CLOUD_URL": cloud_url,
+                        "SECURITY_MODE": "classical",
+                        "CLOUD_TIMEOUT_SECONDS": "5",
+                        "CLOUD_MAX_RETRIES": "0",
+                    }
+                )
+            )
+            with serve(gateway, "m5-80-gateway") as gateway_url:
+                config = LegacyConfig(
+                    device_id="sensor-m5-80",
+                    gateway_url=gateway_url,
+                    send_interval_seconds=0.01,
+                    request_timeout_seconds=5,
+                    max_retries=1,
+                    failure_mode=LegacyFailureMode.NONE,
+                    failure_rate=0.0,
+                    failure_seed=None,
+                    log_level="INFO",
+                )
+
+                def advance_after_delivery_attempt(_interval: float) -> None:
+                    nonlocal sleeps
+                    sleeps += 1
+                    if sleeps == 1:
+                        # The first valid sequence reached Cloud and failed storage.
+                        # Its Legacy retry is bounded and then rejected as a duplicate
+                        # because Gateway sequence state is intentionally not rolled back.
+                        cloud.state.failure_injector = CloudFailureInjector(
+                            CloudFailureMode.NONE, 0.0, None, 0
+                        )
+                    else:
+                        stop_event.set()
+
+                controller = DeviceController(
+                    config,
+                    sensor=TrackingSensor(),
+                    client=GatewayClient(
+                        gateway_url,
+                        request_timeout_seconds=5,
+                        max_retries=1,
+                        sleeper=lambda _delay: None,
+                    ),
+                    sleeper=advance_after_delivery_attempt,
+                    stop_event=stop_event,
+                )
+                controller.run()
+                stored = query_single_measurement(cloud_url)
+
+    assert generated_sequences == [0, 1]
+    assert stored["device_id"] == "sensor-m5-80"
+    assert stored["sequence_number"] == 1
+    assert "event=gateway_retry component=legacy_system" in caplog.text
+    assert "event=measurement_delivery_failed component=legacy_system device_id=sensor-m5-80 sequence_number=0" in caplog.text
+    assert "event=measurement_delivered component=legacy_system device_id=sensor-m5-80 sequence_number=1" in caplog.text

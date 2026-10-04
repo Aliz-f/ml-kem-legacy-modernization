@@ -73,14 +73,20 @@ def load_config(environ: Mapping[str, str] | None = None) -> Config:
         ) from error
     if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
         raise ConfigurationError("GATEWAY_URL must be a valid HTTP or HTTPS URL")
+    try:
+        parsed_url.port
+    except ValueError as error:
+        raise ConfigurationError(
+            "GATEWAY_URL must include a valid port when specified"
+        ) from error
 
     send_interval_seconds = _number(environment, "SEND_INTERVAL_SECONDS")
-    if send_interval_seconds <= 0:
-        raise ConfigurationError("SEND_INTERVAL_SECONDS must be greater than zero")
+    if not math.isfinite(send_interval_seconds) or send_interval_seconds <= 0:
+        raise ConfigurationError("SEND_INTERVAL_SECONDS must be a finite number greater than zero")
 
     request_timeout_seconds = _number(environment, "REQUEST_TIMEOUT_SECONDS")
-    if request_timeout_seconds <= 0:
-        raise ConfigurationError("REQUEST_TIMEOUT_SECONDS must be greater than zero")
+    if not math.isfinite(request_timeout_seconds) or request_timeout_seconds <= 0:
+        raise ConfigurationError("REQUEST_TIMEOUT_SECONDS must be a finite number greater than zero")
 
     max_retries = _integer(environment, "MAX_RETRIES")
     if max_retries < 0:

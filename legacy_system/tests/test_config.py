@@ -64,8 +64,12 @@ def test_invalid_numeric_values(name: str, value: str) -> None:
     [
         ("SEND_INTERVAL_SECONDS", "0"),
         ("SEND_INTERVAL_SECONDS", "-1"),
+        ("SEND_INTERVAL_SECONDS", "nan"),
+        ("SEND_INTERVAL_SECONDS", "inf"),
         ("REQUEST_TIMEOUT_SECONDS", "0"),
         ("REQUEST_TIMEOUT_SECONDS", "-1"),
+        ("REQUEST_TIMEOUT_SECONDS", "nan"),
+        ("REQUEST_TIMEOUT_SECONDS", "inf"),
         ("MAX_RETRIES", "-1"),
         ("FAILURE_RATE", "-0.001"),
         ("FAILURE_RATE", "1.001"),
@@ -107,6 +111,11 @@ def test_invalid_gateway_url() -> None:
 def test_malformed_gateway_url_is_translated_to_configuration_error() -> None:
     with pytest.raises(ConfigurationError, match="GATEWAY_URL"):
         load_config({"GATEWAY_URL": "http://[bad"})
+
+
+def test_gateway_url_with_invalid_port_is_rejected() -> None:
+    with pytest.raises(ConfigurationError, match="GATEWAY_URL"):
+        load_config({"GATEWAY_URL": "http://gateway.example.test:not-a-port"})
 
 
 def test_unknown_failure_mode() -> None:

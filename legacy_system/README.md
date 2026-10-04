@@ -1,6 +1,6 @@
 # Legacy Device
 
-The current provisional launcher can be run from the repository root with:
+Run the Legacy Device from the repository root with:
 
 ```text
 uv run python -m legacy_system.main
@@ -13,10 +13,6 @@ The controller closes injected clients during shutdown. The current urllib
 client releases each request's resources through its response context manager
 and does not expose a separate `close()` operation.
 
-The architecture documents do not yet define the permanent Legacy Device
-launcher. The team must later decide whether to keep this `main.py` composition
-root, move startup into `device.py`, or adopt `__main__.py` or a console script.
-This module is therefore a provisional launcher and must not be treated as a
-silent change to the frozen architecture. A container runtime's Docker stop
-signal is `SIGTERM`, so it follows the same shutdown path when this module is
-used as the container process.
+The installed `legacy-device` console script uses the same `main.py`
+composition root. The Docker image likewise runs `python -m
+legacy_system.main`; its `SIGTERM` follows the same shutdown path.

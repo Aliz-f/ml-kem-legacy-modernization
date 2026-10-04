@@ -1,4 +1,4 @@
-# AI Task 0190 — Fix Cloud response retry and classification failures
+# AI Task 0199 — Fix Cloud response retry and classification failures
 
 **Status:** Complete
 
@@ -34,7 +34,7 @@ Fixed audit findings 1-5: retry framed truncated responses without rebuilding re
 
 ## Files Created
 
-- docs/ai/history/0190-fix-cloud-response-retry-and-classification-failures.md
+- docs/ai/history/0199-fix-cloud-response-retry-and-classification-failures.md
 - edge_gateway/tests/test_cloud_response_failures.py
 
 ## Files Modified

@@ -1,4 +1,4 @@
-# AI Task 0190 — Validate Legacy failure simulation in system
+# AI Task 0191 — Validate Legacy failure simulation in system
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Validated Legacy Device failure simulation and protocol rejection behavior (M1-1
 
 ## Files Created
 
-- docs/ai/history/0190-validate-legacy-failure-simulation-in-system.md
+- docs/ai/history/0191-validate-legacy-failure-simulation-in-system.md
 - legacy_system/docs/failure-simulation.md
 - legacy_system/tests/test_failure_simulation.py
 

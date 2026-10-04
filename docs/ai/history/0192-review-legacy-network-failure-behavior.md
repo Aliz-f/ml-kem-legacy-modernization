@@ -1,4 +1,4 @@
-# AI Task 0191 — Review Legacy network-failure behavior
+# AI Task 0192 — Review Legacy network-failure behavior
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Reviewed and verified Legacy Device network-failure and transient failure handli
 
 ## Files Created
 
-- docs/ai/history/0191-review-legacy-network-failure-behavior.md
+- docs/ai/history/0192-review-legacy-network-failure-behavior.md
 - legacy_system/docs/network-failures.md
 - legacy_system/tests/test_network_failures.py
 

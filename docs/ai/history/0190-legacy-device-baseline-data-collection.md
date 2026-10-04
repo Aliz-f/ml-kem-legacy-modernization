@@ -1,4 +1,4 @@
-# AI Task 0189 — Legacy Device baseline data collection
+# AI Task 0190 — Legacy Device baseline data collection
 
 **Status:** Complete
 
@@ -30,7 +30,7 @@ Implemented Legacy Device baseline data collection (M1-16) with 5 automated test
 
 ## Files Created
 
-- docs/ai/history/0189-legacy-device-baseline-data-collection.md
+- docs/ai/history/0190-legacy-device-baseline-data-collection.md
 - legacy_system/docs/
 - legacy_system/tests/test_baseline_measurements.py
 

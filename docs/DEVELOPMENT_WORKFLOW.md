@@ -316,9 +316,10 @@ Current CI separates `quality`, `unit-tests`, `integration-tests`, `secure-e2e`,
 `docker-build`, and `clean-environment` jobs. Each Python job uses Python 3.12,
 the committed lockfile through `uv sync --frozen`, and the `setup-uv`
 dependency cache. The workflow validates formatting and AI history; component,
-contract, crypto, integration, and E2E tests; and builds the Legacy Device,
-Gateway, and Cloud images. Its final clean-runner job validates Compose and
-runs the Compose recovery regression. See the
+contract, crypto, cross-component integration, and full E2E tests; and builds
+the Legacy Device, Gateway, and Cloud images. The quality job also checks the
+AI-history CLI and tracked records. Its final clean-runner job validates
+Compose and runs the Compose recovery regression. See the
 [developer testing guide](testing/DEVELOPER_TESTING_GUIDE.md) for the exact
 local selections and current two-service Compose boundary.
 Merge only when final human verification is recorded, peer review is approved,

@@ -34,7 +34,8 @@ layer.
 ## Coordinated gap register
 
 No currently identified project-wide test-matrix gap remains open. TM-1 was
-resolved by the Compose recovery regressions, which stop and restart Cloud or
+resolved by `test_compose_cloud_restart_recovers_readiness_and_delivery` and
+expanded by the Compose recovery regressions, which stop and restart Cloud or
 Gateway containers, verify health/readiness and ML-KEM session recovery, and
 are selected explicitly in CI.
 

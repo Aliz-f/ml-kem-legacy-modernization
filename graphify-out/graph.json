@@ -22907,12 +22907,12 @@
     },
     {
       "id": "tests_test_gateway_crypto_ci_rationale_25",
-      "label": "CI runs the crypto suites after the full pytest command.",
+      "label": "The split unit-test job retains the named Gateway crypto suites.",
       "_origin": "ast",
       "community": 146,
       "community_name": "test_gateway_crypto_ci.py",
       "file_type": "rationale",
-      "norm_label": "ci runs the crypto suites after the full pytest command.",
+      "norm_label": "the split unit-test job retains the named gateway crypto suites.",
       "source_file": "tests/test_gateway_crypto_ci.py",
       "source_location": "L25"
     },

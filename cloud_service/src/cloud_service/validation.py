@@ -2,6 +2,8 @@
 
 from cloud_service.models import CanonicalMeasurement, MeasurementSchemaError
 
+MAX_SEQUENCE_NUMBER = 2**63 - 1
+
 
 class MeasurementValidationError(ValueError):
     """Invalid measurement, with no payload values in the error message."""
@@ -28,8 +30,8 @@ def validate_measurement(
         raise MeasurementValidationError("temperature_c must be between -40 and 85")
     if not 0 <= measurement.humidity_pct <= 100:
         raise MeasurementValidationError("humidity_pct must be between 0 and 100")
-    if measurement.sequence_number < 0:
-        raise MeasurementValidationError("sequence_number must be non-negative")
+    if not 0 <= measurement.sequence_number <= MAX_SEQUENCE_NUMBER:
+        raise MeasurementValidationError("sequence_number must be between 0 and 9223372036854775807")
 
     if expected_gateway_id is not None:
         if not isinstance(expected_gateway_id, str) or not expected_gateway_id.strip():

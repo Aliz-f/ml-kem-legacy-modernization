@@ -508,7 +508,7 @@ temperature within accepted protocol range
 humidity within 0–100
 timestamp parseable
 timestamp timezone-aware/UTC
-sequence_number >= 0
+0 <= sequence_number <= 9223372036854775807
 ```
 
 For example:

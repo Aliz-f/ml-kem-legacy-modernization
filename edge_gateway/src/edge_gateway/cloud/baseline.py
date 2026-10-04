@@ -172,20 +172,31 @@ class BaselineCloudClient:
                 self._before_attempt(request_id)
             with self._opener.open(request, timeout=self._timeout_seconds) as response:
                 payload = response.read(_MAX_BODY_BYTES + 1)
+                # Bounded HTTPResponse.read() can return a short body without
+                # raising IncompleteRead. Its remaining Content-Length exposes
+                # an early EOF; keep oversized responses on the rejection path.
+                remaining = getattr(response, "length", None)
+                if len(payload) <= _MAX_BODY_BYTES and remaining is not None and remaining > 0:
+                    raise http.client.IncompleteRead(payload)
                 status = response.status
         except BaselineCloudError:
             raise
         except TimeoutError as exc:
             raise BaselineCloudError("Cloud baseline request timed out.", retryable=True) from exc
         except urllib.error.HTTPError as exc:
-            payload = exc.read(_MAX_BODY_BYTES + 1)
+            try:
+                payload = exc.read(_MAX_BODY_BYTES + 1)
+            except (OSError, http.client.HTTPException):
+                payload = b""
+            finally:
+                exc.close()
             code = _error_code(payload)
             raise BaselineCloudError(
                 "Cloud baseline request was rejected.",
                 retryable=exc.code in _RETRYABLE_STATUS,
                 code=code,
             ) from exc
-        except (urllib.error.URLError, http.client.HTTPException) as exc:
+        except (urllib.error.URLError, http.client.HTTPException, OSError) as exc:
             raise BaselineCloudError("Cloud baseline connection failed.", retryable=True) from exc
         if status != 202:
             raise BaselineCloudError("Cloud baseline request was not accepted.", retryable=False)
@@ -201,13 +212,13 @@ def _parse_acceptance(body: bytes) -> BaselineAcceptance:
         raise BaselineCloudError("Cloud baseline response exceeds 16 KiB.", retryable=False)
     try:
         payload = json.loads(body)
-    except json.JSONDecodeError as exc:
+    except (ValueError, RecursionError) as exc:
         raise BaselineCloudError("Cloud baseline response is not JSON.", retryable=False) from exc
     if not isinstance(payload, dict):
         raise BaselineCloudError("Cloud baseline response must be a JSON object.", retryable=False)
     status = payload.get("status")
     record_id = payload.get("record_id")
-    if status not in _ACCEPTED_STATUS:
+    if not isinstance(status, str) or status not in _ACCEPTED_STATUS:
         raise BaselineCloudError("Cloud baseline response status is not accepted.", retryable=False)
     if not isinstance(record_id, str) or not record_id.strip() or record_id != record_id.strip():
         raise BaselineCloudError("Cloud baseline response record_id is missing.", retryable=False)
@@ -215,9 +226,11 @@ def _parse_acceptance(body: bytes) -> BaselineAcceptance:
 
 
 def _error_code(body: bytes) -> str | None:
+    if len(body) > _MAX_BODY_BYTES:
+        return None
     try:
         payload = json.loads(body)
-    except json.JSONDecodeError:
+    except (ValueError, RecursionError):
         return None
     if not isinstance(payload, dict) or not isinstance(payload.get("error"), dict):
         return None

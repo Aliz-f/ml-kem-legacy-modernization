@@ -138,11 +138,19 @@ Formal rules:
 |`temperature_c`|number|Yes|`-40 <= value <= 85`|
 |`humidity_pct`|number|Yes|`0 <= value <= 100`|
 |`timestamp`|string|Yes|ISO-8601 UTC|
-|`sequence_number`|integer|Yes|`>= 0`|
+|`sequence_number`|integer|Yes|`0 <= value <= 9223372036854775807`|
 
 The Legacy request object must contain exactly these five fields. Additional
 fields are rejected, not ignored. A parsed JSON object with extra fields is a
 schema error and returns `422 Unprocessable Entity` when the Legacy API is implemented.
+
+The sequence-number domain is the non-negative signed 64-bit integer range,
+matching Cloud SQLite `INTEGER` storage. This bound also applies to canonical
+measurements in both modes. Larger parsed integers are domain errors: Gateway
+returns `422 INVALID_MEASUREMENT` before updating sequence state or forwarding;
+Cloud returns `422 INVALID_MEASUREMENT` before persistence. JSON uses an integer,
+without float conversion, truncation, wrapping, or string encoding. The maximum
+value must survive persistence, query, and idempotent retransmission exactly.
 
 ---
 

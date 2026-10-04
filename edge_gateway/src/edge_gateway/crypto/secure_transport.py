@@ -427,6 +427,11 @@ class SecureTransport:
                 self._before_attempt(request_id)
             with opener.open(request, timeout=self._timeout_seconds) as response:
                 payload = response.read(_MAX_BODY_BYTES + 1)
+                # Bounded reads can return early EOF without IncompleteRead.
+                # Retry the same envelope if HTTP framing promises more bytes.
+                remaining = getattr(response, "length", None)
+                if len(payload) <= _MAX_BODY_BYTES and remaining is not None and remaining > 0:
+                    raise http.client.IncompleteRead(payload)
                 status = response.status
         except SecureTransportError:
             raise
@@ -469,6 +474,8 @@ class SecureTransport:
             raw = exc.read(_MAX_BODY_BYTES + 1)
         except (OSError, http.client.HTTPException):
             raw = b""
+        finally:
+            exc.close()
         code = _error_code(raw)
         if exc.code in _RETRYABLE_STATUS:
             raise _RetryableTransport(f"HTTP {exc.code}") from exc
@@ -500,7 +507,7 @@ def _parse_acceptance(body: bytes) -> SecureAcceptance:
         )
     try:
         payload = json.loads(body)
-    except json.JSONDecodeError as exc:
+    except (ValueError, RecursionError) as exc:
         raise SecureTransportError(
             "Cloud secure measurement response is not JSON.",
             retryable=False,
@@ -512,7 +519,7 @@ def _parse_acceptance(body: bytes) -> SecureAcceptance:
         )
     status = payload.get("status")
     record_id = payload.get("record_id")
-    if status not in _ACCEPTED_STATUS:
+    if not isinstance(status, str) or status not in _ACCEPTED_STATUS:
         raise SecureTransportError(
             "Cloud secure measurement response status is not accepted.",
             retryable=False,
@@ -526,9 +533,11 @@ def _parse_acceptance(body: bytes) -> SecureAcceptance:
 
 
 def _error_code(body: bytes) -> str | None:
+    if len(body) > _MAX_BODY_BYTES:
+        return None
     try:
         payload = json.loads(body)
-    except json.JSONDecodeError:
+    except (ValueError, RecursionError):
         return None
     if not isinstance(payload, dict):
         return None

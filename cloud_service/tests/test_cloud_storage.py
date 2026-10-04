@@ -164,8 +164,8 @@ def test_storage_failures_are_safe_and_leave_no_row(database, measurement, caplo
     assert caplog.text == ""
 
 
-def test_unrepresentable_sequence_is_safe_storage_failure(database, measurement):
-    with pytest.raises(StorageError):
+def test_unrepresentable_sequence_is_rejected_as_invalid_measurement(database, measurement):
+    with pytest.raises(MeasurementValidationError, match="sequence_number"):
         MeasurementRepository(database).save(replace(measurement, sequence_number=2**63))
     assert MeasurementRepository(database).list() == []
 

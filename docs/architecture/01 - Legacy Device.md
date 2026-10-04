@@ -299,7 +299,7 @@ The primary domain object is a `Measurement`.
 |`temperature_c`|float|Yes|`21.7`|normally `-40` to `85`|
 |`humidity_pct`|float|Yes|`42.5`|normally `0` to `100`|
 |`timestamp`|datetime/string|Yes|`2026-09-21T08:20:31Z`|UTC ISO-8601|
-|`sequence_number`|integer|Yes|`184`|`>= 0`|
+|`sequence_number`|integer|Yes|`184`|`0 <= value <= 9223372036854775807`|
 
 Example:
 

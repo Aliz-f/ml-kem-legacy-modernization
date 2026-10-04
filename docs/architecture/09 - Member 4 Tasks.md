@@ -452,10 +452,14 @@ measured_at valid UTC/timezone-aware
 
 received_at valid UTC/timezone-aware
 
-sequence_number >= 0
+0 <= sequence_number <= 9223372036854775807
 ```
 
 ### Additional consistency
+
+Reject larger parsed integers with `422 INVALID_MEASUREMENT` before any SQLite
+operation, in both ingestion modes. Tests must persist/query the maximum value
+exactly and verify its idempotent retransmission; invalid values store no row.
 
 If secure envelope says:
 

@@ -127,6 +127,7 @@ def test_measurement_accepts_valid_internal_state() -> None:
         ("humidity_pct", float("inf")),
         ("humidity_pct", True),
         ("sequence_number", -1),
+        ("sequence_number", 2**63),
         ("sequence_number", 1.5),
         ("sequence_number", True),
         ("timestamp", "2026-09-21T13:45:31Z"),
@@ -142,6 +143,7 @@ def test_measurement_rejects_invalid_domain_values(field: str, value: object) ->
     [
         (-40.0, 0.0, 0),
         (85.0, 100.0, 1000000),
+        (85.0, 100.0, 2**63 - 1),
     ],
 )
 def test_measurement_accepts_valid_boundary_values(

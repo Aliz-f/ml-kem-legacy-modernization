@@ -383,7 +383,7 @@ humidity_pct:
 0 <= x <= 100
 
 sequence_number:
->= 0
+0 <= value <= 9223372036854775807
 
 device_id:
 non-empty

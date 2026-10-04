@@ -32,18 +32,20 @@ def test_valid_baseline_and_secure_measurement_preserve_input(payload):
 
 @pytest.mark.parametrize("temperature", [-40, 85])
 @pytest.mark.parametrize("humidity", [0, 100])
-def test_inclusive_domain_boundaries(payload, temperature, humidity):
-    payload.update(temperature_c=temperature, humidity_pct=humidity, sequence_number=0)
+@pytest.mark.parametrize("sequence", [0, 2**63 - 1])
+def test_inclusive_domain_boundaries(payload, temperature, humidity, sequence):
+    payload.update(temperature_c=temperature, humidity_pct=humidity, sequence_number=sequence)
     result = validate_measurement(payload)
     assert result.temperature_c == temperature
     assert result.humidity_pct == humidity
-    assert result.sequence_number == 0
+    assert result.sequence_number == sequence
 
 
 @pytest.mark.parametrize(("field", "value"), [
     ("temperature_c", -40.001), ("temperature_c", 85.001),
     ("humidity_pct", -0.001), ("humidity_pct", 100.001),
     ("sequence_number", -1), ("device_id", ""), ("device_id", " \t"),
+    ("sequence_number", 2**63), ("sequence_number", 10**100),
     ("gateway_id", ""), ("gateway_id", "\n "),
     ("temperature_c", float("nan")), ("humidity_pct", float("inf")),
     ("sequence_number", True), ("temperature_c", "21.7"),

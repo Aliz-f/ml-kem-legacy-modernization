@@ -77,9 +77,12 @@ def test_duplicate_log_keeps_frozen_common_correlation_fields(client, payload, c
     assert "sequence_number=1" in caplog.text
 
 
-def test_duplicate_and_lost_response_retry_preserve_original(client, payload):
+@pytest.mark.parametrize("sequence", [1, 2**63 - 1])
+def test_duplicate_and_lost_response_retry_preserve_original(client, payload, sequence):
+    payload["sequence_number"] = sequence
     first = client.post(ENDPOINT, json=payload)
     original = client.app.state.repository.get(first.json()["record_id"])
+    assert original.sequence_number == sequence
     retry = client.post(ENDPOINT, json=payload, headers={"X-Request-ID": "req-retry"})
     changed = client.post(ENDPOINT, json={**payload, "temperature_c": 40, "gateway_id": "other"})
     for response in (retry, changed):
@@ -108,6 +111,7 @@ def test_malformed_body_is_400_and_not_stored(client, body):
 
 @pytest.mark.parametrize("update", [
     {"temperature_c": 86}, {"humidity_pct": -1}, {"sequence_number": -1},
+    {"sequence_number": 2**63},
     {"sequence_number": True}, {"device_id": ""}, {"gateway_id": " "},
     {"temperature_c": "22.5"}, {"measured_at": "invalid"},
     {"received_at": "2026-09-21T12:00:01"}, {"request_id": "not-a-body-field"},

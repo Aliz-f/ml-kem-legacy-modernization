@@ -284,6 +284,9 @@ sequence_number
 
 This model should represent a valid measurement only.
 
+The shared protocol bounds `sequence_number` to `0..9223372036854775807`.
+Test both inclusive bounds and rejection immediately outside them.
+
 ### Task L3 — Sensor generator
 
 Implement valid generation.
@@ -502,6 +505,10 @@ or violates a domain rule
 
 Therefore the Legacy `missing_field` failure scenario expects `422`.
 
+Parsed sequence numbers outside `0..9223372036854775807` likewise return `422`
+before sequence-state updates or Cloud calls. Verify that a rejected oversized
+value does not prevent a later valid sequence for the same device.
+
 ### Task G4 — Canonical normalization
 
 Convert:
@@ -627,6 +634,11 @@ POST /api/v1/baseline/measurements
 ```
 
 ### Task C3 — Canonical validation
+
+Enforce the shared `0..9223372036854775807` sequence-number domain in both
+baseline and decrypted secure measurements before storage. The acceptance gate
+includes exact maximum-value SQLite persistence, query and idempotent retry,
+and `422 INVALID_MEASUREMENT` for larger parsed integers.
 
 Cloud validates the Gateway canonical model again.
 

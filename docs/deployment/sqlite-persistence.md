@@ -1,9 +1,9 @@
 # Cloud SQLite persistence strategy
 
-This document implements Member 5 task M5-11. It describes how the existing
-Cloud-owned SQLite configuration is used in a future container deployment; it
-does not add Docker Compose services, volumes, migrations, or a database
-server.
+This document implements Member 5 task M5-11. It describes the Cloud-owned
+SQLite configuration used by the current three-service Docker Compose test
+deployment. It does not add database migrations or additional Docker Compose
+services.
 
 ## Storage boundary
 
@@ -26,8 +26,8 @@ For a containerized demonstration, use a named Docker volume mounted at
 DATABASE_URL=sqlite:////data/cloud.db
 ```
 
-The future Compose service should mount the same named volume at `/data` on
-each normal start. As a result, restarting or recreating only the Cloud
+The current Compose Cloud service mounts the named `cloud-data` volume at
+`/data` on each normal start. As a result, restarting or recreating only the Cloud
 container retains accepted measurement rows, allowing the query API to show
 accumulated demo data. It does not retain Cloud cryptographic identity or an
 active Gateway session, so a Gateway must establish a fresh secure session
@@ -48,10 +48,9 @@ these isolated modes:
 - For tests that need reopen/persistence behavior, use a uniquely created
   temporary database file and remove its temporary directory through the test
   framework.
-- Once Docker Compose is introduced, use a fresh temporary volume for each
-  test run; remove it after the run. `docker compose down -v` will be
-  documented with the one-command environment task, not treated as an existing
-  command in this repository.
+- For Compose tests, use a fresh temporary volume/project for each test run
+  and remove it with `docker compose down -v` (or the equivalent `--volumes`
+  command).
 
 Do not bind automated tests to a developer's persisted demo volume. A clean
 database ensures deterministic idempotency, query, and measurement-count

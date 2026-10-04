@@ -26,9 +26,11 @@ Gateway sequence and session state, plus Cloud ML-KEM identity and session
 state, are process-local. A Gateway restart therefore loses its sequence
 tracker as well as its secure session; a Cloud restart loses its key pair and
 all secure sessions. These are accepted course-system technical debts, not
-signals to fall back to plaintext. The current Compose stack has no Legacy
-service, so legacy-start ordering and direct SQLite-file corruption remain
-outside this two-service deployment regression.
+signals to fall back to plaintext. The Compose stack also starts the Legacy
+Device after Gateway health. The Compose regression verifies that the
+container delivers its initial measurement through the full
+Legacy--Gateway--Cloud path. Direct SQLite-file corruption remains outside this
+deployment regression.
 
 Run the evidence locally with:
 

@@ -27,5 +27,5 @@ def test_strategy_preserves_storage_and_secret_boundaries() -> None:
         "secure-session state",
     ):
         assert prohibited in document
-    assert "Docker Compose services" in document
+    assert "additional Docker Compose\nservices" in document
     assert "does not add" in document

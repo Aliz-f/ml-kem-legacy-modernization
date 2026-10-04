@@ -3,11 +3,13 @@
 Course project repository containing three components: a simulated legacy system,
 an edge gateway, and a cloud service.
 
-Implemented foundations include Legacy Device configuration and measurement
-serialization, Cloud configuration/application lifecycle/canonical storage, and
-Gateway ML-KEM, HKDF, session-establishment, AES-256-GCM, and AAD primitives.
-The end-to-end Legacy, Gateway, and Cloud delivery paths remain intentionally
-in progress according to the frozen implementation roadmap.
+The implemented system supports both explicit Classical Baseline Mode and
+Modernized ML-KEM Mode across the Legacy Device, Edge Gateway, Cloud Service,
+and SQLite storage. The Gateway--Cloud secure path uses ML-KEM-768,
+HKDF-SHA-256, and AES-256-GCM under the frozen protocol contract.
+
+Run the three-service test deployment with `docker compose up`; the Legacy
+Device sends to the Gateway, which forwards accepted measurements to the Cloud.
 
 ## AI-assisted work
 

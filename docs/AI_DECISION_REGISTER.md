@@ -18,7 +18,7 @@ a particular person proposed them.
 | AD-4 | Mark test or quality steps `continue-on-error`. | Rejected | A failed quality, protocol, or deployment check must block the pipeline. The workflow has no `continue-on-error` test bypass. |
 | AD-5 | Add Kubernetes, a service mesh, or clustered infrastructure for the course deployment. | Rejected | The frozen scope is a small Docker/Compose test environment with single Gateway and Cloud instances. Such infrastructure adds operational complexity without satisfying a current project requirement. |
 | AD-6 | Add Kafka, Redis, or a message broker for retry buffering. | Rejected | The frozen design deliberately uses bounded HTTP retries, in-memory Gateway sequence/session state, and SQLite. Durable buffering would change delivery and acceptance semantics and requires an architecture change. |
-| AD-7 | Build and validate all three service images while keeping the current Compose stack limited to Cloud and Gateway. | Accepted | The Legacy Device is a client runtime and is image-validated separately; the documented Compose regression remains a two-service operational test. This boundary is implemented in task `0174` and documented in `docs/testing/DEVELOPER_TESTING_GUIDE.md`. |
+| AD-7 | Keep Compose limited to Cloud and Gateway while validating the Legacy image separately. | Superseded | The frozen Member 5 topology requires `legacy-device`, `edge-gateway`, and `cloud-service` in Compose. Task `0185` restores that topology and a full-container delivery regression; separate image validation remains additional evidence. |
 
 ## Evaluation and remaining risks
 

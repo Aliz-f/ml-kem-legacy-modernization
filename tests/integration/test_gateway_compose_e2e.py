@@ -46,6 +46,16 @@ def _wait_json(url: str) -> object:
     raise AssertionError(f"service did not become available: {type(last_error).__name__}")
 
 
+def _wait_for_device_measurement(url: str, device_id: str) -> dict[str, object]:
+    deadline = time.monotonic() + 45
+    while time.monotonic() < deadline:
+        payload = _wait_json(f"{url}/api/v1/measurements?device_id={device_id}")
+        if isinstance(payload, dict) and payload.get("items"):
+            return payload["items"][0]
+        time.sleep(0.2)
+    raise AssertionError("Legacy Compose service did not persist a measurement")
+
+
 def _wait_unavailable(url: str) -> None:
     deadline = time.monotonic() + 20
     while time.monotonic() < deadline:
@@ -77,6 +87,48 @@ def _send(gateway_url: str, device_id: str, sequence_number: int):
     return GatewayClient(
         gateway_url, request_timeout_seconds=15, max_retries=0,
     ).send(_measurement(device_id, sequence_number))
+
+
+def test_compose_starts_legacy_device_and_persists_a_measurement() -> None:
+    """The frozen three-service topology starts the Legacy runtime after Gateway readiness."""
+    if shutil.which("docker") is None:
+        pytest.skip("Docker is not installed")
+    gateway_port, cloud_port = _port(), _port()
+    project = f"mlkem-full-compose-{os.getpid()}"
+    device_id = f"sensor-compose-device-{os.getpid()}"
+    environment = {
+        **os.environ,
+        "SECURITY_MODE": "classical",
+        "GATEWAY_HOST_PORT": str(gateway_port),
+        "CLOUD_HOST_PORT": str(cloud_port),
+        "DATABASE_URL": "sqlite:////data/cloud.db",
+        "DEVICE_ID": device_id,
+        "SEND_INTERVAL_SECONDS": "60",
+        "REQUEST_TIMEOUT_SECONDS": "15",
+        "MAX_RETRIES": "0",
+        "LEGACY_FAILURE_MODE": "none",
+        "LEGACY_FAILURE_RATE": "0",
+        "GATEWAY_FAILURE_MODE": "none",
+        "GATEWAY_FAILURE_RATE": "0",
+        "CLOUD_FAILURE_MODE": "none",
+        "CLOUD_FAILURE_RATE": "0",
+        "LOG_LEVEL": "INFO",
+    }
+    cloud_url = f"http://127.0.0.1:{cloud_port}"
+    try:
+        started = _compose(project, environment, "up", "--detach", "--build", "--wait", check=False)
+        assert started.returncode == 0, started.stdout + started.stderr
+        stored = _wait_for_device_measurement(cloud_url, device_id)
+        assert stored["device_id"] == device_id
+        assert stored["sequence_number"] == 0
+        logs = _compose(project, environment, "logs", "--no-color", "legacy-device").stdout
+        assert "event=device_ready component=legacy_system" in logs
+        assert "event=measurement_delivered component=legacy_system" in logs
+    finally:
+        _compose(
+            project, environment, "down", "--volumes", "--remove-orphans",
+            "--timeout", "10", check=False,
+        )
 
 
 @pytest.mark.parametrize("security_mode", ["classical", "mlkem"])

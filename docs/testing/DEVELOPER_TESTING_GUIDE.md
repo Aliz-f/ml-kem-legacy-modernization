@@ -97,21 +97,22 @@ match workload, mode, and failure configuration.
 
 ## Docker and Compose checks
 
-The current Compose topology contains `cloud-service` and `edge-gateway`.
-The Legacy container remains a separate Member 1 prerequisite, so do not call
-the two-service Compose stack a full three-container deployment.
+The Compose topology contains `legacy-device`, `edge-gateway`, and
+`cloud-service`. `legacy-device` waits for Gateway health, and the Gateway
+waits for Cloud health; runtime retries remain responsible for later outages.
 
 ```bash
 docker compose config --quiet
 uv run pytest tests/integration/test_gateway_compose_e2e.py
 ```
 
-The Compose regression covers classical and ML-KEM delivery, health,
-readiness, metrics, graceful Gateway shutdown, Cloud outage/restart recovery,
-Gateway session loss after restart, and Cloud stale-session recovery. See the
-[M5 deployment recovery evidence](M5_DEPLOYMENT_RECOVERY.md) for the frozen
-fail-closed and idempotency assertions. For persistent versus clean SQLite
-behavior, see [the SQLite persistence strategy](../deployment/sqlite-persistence.md).
+The Compose regression covers Legacy container delivery, classical and ML-KEM
+delivery, health, readiness, metrics, graceful Gateway shutdown, Cloud
+outage/restart recovery, Gateway session loss after restart, and Cloud
+stale-session recovery. See the [M5 deployment recovery
+evidence](M5_DEPLOYMENT_RECOVERY.md) for the frozen fail-closed and idempotency
+assertions. For persistent versus clean SQLite behavior, see [the SQLite
+persistence strategy](../deployment/sqlite-persistence.md).
 
 ## CI separation and clean-environment verification
 
@@ -124,11 +125,10 @@ Cloud images from the committed workspace lockfile.
 
 The `clean-environment` job is intentionally a new GitHub-hosted runner. It
 performs a frozen `uv sync`, validates the Compose configuration, and runs the
-real Compose regression, which builds and starts the documented Gateway and
-Cloud stack. The Legacy Device image is build-validated separately because it
-is a client runtime rather than a Compose service. Each Python job enables the
-`setup-uv` dependency cache keyed from the committed dependency inputs; a cache
-is an optimization only and every job still uses `uv sync --frozen`.
+real Compose regression, which builds and starts the documented three-service
+stack. Each Python job enables the `setup-uv` dependency cache keyed from the
+committed dependency inputs; a cache is an optimization only and every job
+still uses `uv sync --frozen`.
 
 ## CI and review
 

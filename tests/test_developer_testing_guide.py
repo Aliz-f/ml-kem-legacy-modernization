@@ -29,7 +29,7 @@ def test_developer_testing_guide_covers_current_test_layers_and_commands() -> No
 
     assert "PQC_FAILURE_POLICY=fail_closed" in document
     assert "same already-built SecureEnvelope" in document
-    assert "two-service Compose stack" in document
+    assert "legacy-device`, `edge-gateway`, and\n`cloud-service" in document
 
 
 def test_workflow_refers_to_current_ci_stages_and_testing_guide() -> None:

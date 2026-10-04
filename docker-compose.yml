@@ -65,5 +65,23 @@ services:
       start_period: 15s
       retries: 3
 
+  legacy-device:
+    build:
+      context: .
+      dockerfile: legacy_system/Dockerfile
+    depends_on:
+      edge-gateway:
+        condition: service_healthy
+    environment:
+      DEVICE_ID: ${DEVICE_ID:-sensor-001}
+      GATEWAY_URL: http://edge-gateway:8000
+      SEND_INTERVAL_SECONDS: ${SEND_INTERVAL_SECONDS:-5}
+      REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-3}
+      MAX_RETRIES: ${MAX_RETRIES:-2}
+      FAILURE_MODE: ${LEGACY_FAILURE_MODE:-none}
+      FAILURE_RATE: ${LEGACY_FAILURE_RATE:-0.0}
+      FAILURE_SEED: ${LEGACY_FAILURE_SEED:-1}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
 volumes:
   cloud-data:

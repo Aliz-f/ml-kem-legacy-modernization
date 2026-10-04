@@ -7,7 +7,7 @@ import threading
 from types import FrameType
 
 from legacy_system.client import GatewayClient
-from legacy_system.config import Config
+from legacy_system.config import Config, FailureMode
 from legacy_system.failure import FailureInjector
 from legacy_system.sensor import Sensor
 
@@ -57,6 +57,16 @@ class DeviceController:
             "event=device_starting component=legacy_system device_id=%s",
             self._config.device_id,
         )
+        if (
+            self._config.failure_mode != FailureMode.NONE
+            and self._config.failure_rate > 0.0
+        ):
+            logger.warning(
+                "event=failure_injection_enabled component=legacy_system device_id=%s mode=%s rate=%s",
+                self._config.device_id,
+                self._config.failure_mode.value,
+                self._config.failure_rate,
+            )
         previous_handlers = self._install_signal_handlers()
         try:
             logger.info(

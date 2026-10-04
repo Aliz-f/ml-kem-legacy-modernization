@@ -162,6 +162,35 @@ def test_expiry_http_mapping_and_replacement(client):
     assert client.get(f"/test-session/{second['session_id']}/gateway-1").status_code == 200
 
 
+def test_metrics_excludes_expired_sessions_after_replacement(client):
+    now = [datetime.now(timezone.utc)]
+    client.app.state.sessions.close()
+    client.app.state.sessions = SessionManager(clock=lambda: now[0])
+    first_payload, _ = handshake(client)
+    first = client.post(PATH, json=first_payload).json()
+    first_session = client.app.state.sessions._sessions[first["session_id"]]
+
+    now[0] += timedelta(seconds=300)
+    second_payload, _ = handshake(client)
+    assert client.post(PATH, json=second_payload).status_code == 200
+
+    assert "cloud_active_sessions 1" in client.get("/metrics").text
+    assert first_session.state == SessionState.EXPIRED
+    assert len(client.app.state.sessions) == 1
+
+
+def test_deeply_nested_session_json_is_a_structured_client_error(client):
+    body = b"[" * 10_000 + b"0" + b"]" * 10_000
+
+    response = client.post(PATH, content=body, headers={"Content-Type": "application/json"})
+
+    assert response.status_code == 400
+    assert response.headers["content-type"].startswith("application/json")
+    assert response.json()["error"]["code"] == "INVALID_SESSION_REQUEST"
+    assert client.app.state.repository.list() == []
+    assert len(client.app.state.sessions) == 0
+
+
 def test_shutdown_and_classical_mode():
     app = create_app(load_config({"SECURITY_MODE": "mlkem", "DATABASE_URL": "sqlite:///:memory:"}))
     with pytest.raises(RuntimeError, match="exit"):

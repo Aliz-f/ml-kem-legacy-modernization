@@ -72,6 +72,22 @@ class Database:
             except (sqlite3.Error, OverflowError):
                 raise StorageError("storage operation failed") from None
 
+    def is_writable(self) -> bool:
+        """Return whether SQLite can currently acquire a write transaction.
+
+        ``BEGIN IMMEDIATE`` checks the capability required by ingestion without
+        changing application data; the transaction is always rolled back.
+        """
+        with self._lock:
+            if self._connection is None:
+                return False
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                self._connection.execute("ROLLBACK")
+            except sqlite3.Error:
+                return False
+            return True
+
     def close(self) -> None:
         with self._lock:
             if self._connection is not None:

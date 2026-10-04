@@ -112,6 +112,12 @@ class SessionManager:
                 self.invalidate(key, SessionState.EXPIRED)
             return len(expired)
 
+    def active_count(self) -> int:
+        """Discard expired sessions and report the sessions still usable now."""
+        self.remove_expired()
+        with self._lock:
+            return len(self._sessions)
+
     def close(self) -> None:
         with self._lock:
             self._closed = True

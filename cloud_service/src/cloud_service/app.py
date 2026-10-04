@@ -141,7 +141,13 @@ def create_app(config: Config | None = None) -> FastAPI:
     async def ready():
         database = app.state.database
         repository = app.state.repository
-        if not app.state.running or database is None or database.closed or repository is None:
+        if (
+            not app.state.running
+            or database is None
+            or database.closed
+            or repository is None
+            or not database.is_writable()
+        ):
             return _unavailable()
         if settings.security_mode == SecurityMode.CLASSICAL:
             return {"status": "ready", "storage": "ok"}
@@ -154,7 +160,7 @@ def create_app(config: Config | None = None) -> FastAPI:
     async def metrics() -> Response:
         """Expose bounded Cloud operational and PQC observability metrics."""
         sessions = app.state.sessions
-        app.state.metrics.set_active_sessions(0 if sessions is None else len(sessions))
+        app.state.metrics.set_active_sessions(0 if sessions is None else sessions.active_count())
         return Response(
             content=(
                 "# HELP cloud_service_info Cloud Service process information.\n"

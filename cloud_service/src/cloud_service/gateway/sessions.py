@@ -1,6 +1,5 @@
 """Validated session handshake for secure-message processing."""
 
-from json import JSONDecodeError
 import logging
 from time import perf_counter
 
@@ -87,7 +86,7 @@ async def establish_session(request: Request) -> JSONResponse:
         return _error(503, "SERVICE_UNAVAILABLE", "session establishment unavailable")
     try:
         payload = await request.json()
-    except (JSONDecodeError, UnicodeDecodeError):
+    except (ValueError, RecursionError):
         return _error(400, "INVALID_SESSION_REQUEST", "invalid session request")
     if not isinstance(payload, dict) or set(payload) != _FIELDS:
         return _error(400, "INVALID_SESSION_REQUEST", "invalid session request")

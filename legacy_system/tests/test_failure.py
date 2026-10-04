@@ -123,20 +123,17 @@ def test_first_duplicate_sequence_leaves_payload_unchanged_without_failure_log(
     assert "event=simulated_failure_injected" not in caplog.text
 
 
-def test_duplicate_sequence_selection_varies_by_seed() -> None:
-    first = FailureInjector(FailureMode.DUPLICATE_SEQUENCE, 1.0, failure_seed=1)
-    second = FailureInjector(FailureMode.DUPLICATE_SEQUENCE, 1.0, failure_seed=2)
-    for sequence in (10, 20, 30):
-        payload = make_payload(sequence)
-        first.apply(payload)
-        second.apply(payload)
+@pytest.mark.parametrize(
+    "mode", [FailureMode.DUPLICATE_SEQUENCE, FailureMode.OUT_OF_ORDER_SEQUENCE]
+)
+def test_sequence_faults_reuse_only_the_prior_valid_wire_sequence(mode: FailureMode) -> None:
+    injector = FailureInjector(mode, 1.0, failure_seed=1)
 
-    first_output = first.apply(make_payload(40))
-    second_output = second.apply(make_payload(40))
+    emitted = [injector.apply(make_payload(sequence))["sequence_number"] for sequence in (0, 1, 2)]
 
-    assert first_output["sequence_number"] in {10, 20, 30}
-    assert second_output["sequence_number"] in {10, 20, 30}
-    assert first_output != second_output
+    # The first valid payload creates a Gateway sequence baseline.  Subsequent
+    # injected faults must not select generated values that were never sent.
+    assert emitted == [0, 0, 0]
 
 
 def test_out_of_order_sequence_is_schema_valid_and_lower_than_current_sequence() -> (
@@ -152,20 +149,6 @@ def test_out_of_order_sequence_is_schema_valid_and_lower_than_current_sequence()
     assert isinstance(outgoing["sequence_number"], int)
     assert 0 <= outgoing["sequence_number"] < 1
     assert second["sequence_number"] == 1
-
-
-def test_out_of_order_mutation_varies_by_seed() -> None:
-    first = FailureInjector(FailureMode.OUT_OF_ORDER_SEQUENCE, 1.0, failure_seed=1)
-    second = FailureInjector(FailureMode.OUT_OF_ORDER_SEQUENCE, 1.0, failure_seed=2)
-
-    first_outputs = [
-        first.apply(make_payload(sequence)) for sequence in range(100, 104)
-    ]
-    second_outputs = [
-        second.apply(make_payload(sequence)) for sequence in range(100, 104)
-    ]
-
-    assert first_outputs != second_outputs
 
 
 def test_failure_rate_zero_never_injects() -> None:

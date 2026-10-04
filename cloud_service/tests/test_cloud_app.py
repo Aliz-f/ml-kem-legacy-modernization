@@ -37,6 +37,21 @@ def test_lifecycle_liveness_and_unready_storage(tmp_path, monkeypatch, caplog):
     assert (tmp_path / "cloud.db").is_file()
 
 
+def test_readiness_requires_current_write_capability() -> None:
+    app = create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))
+    with TestClient(app) as client:
+        connection = app.state.database._connection
+        connection.execute("PRAGMA query_only = ON")
+        try:
+            response = client.get("/ready")
+            assert response.status_code == 503
+            assert response.json() == {
+                "error": {"code": "SERVICE_UNAVAILABLE", "message": "service is not ready"}
+            }
+        finally:
+            connection.execute("PRAGMA query_only = OFF")
+
+
 def test_metrics_exposes_bounded_service_information_and_zero_value_cloud_metrics():
     with TestClient(create_app(load_config({"DATABASE_URL": "sqlite:///:memory:"}))) as client:
         response = client.get("/metrics")

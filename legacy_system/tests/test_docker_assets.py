@@ -89,7 +89,7 @@ def test_compose_legacy_device_maps_service_scoped_failure_variables() -> None:
     legacy_section = text.split("legacy-device:")[1]
     assert "FAILURE_MODE: ${LEGACY_FAILURE_MODE:-none}" in legacy_section
     assert "FAILURE_RATE: ${LEGACY_FAILURE_RATE:-0.0}" in legacy_section
-    assert "FAILURE_SEED: ${LEGACY_FAILURE_SEED:-1}" in legacy_section
+    assert "FAILURE_SEED: ${LEGACY_FAILURE_SEED-}" in legacy_section
 
 
 def test_compose_legacy_device_does_not_publish_ports() -> None:
@@ -125,6 +125,12 @@ def test_compose_environment_loads_valid_legacy_config() -> None:
     assert config.failure_rate == 0.0
     assert config.failure_seed == 1
     assert config.log_level == "INFO"
+
+
+def test_compose_empty_failure_seed_keeps_legacy_selection_nondeterministic() -> None:
+    config = load_config({"FAILURE_SEED": ""})
+
+    assert config.failure_seed is None
 
 
 def test_compose_environment_with_custom_failure_settings_loads_valid_legacy_config() -> None:

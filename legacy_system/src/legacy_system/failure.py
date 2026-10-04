@@ -33,23 +33,28 @@ class FailureInjector:
         self._failure_rate = failure_rate
         self._random = random.Random(failure_seed)
         self._logger = logger or logging.getLogger(__name__)
-        self._seen_sequences: list[int] = []
+        # Sequence faults can only reuse a prior payload that was not itself
+        # mutated.  Generated-but-never-emitted sequence values may not have
+        # reached the Gateway and can therefore turn a later simulated fault
+        # into an accepted measurement.
+        self._valid_sequences: list[int] = []
 
     def apply(self, payload: Mapping[str, object]) -> dict[str, object]:
         """Return a possibly mutated copy of a serialized payload."""
         outgoing = dict(payload)
         current_sequence = _sequence_number(outgoing)
-        previous_sequences = tuple(self._seen_sequences)
-        self._seen_sequences.append(current_sequence)
+        previous_sequences = tuple(self._valid_sequences)
 
         if (
             self._mode is FailureMode.NONE
             or self._random.random() >= self._failure_rate
         ):
+            self._valid_sequences.append(current_sequence)
             return outgoing
 
         selected_mode = self._selected_mode(current_sequence, previous_sequences)
         if selected_mode is None:
+            self._valid_sequences.append(current_sequence)
             return outgoing
 
         self._mutate(outgoing, selected_mode, current_sequence, previous_sequences)

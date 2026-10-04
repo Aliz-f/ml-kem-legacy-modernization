@@ -7,7 +7,7 @@ import re
 import sys
 from pathlib import Path
 
-from .models import Status
+from .models import ACTIVE_STATUSES, Status
 from .storage import (
     HistoryError,
     Task,
@@ -192,23 +192,29 @@ def resolve_merge_conflict(root: Path, args: argparse.Namespace) -> None:
         raise HistoryError("File is not a simple two-way Git conflict.")
     first, second = match.group(1), match.group(2)
 
-    def details(value: str) -> tuple[str, str, str]:
+    def details(value: str) -> tuple[str, str, str, Status]:
         heading = re.search(r"^# AI Task (\d{4}) — (.+)$", value, re.M)
         created = re.search(r"^\*\*Created:\*\* (.+)$", value, re.M)
-        if not heading or not created:
+        status = re.search(r"^\*\*Status:\*\* (.+)$", value, re.M)
+        if not heading or not created or not status:
             raise HistoryError("Each conflict side must contain valid task metadata.")
-        return heading.group(1), heading.group(2), created.group(1)
+        try:
+            parsed_status = Status(status.group(1).strip())
+        except ValueError as exc:
+            raise HistoryError("Each conflict side must contain valid task metadata.") from exc
+        return heading.group(1), heading.group(2), created.group(1), parsed_status
 
-    first_id, _, first_created = details(first)
-    second_id, second_title, second_created = details(second)
+    first_id, _, first_created, first_status = details(first)
+    second_id, second_title, second_created, second_status = details(second)
     if first_id != second_id:
         raise HistoryError(
             "This command only resolves conflicts with the same task ID."
         )
     existing = [parse_task(file) for file in history.glob("*.md") if file != path]
-    if any(
-        task.status in {Status.IN_PROGRESS, Status.REVISION_REQUESTED}
-        for task in existing
+    if (
+        first_status in ACTIVE_STATUSES
+        or second_status in ACTIVE_STATUSES
+        or any(task.status in ACTIVE_STATUSES for task in existing)
     ):
         raise HistoryError(
             "Resolve active-task conflicts manually before using this command."

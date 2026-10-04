@@ -52,7 +52,8 @@ def test_compose_uses_internal_dns_and_service_scoped_failure_sources() -> None:
     assert "CLOUD_URL: ${CLOUD_URL:-http://cloud-service:9000}" in text
     assert "FAILURE_MODE: ${GATEWAY_FAILURE_MODE:-none}" in text
     assert "FAILURE_RATE: ${GATEWAY_FAILURE_RATE:-0.0}" in text
-    assert "FAILURE_SEED: ${GATEWAY_FAILURE_SEED:-2}" in text
+    assert "FAILURE_SEED: ${GATEWAY_FAILURE_SEED-}" in text
+    assert "FAILURE_SEED: ${CLOUD_FAILURE_SEED-}" in text
     assert "FAILURE_MODE: ${CLOUD_FAILURE_MODE:-none}" in text
     assert "SECURITY_MODE: ${SECURITY_MODE:-classical}" in text
     assert "condition: service_healthy" in text

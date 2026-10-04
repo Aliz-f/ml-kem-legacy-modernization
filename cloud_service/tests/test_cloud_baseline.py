@@ -109,6 +109,17 @@ def test_malformed_body_is_400_and_not_stored(client, body):
     assert client.app.state.repository.list() == []
 
 
+def test_deeply_nested_json_is_a_structured_client_error(client):
+    body = b"[" * 10_000 + b"0" + b"]" * 10_000
+
+    response = client.post(ENDPOINT, content=body, headers={"Content-Type": "application/json"})
+
+    assert response.status_code == 400
+    assert response.headers["content-type"].startswith("application/json")
+    assert response.json()["error"]["code"] == "INVALID_JSON"
+    assert client.app.state.repository.list() == []
+
+
 @pytest.mark.parametrize("update", [
     {"temperature_c": 86}, {"humidity_pct": -1}, {"sequence_number": -1},
     {"sequence_number": 2**63},

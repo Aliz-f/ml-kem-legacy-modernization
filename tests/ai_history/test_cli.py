@@ -161,6 +161,17 @@ def test_validation_rejects_unresolved_conflict_markers(tmp_path, monkeypatch):
     assert errors == [f"{path}: unresolved Git conflict marker."]
 
 
+def test_resolver_rejects_a_conflict_containing_an_active_task(tmp_path, monkeypatch):
+    start(tmp_path, monkeypatch)
+    path = tmp_path / "docs/ai/history/0001-safe-title.md"
+    active = path.read_text()
+    completed = active.replace("**Status:** In Progress", "**Status:** Complete")
+    path.write_text(f"<<<<<<< HEAD\n{active}=======\n{completed}>>>>>>> branch\n")
+
+    assert run(tmp_path, monkeypatch, "resolve-merge-conflict", str(path.relative_to(tmp_path))) == 1
+    assert path.read_text().startswith("<<<<<<< HEAD\n")
+
+
 def test_validation_rejects_duplicate_metadata_and_mismatched_filename(tmp_path, monkeypatch):
     start(tmp_path, monkeypatch)
     path = tmp_path / "docs/ai/history/0001-safe-title.md"

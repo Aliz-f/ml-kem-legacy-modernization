@@ -1,7 +1,6 @@
 """Baseline canonical ingestion; no secure processing or plaintext fallback."""
 
 import asyncio
-from json import JSONDecodeError
 import logging
 
 from fastapi import APIRouter, Request
@@ -42,7 +41,7 @@ async def baseline_measurement(request: Request) -> JSONResponse:
     correlation = None if request_id is None else request_id[:256]
     try:
         payload = await request.json()
-    except (JSONDecodeError, UnicodeDecodeError):
+    except (ValueError, RecursionError):
         logger.info("event=measurement_validation_failed component=cloud_service request_id=%r", correlation)
         return _error(400, "INVALID_JSON", "invalid JSON body")
     try:

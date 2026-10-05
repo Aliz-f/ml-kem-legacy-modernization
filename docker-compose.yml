@@ -65,6 +65,21 @@ services:
       start_period: 15s
       retries: 3
 
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    depends_on:
+      - cloud-service
+      - edge-gateway
+      - legacy-device
+    environment:
+      DASHBOARD_PORT: 8080
+    ports:
+      - "127.0.0.1:${DASHBOARD_HOST_PORT:-8080}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
   legacy-device:
     build:
       context: .

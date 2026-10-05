@@ -2044,6 +2044,8 @@ security_mode
 # Task M5-56 — Optional monitoring dashboard decision
 
 A dashboard is **not required** by the course documents; meaningful metrics are required.
+The project now includes its deliberately small local dashboard in the default
+Compose stack for easier demonstration and operations.
 
 Member 5 should not introduce Grafana/Prometheus infrastructure unless:
 

@@ -4,15 +4,18 @@ This record implements Member 5 task M5-56.
 
 ## Decision
 
-Do not add Grafana, a Prometheus server, or another dashboard service for this
-course-scale system. The existing Gateway and Cloud `GET /metrics` endpoints
-are sufficient for the current demonstrations, integration tests, failure
-analysis, and final evaluation evidence.
+Do not add Grafana or a Prometheus server for this course-scale system. A small,
+read-only local dashboard service is included for demonstrations: it renders the
+existing Gateway and Cloud `GET /metrics` endpoints, health/readiness, Cloud
+measurements, Compose configuration, and recent container logs. It stores no
+monitoring data and does not modify any service or protocol behavior.
 
-This preserves the course requirement for meaningful metrics while following
-the explicit scope constraint that a dashboard is optional and the project
-should stay small. It adds no extra containers, persistent monitoring data,
-credentials, network surface, or operational lifecycle to maintain.
+This preserves the course requirement for meaningful metrics while keeping the
+dashboard deliberately small. It starts with the default Compose stack as the
+project's local operational view, but adds no persistent monitoring data,
+credentials, scrape database, alerting, or monitoring
+lifecycle. The dashboard uses Docker's mounted socket only for read-only
+inspection and log requests; its UI whitelists documented non-secret settings.
 
 ## Evidence
 
@@ -40,6 +43,12 @@ Use the documented metric families to inspect accepted/rejected measurements,
 Cloud attempts and retries, ML-KEM handshakes, active sessions, decryptions,
 and storage outcomes. Do not treat a scrape as a replacement for the
 integration and E2E tests that establish their semantics.
+
+For the browser dashboard, start the default stack with
+`docker compose up --build --wait` and open
+`http://127.0.0.1:${DASHBOARD_HOST_PORT:-8080}`. The Legacy Device has no HTTP
+health/readiness API; the dashboard reports its Docker process state and
+explicitly identifies that limitation rather than inventing an endpoint.
 
 ## Revisit conditions
 

@@ -2047,6 +2047,12 @@ A dashboard is **not required** by the course documents; meaningful metrics are 
 The project now includes its deliberately small local dashboard in the default
 Compose stack for easier demonstration and operations.
 
+For trusted local demonstrations only, the dashboard may apply a confirmed,
+temporary allowlisted failure-injection or log-level override by replacing and
+restarting the selected service. It must not edit `.env` or Compose files, and
+must keep frozen protocol/security configuration display-only. The dashboard's
+loopback-only binding and documented Docker-socket trust boundary are required.
+
 Member 5 should not introduce Grafana/Prometheus infrastructure unless:
 
 ```text

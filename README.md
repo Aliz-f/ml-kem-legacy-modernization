@@ -146,7 +146,7 @@ Evaluation is reproducible local evidence, not a capacity or production benchmar
 
 ## Metrics and operations
 
-Gateway and Cloud each expose Prometheus text at GET /metrics. The dashboard starts with the default Compose stack; open `http://127.0.0.1:${DASHBOARD_HOST_PORT:-8080}` after `docker compose up --build --wait`. It displays health/readiness, bounded metric charts, Cloud measurements, whitelisted runtime configuration, and recent container logs; it does not persist monitoring data or alter service behavior. See the [metrics contract](docs/operations/METRICS_CONVENTIONS.md) and [monitoring decision](docs/operations/MONITORING_DASHBOARD_DECISION.md).
+Gateway and Cloud each expose Prometheus text at GET /metrics. The dashboard starts with the default Compose stack; open `http://127.0.0.1:${DASHBOARD_HOST_PORT:-8080}` after `docker compose up --build --wait`. It displays health/readiness, bounded metric charts, Cloud measurements, whitelisted runtime configuration, and recent container logs. It can also explicitly restart one selected service with temporary, allowlisted failure-injection or log-level overrides; it never edits `.env` or `docker-compose.yml`, and a later Compose recreate restores configured defaults. See the [metrics contract](docs/operations/METRICS_CONVENTIONS.md) and [monitoring decision](docs/operations/MONITORING_DASHBOARD_DECISION.md).
 
 | Family | Representative metrics | Use |
 | --- | --- | --- |

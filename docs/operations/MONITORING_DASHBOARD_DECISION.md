@@ -5,7 +5,7 @@ This record implements Member 5 task M5-56.
 ## Decision
 
 Do not add Grafana or a Prometheus server for this course-scale system. A small,
-read-only local dashboard service is included for demonstrations: it renders the
+local dashboard service is included for demonstrations: it renders the
 existing Gateway and Cloud `GET /metrics` endpoints, health/readiness, Cloud
 measurements, Compose configuration, and recent container logs. It stores no
 monitoring data and does not modify any service or protocol behavior.
@@ -14,8 +14,20 @@ This preserves the course requirement for meaningful metrics while keeping the
 dashboard deliberately small. It starts with the default Compose stack as the
 project's local operational view, but adds no persistent monitoring data,
 credentials, scrape database, alerting, or monitoring
-lifecycle. The dashboard uses Docker's mounted socket only for read-only
-inspection and log requests; its UI whitelists documented non-secret settings.
+lifecycle. The dashboard has one constrained local operations action: after an
+explicit browser confirmation, it can replace and restart the selected Compose
+service with temporary values for only `FAILURE_MODE`, `FAILURE_RATE`,
+`FAILURE_SEED`, `FAILURE_DELAY_SECONDS` (where supported), and `LOG_LEVEL`.
+The backend validates the exact service-specific failure-mode enum and numeric
+bounds. Frozen security/protocol settings, identities, URLs, retry settings,
+and storage settings are display-only. The action does not write `.env` or
+`docker-compose.yml`; a later Compose recreate restores their configured
+values.
+
+This requires a writable Docker socket, which is equivalent to local Docker
+control. The dashboard is therefore bound only to `127.0.0.1`, has no remote
+exposure or credentials, accepts no arbitrary Docker path or environment
+values, and is intended solely for a trusted local development demonstration.
 
 ## Evidence
 
@@ -49,6 +61,14 @@ For the browser dashboard, start the default stack with
 `http://127.0.0.1:${DASHBOARD_HOST_PORT:-8080}`. The Legacy Device has no HTTP
 health/readiness API; the dashboard reports its Docker process state and
 explicitly identifies that limitation rather than inventing an endpoint.
+
+To apply a temporary fault-injection or log-level setting, use the selected
+service's **Temporary runtime override** form, review the browser confirmation,
+and select **Apply and restart**. Only that service is replaced and restarted.
+Wait for its health/readiness status to return before continuing the
+demonstration. These changes are intentionally ephemeral: running `docker
+compose up --force-recreate` or otherwise recreating the service returns it to
+the values in Compose and `.env`.
 
 ## Revisit conditions
 

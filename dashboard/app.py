@@ -1,4 +1,4 @@
-"""Read-only local operations dashboard for the Compose demonstration stack."""
+"""Local operations dashboard for the Compose demonstration stack."""
 
 from __future__ import annotations
 
@@ -19,6 +19,74 @@ SERVICE_URLS = {
     "cloud-service": "http://cloud-service:9000",
 }
 SERVICES = ("legacy-device", "edge-gateway", "cloud-service")
+RUNTIME_CONFIG = {
+    "legacy-device": frozenset(
+        {"FAILURE_MODE", "FAILURE_RATE", "FAILURE_SEED", "LOG_LEVEL"}
+    ),
+    "edge-gateway": frozenset(
+        {
+            "FAILURE_MODE",
+            "FAILURE_RATE",
+            "FAILURE_SEED",
+            "FAILURE_DELAY_SECONDS",
+            "LOG_LEVEL",
+        }
+    ),
+    "cloud-service": frozenset(
+        {
+            "FAILURE_MODE",
+            "FAILURE_RATE",
+            "FAILURE_SEED",
+            "FAILURE_DELAY_SECONDS",
+            "LOG_LEVEL",
+        }
+    ),
+}
+FAILURE_MODES = {
+    "legacy-device": frozenset(
+        {
+            "none",
+            "invalid_temperature",
+            "invalid_humidity",
+            "missing_field",
+            "invalid_timestamp",
+            "duplicate_sequence",
+            "out_of_order_sequence",
+            "random",
+        }
+    ),
+    "edge-gateway": frozenset(
+        {
+            "none",
+            "processing_error",
+            "processing_delay",
+            "cloud_timeout",
+            "cloud_unavailable",
+            "drop_message",
+            "random",
+            "mlkem_handshake_failure",
+            "corrupt_ciphertext",
+            "session_missing",
+            "session_expired",
+        }
+    ),
+    "cloud-service": frozenset(
+        {
+            "none",
+            "public_key_unavailable",
+            "mlkem_decapsulation_failure",
+            "session_not_found",
+            "session_expired",
+            "decryption_failure",
+            "storage_failure",
+            "processing_delay",
+            "service_unavailable",
+            "drop_response",
+            "random",
+        }
+    ),
+}
+LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
 SAFE_CONFIG = {
     "legacy-device": frozenset(
         {
@@ -76,10 +144,12 @@ def _http(url: str, text: bool = False) -> dict[str, object]:
         return {"ok": False, "error": "Service unavailable"}
 
 
-def _docker(path: str) -> tuple[int, bytes]:
+def _docker(path: str, method: str = "GET", payload: object | None = None) -> tuple[int, bytes]:
+    body = b"" if payload is None else json.dumps(payload).encode()
     request = (
-        f"GET {path} HTTP/1.1\r\nHost: docker\r\nConnection: close\r\n\r\n".encode()
-    )
+        f"{method} {path} HTTP/1.1\r\nHost: docker\r\nConnection: close\r\n"
+        f"Content-Type: application/json\r\nContent-Length: {len(body)}\r\n\r\n"
+    ).encode() + body
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
         client.settimeout(2)
         client.connect(DOCKER_SOCKET)
@@ -132,6 +202,96 @@ def _safe_environment(values: list[str], service: str) -> dict[str, str]:
         if separator and name in allowed:
             result[name] = setting
     return dict(sorted(result.items()))
+
+
+def _validated_runtime_config(service: str, values: object) -> dict[str, str]:
+    """Validate the small dashboard-owned runtime override surface."""
+    if service not in RUNTIME_CONFIG or not isinstance(values, dict):
+        raise ValueError("Invalid runtime configuration request")
+    if set(values) != RUNTIME_CONFIG[service] or not all(
+        isinstance(value, str) for value in values.values()
+    ):
+        raise ValueError("Only the approved runtime settings may be changed")
+
+    mode = values["FAILURE_MODE"]
+    if mode not in FAILURE_MODES[service]:
+        raise ValueError("Unsupported failure mode")
+    try:
+        rate = float(values["FAILURE_RATE"])
+    except ValueError as error:
+        raise ValueError("FAILURE_RATE must be a number from 0 to 1") from error
+    if not 0 <= rate <= 1 or rate in (float("inf"), float("-inf")):
+        raise ValueError("FAILURE_RATE must be a number from 0 to 1")
+    seed = values["FAILURE_SEED"].strip()
+    if seed:
+        try:
+            int(seed)
+        except ValueError as error:
+            raise ValueError("FAILURE_SEED must be an integer or empty") from error
+    if values["LOG_LEVEL"].upper() not in LOG_LEVELS:
+        raise ValueError("Unsupported log level")
+    normalized = {
+        "FAILURE_MODE": mode,
+        "FAILURE_RATE": str(rate),
+        "FAILURE_SEED": seed,
+        "LOG_LEVEL": values["LOG_LEVEL"].upper(),
+    }
+    if "FAILURE_DELAY_SECONDS" in values:
+        try:
+            delay = float(values["FAILURE_DELAY_SECONDS"])
+        except ValueError as error:
+            raise ValueError("FAILURE_DELAY_SECONDS must be a number from 0 to 30") from error
+        if not 0 <= delay <= 30 or delay in (float("inf"), float("-inf")):
+            raise ValueError("FAILURE_DELAY_SECONDS must be a number from 0 to 30")
+        normalized["FAILURE_DELAY_SECONDS"] = str(delay)
+    return normalized
+
+
+def _replace_environment(
+    values: list[str], overrides: dict[str, str]
+) -> list[str]:
+    result, remaining = [], dict(overrides)
+    for value in values:
+        name, separator, setting = value.partition("=")
+        if name in remaining:
+            result.append(f"{name}={remaining.pop(name)}")
+        else:
+            result.append(f"{name}{separator}{setting}" if separator else value)
+    return result + [f"{name}={value}" for name, value in sorted(remaining.items())]
+
+
+def _networking_config(inspect: dict[str, object]) -> dict[str, object]:
+    networks = inspect.get("NetworkSettings", {}).get("Networks", {})
+    endpoints = {
+        name: {"Aliases": value.get("Aliases") or []}
+        for name, value in networks.items()
+    }
+    return {"EndpointsConfig": endpoints}
+
+
+def _restart_with_runtime_config(service: str, overrides: dict[str, str]) -> None:
+    container = _container(service)
+    if container is None:
+        raise ValueError("Container not found")
+    status, body = _docker(f"/containers/{container['Id']}/json")
+    if status != 200:
+        raise ValueError("Container inspection failed")
+    inspect = json.loads(body)
+    config = dict(inspect["Config"])
+    config["Env"] = _replace_environment(config.get("Env", []), overrides)
+    config["HostConfig"] = inspect["HostConfig"]
+    config["NetworkingConfig"] = _networking_config(inspect)
+    name = quote(str(inspect["Name"]).lstrip("/"), safe="")
+    status, _ = _docker(f"/containers/{container['Id']}?force=true", "DELETE")
+    if status not in (204, 404):
+        raise ValueError("Container could not be replaced")
+    status, body = _docker(f"/containers/create?name={name}", "POST", config)
+    if status != 201:
+        raise ValueError("Replacement container could not be created")
+    container_id = json.loads(body)["Id"]
+    status, _ = _docker(f"/containers/{container_id}/start", "POST")
+    if status not in (204, 304):
+        raise ValueError("Replacement container could not be started")
 
 
 def _container_info(service: str) -> dict[str, object]:
@@ -238,6 +398,33 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", f"{content_type}; charset=utf-8")
         self.end_headers()
         self.wfile.write(target.read_bytes())
+
+    def do_POST(self) -> None:  # noqa: N802
+        if urlparse(self.path).path != "/api/runtime-config":
+            self.send_error(404)
+            return
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+            request = json.loads(self.rfile.read(content_length))
+            if request.get("confirm") is not True:
+                raise ValueError("Restart confirmation is required")
+            service = request.get("service")
+            if not isinstance(service, str):
+                raise ValueError("Unknown service")
+            values = _validated_runtime_config(service, request.get("values"))
+            _restart_with_runtime_config(service, values)
+        except (json.JSONDecodeError, OSError, KeyError, TypeError, ValueError) as error:
+            self._json({"ok": False, "error": str(error)}, HTTPStatus.BAD_REQUEST)
+            return
+        self._json(
+            {
+                "ok": True,
+                "message": (
+                    f"{service} was restarted with temporary runtime overrides. "
+                    "A Compose recreate restores the configured defaults."
+                ),
+            }
+        )
 
     def _json(self, data: object, status: HTTPStatus = HTTPStatus.OK) -> None:
         payload = json.dumps(data).encode()

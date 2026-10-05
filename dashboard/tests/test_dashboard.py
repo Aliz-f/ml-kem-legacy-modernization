@@ -1,6 +1,8 @@
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 MODULE = Path(__file__).parents[1] / "app.py"
 SPEC = importlib.util.spec_from_file_location("dashboard_app", MODULE)
 assert SPEC and SPEC.loader
@@ -51,3 +53,83 @@ def test_dashboard_metric_display_distinguishes_durations_from_counts() -> None:
 
     assert "name.includes('_duration_seconds')" in javascript
     assert "Math.round(Number(value))" in javascript
+
+
+def test_dashboard_visually_separates_gateway_and_cloud_metrics() -> None:
+    javascript = (Path(__file__).parents[1] / "static/app.js").read_text(
+        encoding="utf-8"
+    )
+    stylesheet = (Path(__file__).parents[1] / "static/style.css").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Gateway metrics" in javascript
+    assert "Cloud metrics" in javascript
+    assert 'class="metric-section metric-section-${service}"' in javascript
+    assert ".metric-section" in stylesheet
+    assert ".metric-cards" in stylesheet
+
+
+def test_gateway_duplicate_metric_describes_the_latest_sequence_rule() -> None:
+    javascript = (Path(__file__).parents[1] / "static/app.js").read_text(
+        encoding="utf-8"
+    )
+
+    assert "equals the latest accepted value for that device" in javascript
+
+
+def test_dashboard_preserves_runtime_form_drafts_during_refresh() -> None:
+    javascript = (Path(__file__).parents[1] / "static/app.js").read_text(
+        encoding="utf-8"
+    )
+
+    assert "const runtimeDrafts = {};" in javascript
+    assert "document.activeElement?.closest('.runtime-form')" in javascript
+    assert "saveRuntimeDrafts();" in javascript
+    assert "delete runtimeDrafts[service];" in javascript
+
+
+def test_runtime_configuration_is_limited_to_safe_failure_controls() -> None:
+    assert dashboard._validated_runtime_config(
+        "cloud-service",
+        {
+            "FAILURE_MODE": "processing_delay",
+            "FAILURE_RATE": "1",
+            "FAILURE_SEED": "42",
+            "FAILURE_DELAY_SECONDS": "2.5",
+            "LOG_LEVEL": "debug",
+        },
+    ) == {
+        "FAILURE_MODE": "processing_delay",
+        "FAILURE_RATE": "1.0",
+        "FAILURE_SEED": "42",
+        "FAILURE_DELAY_SECONDS": "2.5",
+        "LOG_LEVEL": "DEBUG",
+    }
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        {
+            "FAILURE_MODE": "processing_delay",
+            "FAILURE_RATE": "1",
+            "FAILURE_SEED": "",
+            "FAILURE_DELAY_SECONDS": "31",
+            "LOG_LEVEL": "INFO",
+        },
+        {
+            "FAILURE_MODE": "processing_delay",
+            "FAILURE_RATE": "1",
+            "FAILURE_SEED": "",
+            "FAILURE_DELAY_SECONDS": "2",
+            "LOG_LEVEL": "INFO",
+            "SECURITY_MODE": "classical",
+        },
+    ],
+)
+def test_runtime_configuration_rejects_out_of_scope_values(
+    values: dict[str, str]
+) -> None:
+    with pytest.raises(ValueError):
+        dashboard._validated_runtime_config("cloud-service", values)

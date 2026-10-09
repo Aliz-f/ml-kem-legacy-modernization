@@ -22906,7 +22906,7 @@
       "file_type": "code",
       "norm_label": "_log_calls()",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L62"
+      "source_location": "L63"
     },
     {
       "id": "edge_gateway_tests_test_static_checks_python_files",
@@ -22918,7 +22918,7 @@
       "file_type": "code",
       "norm_label": "_python_files()",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L37"
+      "source_location": "L38"
     },
     {
       "id": "edge_gateway_tests_test_static_checks_test_no_key_or_env_files_are_tracked",
@@ -22930,7 +22930,7 @@
       "file_type": "code",
       "norm_label": "test_no_key_or_env_files_are_tracked()",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L41"
+      "source_location": "L42"
     },
     {
       "id": "edge_gateway_tests_test_static_checks_test_no_private_key_blocks_or_debug_prints",
@@ -22942,7 +22942,7 @@
       "file_type": "code",
       "norm_label": "test_no_private_key_blocks_or_debug_prints()",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L46"
+      "source_location": "L47"
     },
     {
       "id": "edge_gateway_tests_test_static_checks_test_source_logs_do_not_receive_secret_material",
@@ -22954,7 +22954,7 @@
       "file_type": "code",
       "norm_label": "test_source_logs_do_not_receive_secret_material()",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L74"
+      "source_location": "L75"
     },
     {
       "id": "edge_gateway_tests_test_static_checks_text",
@@ -22966,7 +22966,7 @@
       "file_type": "code",
       "norm_label": "_text()",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L26"
+      "source_location": "L27"
     },
     {
       "id": "edge_gateway_tests_test_static_checks_tracked",
@@ -22978,7 +22978,7 @@
       "file_type": "code",
       "norm_label": "_tracked()",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L30"
+      "source_location": "L31"
     },
     {
       "id": "tests_integration_test_corrupt_ciphertext_demo_cloud_init",
@@ -34693,7 +34693,7 @@
       "source_location": "L1"
     },
     {
-      "id": "edge_gateway_tests_test_static_checks_rationale_63",
+      "id": "edge_gateway_tests_test_static_checks_rationale_64",
       "label": "Return the full argument text of each log call, across lines.",
       "_origin": "ast",
       "community": 98,
@@ -34701,7 +34701,7 @@
       "file_type": "rationale",
       "norm_label": "return the full argument text of each log call, across lines.",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L63"
+      "source_location": "L64"
     },
     {
       "id": "tests_integration_test_corrupt_ciphertext_demo_py_path",
@@ -48854,7 +48854,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L38",
+      "source_location": "L39",
       "weight": 1.0
     },
     {
@@ -48866,7 +48866,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -48878,7 +48878,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L50",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -48890,7 +48890,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -48902,7 +48902,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L58",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -48914,7 +48914,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L79",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -58958,7 +58958,7 @@
       "confidence_score": 1.0,
       "context": "generic_arg",
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L37",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -93639,7 +93639,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -93650,7 +93650,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -93661,7 +93661,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L37",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -93672,7 +93672,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L41",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -93683,7 +93683,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L46",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -93694,7 +93694,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L62",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -93705,7 +93705,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L74",
+      "source_location": "L75",
       "weight": 1.0
     },
     {
@@ -108438,14 +108438,14 @@
       "weight": 1.0
     },
     {
-      "source": "edge_gateway_tests_test_static_checks_rationale_63",
+      "source": "edge_gateway_tests_test_static_checks_rationale_64",
       "target": "edge_gateway_tests_test_static_checks_log_calls",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "edge_gateway/tests/test_static_checks.py",
-      "source_location": "L63",
+      "source_location": "L64",
       "weight": 1.0
     },
     {

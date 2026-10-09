@@ -1,0 +1,16 @@
+{
+  "run_identity": {"date": "2026-10-09", "commit": "e634db327c04b6e03ee1f319f040a0a6a990ecb2"},
+  "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest tests/integration/test_end_to_end.py tests/integration/test_modernized_end_to_end.py tests/integration/test_secure_message_tamper.py tests/integration/test_mlkem_handshake_failure_demo.py tests/integration/test_session_expiry_system.py tests/integration/test_metrics_sanity.py -q",
+  "result": "19 passed, 1 warning in 5.55s",
+  "scenarios": {
+    "S01": "PASS: secure delivery and persistence covered by modernized E2E tests.",
+    "S02": "PASS: tamper test rejects ciphertext and prevents storage.",
+    "S04_S05": "PASS: session expiry/recovery suite passed; exact status contracts are 409 SESSION_EXPIRED and 409 SESSION_INVALID in source/specification.",
+    "S06_S07": "PASS: injected handshake failure returned 503, made zero baseline calls and stored zero rows.",
+    "S11_S12": "PASS: same-envelope retransmission and one-row business idempotency covered; this is not cryptographic replay protection.",
+    "S17": "PASS: metrics test observed secure rejection/fallback counter zero and endpoint-specific counters.",
+    "S08_S10_S13": "PARTIALLY VERIFIED: dedicated existing suites exist, but were not individually rerun in this evidence invocation.",
+    "S14_S16": "VERIFIED BY DESIGN/STATIC INSPECTION: no Cloud identity authentication and no crypto replay window are documented limitations, not passed security properties."
+  },
+  "limitations": ["This is selected automated regression evidence, not a proof against all inputs or all secret exposure.", "The full 1,726-test run did not complete within this environment's execution window; do not report it as passed."]
+}

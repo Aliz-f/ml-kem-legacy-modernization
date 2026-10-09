@@ -1,0 +1,27 @@
+# Metrics evidence
+# Source: successful tests/integration/test_metrics_sanity.py (three tests).
+# Classical five-message observation:
+gateway_measurements_received_total 5
+gateway_measurements_accepted_total 5
+gateway_cloud_requests_total 5
+gateway_cloud_request_duration_seconds_count 5
+cloud_baseline_requests_total 5
+cloud_measurements_stored_total 5
+cloud_secure_requests_total 0
+cloud_request_duration_seconds_count 5
+# Corrupted secure ciphertext observation:
+gateway_pqc_fallback_total 0
+cloud_secure_requests_total 1
+cloud_secure_requests_rejected_total 1
+cloud_decryption_failures_total 1
+cloud_measurements_stored_total 0
+# Same-envelope retry observation:
+gateway_cloud_requests_total 2
+gateway_cloud_retries_total 1
+cloud_secure_requests_total 2
+cloud_measurements_stored_total 1
+cloud_duplicate_measurements_total 1
+
+# Metric implementation inventories: edge_gateway/src/edge_gateway/metrics.py,
+# edge_gateway/src/edge_gateway/crypto/metrics.py, cloud_service/src/cloud_service/metrics.py.
+# Units: counters/events; active_session is a gauge; duration _sum/_count are seconds.

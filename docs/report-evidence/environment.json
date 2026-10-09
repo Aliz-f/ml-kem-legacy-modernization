@@ -1,0 +1,13 @@
+{
+  "cryptography": "50.0.2",
+  "docker": "Docker version 27.5.1, build 9f9e405",
+  "fastapi": "0.141.1",
+  "logical_cpu_count": 16,
+  "machine": "x86_64",
+  "memory_total_kib": "32256972",
+  "mlkem_implementation": "cryptography ML-KEM API",
+  "os": "Linux-6.18.49-1-MANJARO-x86_64-with-glibc2.44",
+  "processor": "",
+  "python": "3.12.13",
+  "uvicorn": "0.54.0"
+}

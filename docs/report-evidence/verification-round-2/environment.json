@@ -1,0 +1,13 @@
+{
+  "cryptography": "50.0.2",
+  "docker": "Docker version 27.5.1, build 9f9e405",
+  "fastapi": "0.141.1",
+  "git_commit": "13c7841375c27be8346706ea9974bd949164f1cf",
+  "logical_cpu_count": 16,
+  "machine": "x86_64",
+  "memory_total_kib": "32256972",
+  "os": "Linux-6.18.49-1-MANJARO-x86_64-with-glibc2.44",
+  "python": "3.12.13",
+  "timestamp_utc": "2026-10-09T09:22:52.835901+00:00",
+  "uvicorn": "0.54.0"
+}

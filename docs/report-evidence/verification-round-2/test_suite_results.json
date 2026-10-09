@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-09T00:00:00+00:00",
+  "commit": "13c7841375c27be8346706ea9974bd949164f1cf",
+  "collection": {"total": 1726, "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest --collect-only -q", "result": "1726 tests collected in 0.63s"},
+  "full_suite": {"command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest", "result": "NOT COMPLETED: external execution window terminated attempts at approximately 33% before pytest emitted a summary", "passed": null, "failed": null, "skipped": null, "errors": null, "xfailed": null, "xpassed": null, "duration": null},
+  "completed_nonoverlapping_batches": [
+    {"command": "uv run pytest -q cloud_service/tests dashboard/tests", "passed": 528, "failed": 0, "duration_seconds": 5.05},
+    {"command": "uv run pytest -q tests/integration/test_gateway_cloud_secure.py tests/integration/test_secure_message_tamper.py tests/integration/test_session_expiry_system.py tests/integration/test_session_reuse_system.py tests/integration/test_metrics_sanity.py tests/integration/test_mlkem_handshake_failure_demo.py tests/integration/test_failure_paths.py tests/integration/test_legacy_gateway.py edge_gateway/tests/test_security_logging.py", "passed": 81, "failed": 0, "duration_seconds": 18.04},
+    {"command": "uv run pytest -q edge_gateway/tests/test_cloud_response_failures.py", "passed": 56, "failed": 0, "duration_seconds": 29.40},
+    {"command": "uv run pytest -q tests/integration/test_gateway_compose_e2e.py::test_compose_cloud_restart_recovers_stale_mlkem_session_without_fallback", "passed": 1, "failed": 0, "duration_seconds": 21.82}
+  ],
+  "completed_distinct_tests": 666,
+  "additional_validation": [
+    {"command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv sync --frozen", "result": "passed"},
+    {"command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run ruff check .", "result": "passed"},
+    {"command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run ai-history check", "result": "passed"},
+    {"command": "docker compose config --quiet", "result": "passed"},
+    {"command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/test_measure_baseline_e2e.py tests/test_measure_modernized_e2e.py", "result": "10 passed in 1.98s"}
+  ],
+  "limitations": ["Do not infer a full-suite pass from the batches.", "The 56-test cloud-response module consumed 29.40 seconds, explaining why monolithic Gateway/full runs exceed the available command window."]
+}

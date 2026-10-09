@@ -1,0 +1,11 @@
+# Round-2 metrics evidence (live controlled integration/Compose tests)
+# Corrupted secure ciphertext: cloud_secure_requests_total 1; cloud_secure_requests_rejected_total 1;
+# cloud_decryption_failures_total 1; cloud_measurements_stored_total 0; gateway_pqc_fallback_total 0.
+# Same-envelope retry: gateway_cloud_requests_total 2; gateway_cloud_retries_total 1;
+# cloud_secure_requests_total 2; cloud_measurements_stored_total 1; cloud_duplicate_measurements_total 1.
+# Storage failure: cloud_authenticated_messages_total 2; cloud_storage_failures_total 2; no stored row.
+# Cloud restart Compose scenario: gateway_mlkem_handshakes_total{result="success"} 2;
+# gateway_session_reestablishments_total{result="success"} 1; gateway_pqc_fallback_total 0;
+# cloud_baseline_requests_total 0; replacement Cloud cloud_mlkem_sessions_created_total 1.
+# Relevant metrics are implemented by edge_gateway metrics/crypto metrics and cloud_service metrics;
+# Prometheus text endpoints are the actual monitoring surface. Counters are scenario-local.

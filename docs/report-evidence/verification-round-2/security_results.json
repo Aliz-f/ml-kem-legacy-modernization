@@ -1,0 +1,15 @@
+{
+  "commit": "13c7841375c27be8346706ea9974bd949164f1cf",
+  "command": "see test_suite_results.json completed batches",
+  "scenarios": {
+    "aad_tampering": {"result": "PASS", "protocol_version": "400 UNSUPPORTED_PROTOCOL_VERSION; version validation before AEAD", "gateway_id": "400 SECURE_MESSAGE_REJECTED; ownership validation before AEAD", "session_id": "409 SESSION_INVALID; session lookup before AEAD", "request_id": "400 SECURE_MESSAGE_REJECTED; AEAD authentication failure", "database_rows": 0},
+    "invalid_and_expired_session": {"result": "PASS", "status": "409 SESSION_INVALID / 409 SESSION_EXPIRED", "recovery": "one replacement session; second rejection is not recovered", "fallback": "0 baseline posts and gateway_pqc_fallback_total 0"},
+    "storage_failure": {"result": "PASS", "status": "no false Legacy success; bounded secure retry", "persistence": "0 rows for failed delivery", "metric": "cloud_storage_failures_total 2 after two secure attempts"},
+    "cloud_outage": {"result": "PASS", "status": "503 to Legacy in controlled service-unavailable path; bounded retry behavior", "fallback": "no baseline calls"},
+    "cloud_restart": {"result": "PASS", "scope": "isolated Compose test", "result_detail": "replacement public key, stale session invalidation, one re-establishment, resumed 202 delivery, 0 baseline requests"},
+    "legacy_validation": {"result": "PASS", "responses": "malformed JSON 400; missing/wrong-type/domain-invalid 422; duplicate/out-of-order 409"},
+    "secret_safe_logging": {"result": "PASS (tested paths)", "scope": "security logging tests ensure synthetic shared/session-key and private-key representations are absent; finite tests do not prove universal absence"},
+    "same_envelope_retry": {"result": "PASS", "detail": "request_id/session_id/nonce/ciphertext/AAD preserved across ambiguous transport retry; 2 secure requests, 1 stored row, 1 duplicate metric"}
+  },
+  "limitations": ["Tests exercise isolated controlled fixtures; they do not prove all operational deployments or all log paths.", "Business idempotency is not cryptographic replay protection."]
+}

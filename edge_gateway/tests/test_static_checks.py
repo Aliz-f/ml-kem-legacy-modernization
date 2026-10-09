@@ -19,6 +19,7 @@ CLI_OUTPUT = {
     "tools/report_evidence/run_evaluation.py",
     "tools/report_evidence/run_complete_test_suite.py",
     "tools/report_evidence/run_round_2.py",
+    "tools/report_evidence/build_final_evidence.py",
     "src/ai_history/cli.py",
 }
 

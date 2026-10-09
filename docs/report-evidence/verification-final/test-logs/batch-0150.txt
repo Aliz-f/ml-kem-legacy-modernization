@@ -1,0 +1,26 @@
+.....F                                                                   [100%]
+=================================== FAILURES ===================================
+__________________ test_no_private_key_blocks_or_debug_prints __________________
+
+    def test_no_private_key_blocks_or_debug_prints() -> None:
+        pem = re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")
+        debug = re.compile(r"^\s*(print\(|breakpoint\(|import pdb|pdb\.set_trace)", re.M)
+        printing = set()
+        for name, path in _python_files():
+            text = path.read_text(encoding="utf-8")
+            assert not pem.search(text), name
+            if debug.search(text):
+                printing.add(name)
+        tracked_cli_output = CLI_OUTPUT.intersection(_tracked())
+>       assert printing == tracked_cli_output
+E       AssertionError: assert {'cloud_servi...ison.py', ...} == {'cloud_servi...ison.py', ...}
+E         
+E         Extra items in the left set:
+E         'tools/report_evidence/run_evaluation.py'
+E         'tools/report_evidence/run_round_2.py'
+E         Use -v to get more diff
+
+edge_gateway/tests/test_static_checks.py:53: AssertionError
+=========================== short test summary info ============================
+FAILED edge_gateway/tests/test_static_checks.py::test_no_private_key_blocks_or_debug_prints
+1 failed, 5 passed in 0.06s

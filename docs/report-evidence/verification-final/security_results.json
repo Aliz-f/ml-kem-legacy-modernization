@@ -1,0 +1,80 @@
+{
+  "generated_at_utc": "2026-10-09T10:07:14.360160+00:00",
+  "limitations": [
+    "Finite tests do not prove all log paths.",
+    "No public-key authentication/pinning, cryptographic replay window, forward-secrecy guarantee, or end-to-end PQC protection is established.",
+    "Business idempotency is not cryptographic replay protection."
+  ],
+  "outcomes": {
+    "aad_tampering": "request_id: 400 SECURE_MESSAGE_REJECTED/AEAD rejection; gateway_id: pre-AEAD ownership rejection; session_id: 409 SESSION_INVALID; protocol_version: 400 UNSUPPORTED_PROTOCOL_VERSION; zero rows",
+    "compose_cloud_restart": "isolated Docker Compose restart; replacement public key, one re-establishment, successful 202 recovery, zero baseline requests",
+    "handshake_failure": "503 fail-closed; no baseline fallback",
+    "invalid_and_expired": "409 SESSION_INVALID and 409 SESSION_EXPIRED recover once without baseline fallback",
+    "logging": "tested paths do not emit private keys, ML-KEM shared secrets, or session keys",
+    "same_envelope": "ordinary retry preserves built envelope; one stored row",
+    "simulated_cloud_unavailability": "controlled service-unavailable response, not a disconnected Cloud",
+    "storage_failure": "no false acceptance; bounded retry; no row"
+  },
+  "test_references": {
+    "aad_tampering": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_secure_message_tamper.py::test_tampered_field_is_rejected_and_stores_nothing[request_id-400-SECURE_MESSAGE_REJECTED-True]",
+      "junit": "test-logs/batch-0214.xml",
+      "log": "test-logs/batch-0214.txt",
+      "node_id": "tests/integration/test_secure_message_tamper.py::test_tampered_field_is_rejected_and_stores_nothing[request_id-400-SECURE_MESSAGE_REJECTED-True]"
+    },
+    "compose_restart": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_gateway_compose_e2e.py::test_compose_cloud_restart_recovers_stale_mlkem_session_without_fallback",
+      "junit": "test-logs/batch-0235.xml",
+      "log": "test-logs/batch-0235.txt",
+      "node_id": "tests/integration/test_gateway_compose_e2e.py::test_compose_cloud_restart_recovers_stale_mlkem_session_without_fallback"
+    },
+    "expired_session": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_gateway_cloud_secure.py::test_expired_session_returns_409_and_recovers_once",
+      "junit": "test-logs/batch-0197.xml",
+      "log": "test-logs/batch-0197.txt",
+      "node_id": "tests/integration/test_gateway_cloud_secure.py::test_expired_session_returns_409_and_recovers_once"
+    },
+    "handshake_failure": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_mlkem_handshake_failure_demo.py::test_handshake_failure_stays_closed_without_a_session",
+      "junit": "test-logs/batch-0211.xml",
+      "log": "test-logs/batch-0211.txt",
+      "node_id": "tests/integration/test_mlkem_handshake_failure_demo.py::test_handshake_failure_stays_closed_without_a_session"
+    },
+    "invalid_session": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_gateway_cloud_secure.py::test_invalid_session_returns_409_and_recovers_once",
+      "junit": "test-logs/batch-0198.xml",
+      "log": "test-logs/batch-0198.txt",
+      "node_id": "tests/integration/test_gateway_cloud_secure.py::test_invalid_session_returns_409_and_recovers_once"
+    },
+    "legacy_validation": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_legacy_gateway.py::test_duplicate_and_out_of_order_sequences_are_rejected_without_delivery",
+      "junit": "test-logs/batch-0208.xml",
+      "log": "test-logs/batch-0208.txt",
+      "node_id": "tests/integration/test_legacy_gateway.py::test_duplicate_and_out_of_order_sequences_are_rejected_without_delivery"
+    },
+    "same_envelope": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_gateway_cloud_secure.py::test_ambiguous_transport_retries_the_same_envelope",
+      "junit": "test-logs/batch-0202.xml",
+      "log": "test-logs/batch-0202.txt",
+      "node_id": "tests/integration/test_gateway_cloud_secure.py::test_ambiguous_transport_retries_the_same_envelope"
+    },
+    "secret_logging": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q edge_gateway/tests/test_security_logging.py::test_handshake_and_delivery_omit_secrets_and_separate_timings",
+      "junit": "test-logs/batch-0147.xml",
+      "log": "test-logs/batch-0147.txt",
+      "node_id": "edge_gateway/tests/test_security_logging.py::test_handshake_and_delivery_omit_secrets_and_separate_timings"
+    },
+    "simulated_unavailability": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_gateway_cloud_secure.py::test_cloud_failure_retries_the_same_secure_request_without_storage[service_unavailable]",
+      "junit": "test-logs/batch-0202.xml",
+      "log": "test-logs/batch-0202.txt",
+      "node_id": "tests/integration/test_gateway_cloud_secure.py::test_cloud_failure_retries_the_same_secure_request_without_storage[service_unavailable]"
+    },
+    "storage_failure": {
+      "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run pytest -q tests/integration/test_gateway_cloud_secure.py::test_cloud_failure_retries_the_same_secure_request_without_storage[storage_failure]",
+      "junit": "test-logs/batch-0202.xml",
+      "log": "test-logs/batch-0202.txt",
+      "node_id": "tests/integration/test_gateway_cloud_secure.py::test_cloud_failure_retries_the_same_secure_request_without_storage[storage_failure]"
+    }
+  }
+}

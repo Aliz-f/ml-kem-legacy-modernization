@@ -1,0 +1,23 @@
+{
+  "checks": {
+    "all_collected_tests_accounted": true,
+    "all_executed_tests_passed": true,
+    "cold_counts": {
+      "decapsulation_ms": true,
+      "encapsulation_ms": true,
+      "first_secure_message_latency": true,
+      "handshake_ms": true,
+      "public_key_retrieval_ms": true
+    },
+    "latency_csv_units_ms": true,
+    "no_private_key_pem_in_final_artifacts": true,
+    "payload_units_bytes": true,
+    "per_run_counts": true,
+    "steady_counts": {
+      "classical": true,
+      "mlkem": true
+    }
+  },
+  "generated_at_utc": "2026-10-09T10:07:14.360160+00:00",
+  "known_prior_metadata_issue": "Round-two payload summary labels were ms; preserved artifacts remain unchanged. Final aggregation corrects payload units to bytes and source generator now emits bytes."
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="6" time="0.062" timestamp="2026-10-09T12:54:29.297351+03:00" hostname="AlirezasManjaro"><testcase classname="tests.test_session_memory" name="test_session_memory_records_process_only_storage" time="0.000" /><testcase classname="tests.test_session_memory" name="test_session_memory_states_the_zeroization_limitation" time="0.000" /><testcase classname="tests.test_session_memory" name="test_readme_points_at_the_session_memory_limitation" time="0.000" /><testcase classname="tests.test_session_memory" name="test_session_module_does_not_persist_session_state" time="0.000" /><testcase classname="tests.test_static_checks" name="test_no_key_or_env_files_are_tracked" time="0.004" /><testcase classname="tests.test_static_checks" name="test_no_private_key_blocks_or_debug_prints" time="0.025"><failure message="AssertionError: assert {'cloud_servi...ison.py', ...} == {'cloud_servi...ison.py', ...}&#10;  &#10;  Extra items in the left set:&#10;  'tools/report_evidence/run_evaluation.py'&#10;  'tools/report_evidence/run_round_2.py'&#10;  Use -v to get more diff">def test_no_private_key_blocks_or_debug_prints() -&gt; None:
+        pem = re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")
+        debug = re.compile(r"^\s*(print\(|breakpoint\(|import pdb|pdb\.set_trace)", re.M)
+        printing = set()
+        for name, path in _python_files():
+            text = path.read_text(encoding="utf-8")
+            assert not pem.search(text), name
+            if debug.search(text):
+                printing.add(name)
+        tracked_cli_output = CLI_OUTPUT.intersection(_tracked())
+&gt;       assert printing == tracked_cli_output
+E       AssertionError: assert {'cloud_servi...ison.py', ...} == {'cloud_servi...ison.py', ...}
+E         
+E         Extra items in the left set:
+E         'tools/report_evidence/run_evaluation.py'
+E         'tools/report_evidence/run_round_2.py'
+E         Use -v to get more diff
+
+edge_gateway/tests/test_static_checks.py:53: AssertionError</failure></testcase></testsuite></testsuites>

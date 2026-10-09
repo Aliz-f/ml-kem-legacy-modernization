@@ -1,0 +1,141 @@
+{
+  "cold_session": {
+    "decapsulation_ms": {
+      "count": 30,
+      "max": 0.3049259976251051,
+      "mean": 0.15121060035501918,
+      "median": 0.15654950038879178,
+      "min": 0.07165699935285375,
+      "p95": 0.21029100025771186,
+      "stdev": 0.04282677658245947,
+      "unit": "ms"
+    },
+    "encapsulation_ms": {
+      "count": 30,
+      "max": 0.2797839988488704,
+      "mean": 0.17175780012621544,
+      "median": 0.16943450100370683,
+      "min": 0.08394900214625522,
+      "p95": 0.26413900195620954,
+      "stdev": 0.06586549546202546,
+      "unit": "ms"
+    },
+    "first_secure_message_latency": {
+      "count": 30,
+      "max": 95.64596700511174,
+      "mean": 37.64497943338938,
+      "median": 35.388826498092385,
+      "min": 25.566306001564953,
+      "p95": 54.09380399942165,
+      "stdev": 13.441525751395943,
+      "unit": "ms"
+    },
+    "handshake_ms": {
+      "count": 30,
+      "max": 48.473902003024705,
+      "mean": 27.958896533285344,
+      "median": 25.719118497363525,
+      "min": 17.08724899799563,
+      "p95": 45.86771199683426,
+      "stdev": 8.455837251662784,
+      "unit": "ms"
+    },
+    "public_key_retrieval_ms": {
+      "count": 30,
+      "max": 28.681985997536685,
+      "mean": 15.454753767213939,
+      "median": 15.617269502399722,
+      "min": 8.463272999506444,
+      "p95": 22.36877199902665,
+      "stdev": 4.979898938297144,
+      "unit": "ms"
+    }
+  },
+  "generated_at_utc": "2026-10-09T10:07:14.360160+00:00",
+  "limitations": [
+    "Loopback ASGI and temporary SQLite results are not Docker, WAN, throughput, load, or production measurements.",
+    "CPU and memory use were not measured.",
+    "The existing harness does not capture serialized public-key or session-request body sizes.",
+    "Cold observations are independent session/service lifecycles, not independent hosts."
+  ],
+  "payload": {
+    "absolute_overhead_bytes": 315.66666666666674,
+    "classical_body_bytes": {
+      "count": 90,
+      "max": 222,
+      "mean": 221.66666666666666,
+      "median": 222.0,
+      "min": 221,
+      "p95": 222,
+      "stdev": 0.47404546313997725,
+      "unit": "bytes"
+    },
+    "relative_overhead_percent": 142.40601503759402,
+    "secure_envelope_body_bytes": {
+      "count": 90,
+      "max": 538,
+      "mean": 537.3333333333334,
+      "median": 538.0,
+      "min": 536,
+      "p95": 538,
+      "stdev": 0.9480909262799545,
+      "unit": "bytes"
+    }
+  },
+  "per_run": [
+    {
+      "absolute_difference_ms": 0.510947861616371,
+      "classical_mean_ms": 4.747483655780249,
+      "mlkem_mean_ms": 5.25843151739662,
+      "relative_difference_percent": 10.762498592159906,
+      "run": 1
+    },
+    {
+      "absolute_difference_ms": 1.7133005525904772,
+      "classical_mean_ms": 3.7730320683953447,
+      "mlkem_mean_ms": 5.486332620985822,
+      "relative_difference_percent": 45.409117164464945,
+      "run": 2
+    },
+    {
+      "absolute_difference_ms": 0.4859614832796444,
+      "classical_mean_ms": 5.000091757492869,
+      "mlkem_mean_ms": 5.486053240772513,
+      "relative_difference_percent": 9.719051306436699,
+      "run": 3
+    }
+  ],
+  "session_reuse": {
+    "authenticated_messages": 90,
+    "initial_sessions": 3,
+    "messages_per_session": 30,
+    "unexpected_reestablishments": 0
+  },
+  "source_commit": "13c7841375c27be8346706ea9974bd949164f1cf",
+  "source_round_2": "docs/report-evidence/verification-round-2/measurements.csv",
+  "statistic_definition": "p95 is nearest-rank ceil(0.95*n); standard deviation is sample standard deviation (n-1).",
+  "steady_state": {
+    "absolute_overhead_ms": 0.9034032991621643,
+    "classical": {
+      "count": 87,
+      "max": 6.514496999443509,
+      "mean": 4.506869160556154,
+      "median": 4.422267003974412,
+      "min": 3.048354003112763,
+      "p95": 5.9783269971376285,
+      "stdev": 0.9462087953304524,
+      "unit": "ms"
+    },
+    "mlkem": {
+      "count": 87,
+      "max": 7.110659993486479,
+      "mean": 5.4102724597183185,
+      "median": 5.322798002453055,
+      "min": 3.974585997639224,
+      "p95": 6.711658003041521,
+      "stdev": 0.6928349023518217,
+      "unit": "ms"
+    },
+    "relative_overhead_percent": 20.04503052959015
+  }
+}

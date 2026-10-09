@@ -16,6 +16,9 @@ CLI_OUTPUT = {
     "scripts/measure_baseline_e2e.py",
     "scripts/measure_mode_comparison.py",
     "scripts/measure_modernized_e2e.py",
+    "tools/report_evidence/run_evaluation.py",
+    "tools/report_evidence/run_complete_test_suite.py",
+    "tools/report_evidence/run_round_2.py",
     "src/ai_history/cli.py",
 }
 

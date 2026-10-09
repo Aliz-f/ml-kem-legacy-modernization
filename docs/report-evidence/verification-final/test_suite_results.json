@@ -1,0 +1,16 @@
+{
+  "collection_finished_at_utc": "2026-10-09T10:04:13.840818+00:00",
+  "collection_started_at_utc": "2026-10-09T09:46:39.863249+00:00",
+  "command": "UV_CACHE_DIR=/tmp/mlkem-uv-cache uv run python tools/report_evidence/run_complete_test_suite.py --batch-size 6 --max-seconds 15",
+  "errors": 0,
+  "failed": 0,
+  "generated_at_utc": "2026-10-09T10:07:14.360160+00:00",
+  "passed": 1728,
+  "skipped": 0,
+  "status": "FULL SUITE VERIFIED",
+  "total_batch_duration_seconds": 484.44692440399376,
+  "total_collected": 1728,
+  "unexecuted": 0,
+  "xfailed": 0,
+  "xpassed": 0
+}

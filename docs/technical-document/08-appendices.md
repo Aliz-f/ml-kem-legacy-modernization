@@ -1,11 +1,5 @@
 # Chapter 8 — Appendices (Configurations, Runbooks and Key Source Code)
 
-> **Document role.** This is the standalone source for Chapter 8 of the Part 2
-> Technical Documentation. It provides complete, verbatim listings of deployment
-> configurations, CI workflows, runbooks, core cryptographic modules, and evaluation scripts.
-
----
-
 ## Appendix A: Complete Deployment Configurations
 
 ### A.1 Docker Compose Multi-Container Deployment Specification
@@ -92,6 +86,7 @@ services:
     ports:
       - "127.0.0.1:${DASHBOARD_HOST_PORT:-8080}:8080"
     volumes:
+      # Local dashboard only: runtime overrides recreate an explicitly selected service.
       - /var/run/docker.sock:/var/run/docker.sock
 
   legacy-device:
@@ -116,12 +111,11 @@ volumes:
   cloud-data:
 ```
 
----
-
 ### A.2 Multi-Stage Container Image Specifications
 
 #### A.2.1 Legacy Device Container Image
 ```dockerfile
+# Build from the repository root: docker build -f legacy_system/Dockerfile .
 FROM python:3.12-slim-bookworm
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.19 /uv /usr/local/bin/uv
@@ -148,6 +142,7 @@ CMD ["python", "-m", "legacy_system.main"]
 
 #### A.2.2 Edge Gateway Container Image
 ```dockerfile
+# Build from the repository root: docker build -f edge_gateway/Dockerfile .
 FROM python:3.12-slim-bookworm
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.19 /uv /usr/local/bin/uv
@@ -179,6 +174,7 @@ CMD ["edge-gateway"]
 
 #### A.2.3 Cloud Service Container Image
 ```dockerfile
+# Build from the repository root: docker build -f cloud_service/Dockerfile .
 FROM python:3.12-slim-bookworm
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.19 /uv /usr/local/bin/uv
@@ -210,8 +206,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD python -c "from urllib.request import urlopen; urlopen('http://127.0.0.1:9000/ready', timeout=3).close()"
 CMD ["cloud-service"]
 ```
-
----
 
 ### A.3 Environment Variable Configuration Template
 ```ini
@@ -256,11 +250,9 @@ CLOUD_FAILURE_DELAY_SECONDS=2
 LOG_LEVEL=INFO
 ```
 
----
-
 ## Appendix B: Complete CI/CD Pipeline Definitions
 
-### B.1 Repository Quality & Multi-Stage CI Pipeline Workflow
+### B.1 Repository Quality and Multi-Stage CI Pipeline Workflow
 ```yaml
 name: Repository quality
 
@@ -337,11 +329,11 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - actions/checkout@v4
-      - actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
       - run: uv sync --frozen
@@ -416,11 +408,9 @@ jobs:
         run: uv run pytest tests/integration/test_gateway_compose_e2e.py
 ```
 
----
-
 ## Appendix C: System Operational Runbooks
 
-### C.1 Operational Lifecycle & Verification Commands
+### C.1 Operational Lifecycle and Verification Commands
 ```bash
 # 1. Clean build and configuration validation
 docker compose config --quiet
@@ -446,13 +436,11 @@ curl --fail http://127.0.0.1:9000/metrics
 # 6. Query Stored Measurements from Cloud
 curl --fail http://127.0.0.1:9000/api/v1/measurements
 
-# 7. Clean Teardown & SQLite Volume Reset
+# 7. Clean Teardown and SQLite Volume Reset
 docker compose down --volumes --remove-orphans
 ```
 
----
-
-## Appendix D: Core Cryptographic & Protocol Source Code
+## Appendix D: Core Cryptographic and Protocol Source Code
 
 ### D.1 Edge Gateway ML-KEM-768 Encapsulation Module
 ```python
@@ -505,8 +493,6 @@ def encapsulate(public_key: bytes) -> tuple[bytes, bytes]:
     return ciphertext, shared_secret
 ```
 
----
-
 ### D.2 HKDF-SHA-256 Session Key Derivation Module
 ```python
 """Session-key derivation for protocol version 1.
@@ -541,8 +527,6 @@ def derive_session_key(shared_secret: bytes) -> bytes:
         info=SESSION_KEY_INFO,
     ).derive(shared_secret)
 ```
-
----
 
 ### D.3 Edge Gateway AES-256-GCM Authenticated Encryption Module
 ```python
@@ -615,8 +599,6 @@ def _require_bytes(value: object, label: str) -> bytes:
     return bytes(value)
 ```
 
----
-
 ### D.4 Canonical 4-Field Associated Data Builder
 ```python
 """Four-field AES-GCM associated data for protocol version 1.
@@ -663,8 +645,6 @@ def _require_id(value: object, name: str) -> None:
         raise AadError(f"{name} must be a non-empty string.")
 ```
 
----
-
 ### D.5 Edge Gateway Monotonic Sequence Tracker
 ```python
 """In-memory Legacy sequence policy, independent of downstream delivery."""
@@ -683,6 +663,10 @@ class SequenceTracker:
     Share one instance across requests. Restarting loses history. Call only
     after schema/domain validation and before Cloud delivery; accepted state
     is never rolled back for a later delivery failure.
+
+    The lock protects only the local check and commit. Cloud I/O belongs to
+    the caller after this method returns and must not hold the sequence lock.
+    Instances do not share state across processes or persist it to storage.
     """
 
     def __init__(self, metrics: GatewayMetrics | None = None) -> None:
@@ -728,8 +712,6 @@ class SequenceTracker:
             )
 ```
 
----
-
 ### D.6 Cloud Service ML-KEM-768 Decapsulation Module
 ```python
 """ML-KEM-768 key generation and decapsulation using PyCA cryptography.
@@ -774,6 +756,7 @@ def generate_keypair() -> tuple[bytes, PrivateKey]:
         if not isinstance(public_key, bytes) or len(public_key) != PUBLIC_KEY_LENGTH:
             raise ValueError
     except Exception:
+        # Vendor exceptions may contain sensitive diagnostics. Suppress chaining.
         raise MlKemError("ML-KEM-768 key generation failed") from None
     return public_key, PrivateKey(key)
 
@@ -792,8 +775,6 @@ def decapsulate(ciphertext: bytes, private_key: PrivateKey) -> bytes:
         raise MlKemError("ML-KEM-768 decapsulation failed") from None
     return shared_secret
 ```
-
----
 
 ### D.7 Cloud Service AEAD Authenticated Decryption Module
 ```python
@@ -830,9 +811,7 @@ def decrypt(key: bytes | bytearray, nonce: bytes | bytearray,
     return plaintext
 ```
 
----
-
-## Appendix E: Empirical Evaluation & Benchmarking Infrastructure
+## Appendix E: Empirical Evaluation and Benchmarking Infrastructure
 
 ### E.1 Matched Mode Comparison Benchmarking Harness
 ```python
@@ -920,4 +899,167 @@ if __name__ == "__main__":
     parser.add_argument("--samples", type=int, default=10)
     print(json.dumps(run(parser.parse_args().samples), indent=2, sort_keys=True))
 ```
+
+## Appendix F: Representative AI Prompt Catalog
+
+This appendix catalogs representative AI prompts and human task specifications across the project lifecycle, documenting the exact scoping, constraints, and oversight mechanisms applied during implementation. In accordance with the project governance framework (Chapter 6), all tasks were initiated with bounded, deterministic prompts and subjected to human review prior to merging.
+
+### F.1 Governance, Tooling, and Architecture Infrastructure
+
+#### Task 0001: AI History and Human Review Infrastructure
+- **Agent / Subsystem**: OpenAI Codex / Governance Infrastructure
+- **Scope & Context**: Initial repository bootstrapping. Establish the `ai-history` CLI, state journal, and review lifecycle to enforce the 4-phase human-in-the-loop workflow.
+- **Human Prompt**:
+  > "Implement repository-wide AI-development history, human-review, revision, and final-verification infrastructure without implementing application services. The user requested a Python/uv CLI, canonical instructions for Codex, Claude Code, GitHub Copilot, Cursor, Gemini, and other agents, Markdown task history, machine-readable active-task state, strict validation, automated tests, and a focused CI workflow. The supplied instruction requires complete AI work before human review, preservation of every review/revision round, separate final human verification, no fabricated review/check results, and no secrets or source/diff capture in history."
+- **Review Outcome**: Accepted. Verified that the CLI prevents starting concurrent tasks and enforces read-only review states.
+
+#### Task 0002: Workflow Handbook and Dependency Management Policy
+- **Agent / Subsystem**: OpenAI Codex / Developer Tooling
+- **Scope & Context**: Codify developer workflows, dependency pinning policies, and multi-agent instructions.
+- **Human Prompt**:
+  > "Implement the development workflow handbook, repository guidelines, and package dependency constraints. Enforce uv sync --frozen for deterministic dependency resolution and forbid pip/requirements.txt workflows."
+- **Review Outcome**: Modified across 4 rounds. Human reviewers removed complex external CI tooling, enforced strict lockfile adherence, and added Group-Explanation course compliance checklists.
+
+### F.2 Legacy IoT Device Subsystem (Member 1)
+
+#### Task 0008: Legacy Configuration Validation
+- **Agent / Subsystem**: OpenAI Codex / Legacy Device
+- **Scope & Context**: Environment variable loading and numerical validation for simulated IoT sensor parameters.
+- **Human Prompt**:
+  > "Implement configuration loading and validation for legacy_system using pydantic-settings or standard library. Parse DEVICE_ID, GATEWAY_URL, SEND_INTERVAL_SECONDS, REQUEST_TIMEOUT_SECONDS, and MAX_RETRIES. Add validation for all fields and unit tests."
+- **Review Outcome**: Modified (2 rounds). Reviewers rejected permissive type coercion and enforced strict positive boundary checks on timing and retry bounds.
+
+#### Task 0012: Legacy Canonical Measurement Schema
+- **Agent / Subsystem**: OpenAI Codex / Legacy Device
+- **Scope & Context**: Domain dataclass for sensor readings and strict JSON serialization.
+- **Human Prompt**:
+  > "Implement the Legacy Measurement data model and JSON serialization according to the frozen protocol specification. Ensure field names and types match: device_id (string), sequence_number (integer), timestamp (ISO-8601 UTC string), temperature (float), humidity (float). Write focused unit tests."
+- **Review Outcome**: Modified (2 rounds). Reviewers enforced strict ISO-8601 formatting with trailing 'Z' and rejected microsecond variations that could break wire compatibility.
+
+#### Task 0027: Monotonic Sensor Simulation Engine
+- **Agent / Subsystem**: OpenAI Codex / Legacy Device
+- **Scope & Context**: Periodic sensor reading generation with monotonic sequence counters.
+- **Human Prompt**:
+  > "Implement the Legacy Device sensor simulator loop in legacy_system/sensor.py. Generate realistic temperature and humidity values, incrementing sequence_number monotonically starting from 0. Provide deterministic seeding support."
+- **Review Outcome**: Modified (2 rounds). Corrected initial sequence counter offset to ensure sequence numbers strictly begin at 0.
+
+#### Task 0034: Sensor Failure Injection Subsystem
+- **Agent / Subsystem**: GitHub Copilot / Legacy Device
+- **Scope & Context**: Simulating wire faults (duplicate sequences, out-of-order sequences, invalid schemas, corruption).
+- **Human Prompt**:
+  > "Implement task M1-04: Legacy Device failure-injection subsystem. Read and follow the repository policy, workflow, roadmap, Legacy Device design, shared protocol, Member 1 task document, relevant AI instructions, and both required Group-Explanation PDFs before implementation. Inspect existing code and tests, implement only M1-04, add focused deterministic tests, run relevant tests and Ruff plus ai-history check, record factual results, and stop for human review."
+- **Review Outcome**: Modified across 4 rounds (detailed in Case Study 5, Section 6.4.5). Eliminated domain model mutation, enforced PRNG seed isolation, and ensured failure injection operates only on the outbound serialization dictionary.
+
+#### Task 0052: Legacy Gateway HTTP Client and Error Domain Mapping
+- **Agent / Subsystem**: OpenAI Codex / Legacy Device
+- **Scope & Context**: Synchronous HTTP client transmitting telemetry to the Edge Gateway.
+- **Human Prompt**:
+  > "Implement the Legacy HTTP client in legacy_system/client.py to send serialized JSON measurements to the Edge Gateway. Handle HTTP timeouts, network connection errors, and Gateway error status codes (400, 409, 422, 503)."
+- **Review Outcome**: Modified (3 rounds). Reviewers caught unhandled raw HTTP exceptions escaping the client layer and enforced categorization into domain-specific exceptions (`GatewayConnectionError`, `GatewayResponseError`).
+
+### F.3 Edge Gateway Application and Sequence Logic (Member 2)
+
+#### Task 0026: Gateway Configuration and Environment Parsing
+- **Agent / Subsystem**: OpenAI Codex / Edge Gateway
+- **Scope & Context**: Ingestion configuration for Edge Gateway service.
+- **Human Prompt**:
+  > "Implement Edge Gateway configuration loading in edge_gateway/config.py. Support GATEWAY_ID, HOST, PORT, CLOUD_URL, CLOUD_TIMEOUT_SECONDS, CLOUD_MAX_RETRIES, SECURITY_MODE, and SESSION_TTL_SECONDS. Validate frozen defaults."
+- **Review Outcome**: Accepted. Confirmed that `SECURITY_MODE` defaults to `classical` and `SESSION_TTL_SECONDS` is strictly validated to 300.
+
+#### Task 0038: Legacy Measurement Ingestion Route and Validation
+- **Agent / Subsystem**: OpenAI Codex / Edge Gateway
+- **Scope & Context**: FastAPI endpoint `POST /api/v1/legacy/measurements`.
+- **Human Prompt**:
+  > "Implement the legacy ingestion endpoint on the Edge Gateway. Validate inbound JSON syntax (400 on malformed syntax), schema and field types (422 on missing/invalid fields), and pass valid payloads to sequence validation."
+- **Review Outcome**: Accepted. Enforced the frozen contract separating 400 (unparseable JSON) and 422 (schema/domain validation failure).
+
+#### Task 0048: In-Memory Monotonic Sequence Tracking Policy
+- **Agent / Subsystem**: OpenAI Codex / Edge Gateway
+- **Scope & Context**: Per-device sequence tracking with duplicate and out-of-order rejection.
+- **Human Prompt**:
+  > "Implement thread-safe in-memory sequence tracking for the Edge Gateway in edge_gateway/sequence.py. Reject duplicate sequence numbers with 409 DUPLICATE_SEQUENCE and lower sequence numbers with 409 OUT_OF_ORDER_SEQUENCE. Accept higher sequence numbers and log sequence gaps."
+- **Review Outcome**: Accepted. Confirmed that sequence state is updated prior to Cloud delivery and never rolled back on downstream Cloud failures.
+
+### F.4 Edge Gateway Post-Quantum Cryptography and Transport (Member 3)
+
+#### Task 0006: ML-KEM-768 and HKDF-SHA-256 Cryptographic Wrappers
+- **Agent / Subsystem**: OpenAI Codex / Edge Gateway Cryptography
+- **Scope & Context**: Core cryptographic primitive wrappers utilizing the maintained `cryptography` library.
+- **Human Prompt**:
+  > "Start Member 3 at the current primitive phase: record the ML-KEM-768 library decision, add it to edge_gateway with uv, and implement the Gateway encapsulate wrapper plus the frozen HKDF-SHA-256 session-key wrapper with tests. Do not implement HTTP clients, sessions, AES-GCM, the Cloud service, or any protocol change."
+- **Review Outcome**: Accepted. Confirmed that HKDF info string is frozen to `b"ml-kem-project:v1:gateway-cloud-session"`, salt is `None`, output length is 32 bytes, and no key material is logged.
+
+#### Task 0011: Gateway In-Memory Secure Session Establishment
+- **Agent / Subsystem**: OpenAI Codex / Edge Gateway Cryptography
+- **Scope & Context**: Ephemeral session manager with concurrent handshake locking.
+- **Human Prompt**:
+  > "Member 3 tasks M3-09 through M3-13. Add an in-memory secure session and establish it with GET /api/v1/crypto/public-key, ML-KEM-768 encapsulation, the frozen HKDF call, and POST /api/v1/crypto/sessions. Use one async lock so concurrent callers share one handshake. Validate the session response and do not keep a session when establishment fails. Do not implement AES-GCM, secure measurement sends, measurement retries, or the Cloud service."
+- **Review Outcome**: Accepted. Enforced single asyncio lock preventing handshake race conditions during session renewal.
+
+#### Task 0019: AES-256-GCM Encryption and 4-Field Associated Data Builder
+- **Agent / Subsystem**: OpenAI Codex / Edge Gateway Cryptography
+- **Scope & Context**: Bulk AEAD encryption and canonical AAD formatting.
+- **Human Prompt**:
+  > "Implement AES-256-GCM encryption with 12-byte CSPRNG nonce generation in edge_gateway/crypto/symmetric.py. Implement the canonical 4-field Associated Data (AAD) builder according to Protocol v1: protocol_version, gateway_id, session_id, request_id. Enforce sorted UTF-8 compact JSON encoding."
+- **Review Outcome**: Accepted. Verified that AAD contains exactly the four frozen fields and rejects extraneous metadata.
+
+#### Task 0098: Secure Transport Retries and Session Recovery
+- **Agent / Subsystem**: OpenAI Codex / Edge Gateway Cryptography
+- **Scope & Context**: Transport resilience, distinguishing ordinary network retries from session invalidation.
+- **Human Prompt**:
+  > "Implement bounded retry logic with exponential backoff for the Edge Gateway secure transport client. Handle transient network errors and HTTP timeout exceptions when sending telemetry envelopes to the Cloud Service."
+- **Review Outcome**: Modified (detailed in Case Study 3, Section 6.4.3). Enforced that ordinary transport retries resend the identical SecureEnvelope without re-encrypting, while 409 session errors trigger session invalidation and re-handshake.
+
+### F.5 Cloud Service Telemetry Ingestion and Storage (Member 4)
+
+#### Task 0018: SQLite Storage Layer and Business Idempotency
+- **Agent / Subsystem**: OpenAI Codex / Cloud Service
+- **Scope & Context**: SQLite database initialization, schema migration, and measurement insertion repository.
+- **Human Prompt**:
+  > "Complete all remaining Member 4 work for PR 2: M4-05 through M4-07, as one AI-history task. Implement and test the complete remaining PR 2 storage scope, then stop once for human review. Do not start M4-08 or any later task. Do not modify shared/project-wide files other than required AI-history files without my approval."
+- **Review Outcome**: Accepted. Enforced `UNIQUE(device_id, sequence_number)` database index and verified that duplicate submissions return `202 Accepted` without creating duplicate database records.
+
+#### Task 0041: Cloud ML-KEM Key Lifecycle and Public-Key Route
+- **Agent / Subsystem**: OpenAI Codex / Cloud Service
+- **Scope & Context**: In-memory ML-KEM-768 keypair generation and `/api/v1/crypto/public-key` endpoint.
+- **Human Prompt**:
+  > "Complete M4-16 through M4-20 as one AI-history task. Implement Cloud ML-KEM-768 lifecycle, compatible maintained-library wrapper, tests and public-key endpoint. No M4-21 or later. Ask before changing edge_gateway or shared/project-wide files. Stop for human review."
+- **Review Outcome**: Modified (2 rounds). Reviewers corrected Base64URL encoding rules and purged extraneous key confirmation fields proposed by the model.
+
+#### Task 0072: Cloud Secure Envelope Decryption and Canonical Ingestion
+- **Agent / Subsystem**: OpenAI Codex / Cloud Service
+- **Scope & Context**: Decrypting `SecureEnvelope` at `POST /api/v1/secure/measurements`.
+- **Human Prompt**:
+  > "Implement Cloud SecureEnvelope ingestion endpoint. Lookup active session by session_id, decrypt AES-256-GCM ciphertext using derived session key and reconstructed 4-field AAD. Validate decrypted measurement schema and persist to database."
+- **Review Outcome**: Accepted. Verified that AEAD decryption failures return `401 Unauthorized` or `422 Unprocessable Entity` without disclosing cryptographic diagnostics or secret buffers.
+
+### F.6 Operations, Integration, and Performance Evaluation (Member 5)
+
+#### Task 0080: Gateway-to-Cloud Cross-Service Integration Tests
+- **Agent / Subsystem**: OpenAI Codex / Integration Testing
+- **Scope & Context**: Automated pytest suite validating full handshake and payload delivery between Gateway and Cloud.
+- **Human Prompt**:
+  > "Implement cross-component integration test suite for Edge Gateway and Cloud Service in tests/integration/test_gateway_cloud_secure.py. Test full session establishment, valid telemetry encryption and persistence, expired session recovery, and corrupted ciphertext rejection."
+- **Review Outcome**: Accepted. Verified test isolation using ephemeral test databases and mock server fixtures.
+
+#### Task 0185: Complete Three-Tier Docker Compose Topology
+- **Agent / Subsystem**: OpenAI Codex / Deployment & Operations
+- **Scope & Context**: Multi-container Docker Compose file and healthcheck orchestration.
+- **Human Prompt**:
+  > "Restore the complete three-tier containerized topology in docker-compose.yml including legacy-device, edge-gateway, and cloud-service. Ensure healthcheck dependency chains, non-root user execution, and persistent SQLite storage volume."
+- **Review Outcome**: Accepted (reversing premature omission from Task AD-7). Confirmed that the legacy sensor automatically waits for Gateway health before starting transmissions.
+
+#### Task 0211: Matched-Mode Empirical Evaluation Harness
+- **Agent / Subsystem**: OpenAI Codex / Empirical Evaluation
+- **Scope & Context**: Benchmarking script executing matched workloads across classical and ML-KEM modes.
+- **Human Prompt**:
+  > "Implement the matched-mode evaluation script scripts/measure_mode_comparison.py to execute paired workloads through the complete 3-tier pipeline in classical and ML-KEM modes. Measure first-message latency, steady-state latency, wire payload bytes, and storage success. Output clean JSON."
+- **Review Outcome**: Accepted. Verified that the script captures real empirical measurements without hardcoding timing constants.
+
+#### Task 0219: Protocol Security Mode Sequence Diagrams
+- **Agent / Subsystem**: OpenAI Codex / Architecture Documentation
+- **Scope & Context**: Generating detailed Mermaid protocol sequence diagrams for Classical Baseline and Modernized Post-Quantum modes.
+- **Human Prompt**:
+  > "Create formal Mermaid sequence diagrams illustrating the end-to-end message flow for classical mode and ML-KEM modernized mode. Show transport protocols, exact status codes, payload structures, session caching, and error paths."
+- **Review Outcome**: Accepted. Verified that diagrams strictly reflect frozen Protocol v1 contracts with no unauthenticated confirmations or extra parameters.
 

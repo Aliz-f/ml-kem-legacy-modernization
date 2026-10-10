@@ -1,10 +1,5 @@
 # Chapter 2 — Architecture and Protocol Specification
 
-> **Document role.** This is the standalone source for Chapter 2 of the Part 1
-> Technical Documentation.  It records the frozen cross-component contract for
-> protocol version `1`; it is not a proposal or a replacement for the
-> authoritative shared specification.
-
 ## 2.1 Protocol scope and design rules
 
 The system uses two distinct protocol boundaries, which must never be confused:
@@ -38,7 +33,7 @@ The protocol design follows these invariants:
 
 ## 2.2 Legacy Device to Edge Gateway contract
 
-### Endpoint and payload
+### 2.2.1 Endpoint and payload
 
 The Legacy Device sends one measurement to the Gateway:
 
@@ -73,7 +68,7 @@ are intentionally precise: malformed or unparseable request syntax is `400`;
 parsed JSON with missing, wrongly typed, extra, or domain-invalid fields is
 `422`; and a duplicate or out-of-order sequence is `409`.
 
-### Normalization and device sequence policy
+### 2.2.2 Normalization and device sequence policy
 
 After accepting the legacy form, the Gateway creates the canonical measurement:
 

@@ -1,12 +1,6 @@
 # Chapter 7 — Technical Debt and Risk Analysis
 
-> **Document role.** This is the standalone source for Chapter 7 of the Part 2
-> Technical Documentation. It records the project technical debt register,
-> operational and security risk analysis, and production modernization roadmap.
-
----
-
-## 7.1 Architectural Boundaries & Analytical Methodology
+## 7.1 Architectural Boundaries and Analytical Methodology
 
 ### 7.1.1 Distinction Between Technical Debt and Operational Risk
 Engineering mature software systems requires maintaining a clear, rigorous distinction between **Technical Debt** and **Active Risks**:
@@ -33,8 +27,6 @@ Engineering mature software systems requires maintaining a clear, rigorous disti
 └───────────────────────────────────────────────┘
 ```
 
----
-
 ### 7.1.2 Qualitative Evaluation Framework
 Because the system operates in a simulated edge-to-cloud environment, likelihood and impact are evaluated qualitatively rather than inferred from synthetic production metrics:
 - **Likelihood**:
@@ -46,13 +38,11 @@ Because the system operates in a simulated edge-to-cloud environment, likelihood
   - *Medium*: Temporary telemetry drop or bounded retry amplification without compromising cryptographic keys.
   - *High*: Compromise of measurement authenticity, loss of confidentiality, or permanent unrecoverable failure.
 
----
-
 ## 7.2 Comprehensive Technical Debt Register (TD-1 through TD-12)
 
 The project formally tracks twelve specific technical debt items (**TD-1 through TD-12**), summarized in Table 7.1 below:
 
-##### Table 7.1: Comprehensive Technical Debt Register (TD-1 through TD-12)
+**Table 7.1: Comprehensive Technical Debt Register (TD-1 through TD-12)**
 
 | ID | Accepted Technical Debt | Affected Components | Consequence / Structural Gap | Architectural Rationale for Acceptance | Concrete Future Modernization Roadmap |
 |---|---|---|---|---|---|
@@ -69,35 +59,29 @@ The project formally tracks twelve specific technical debt items (**TD-1 through
 | **TD-11** | Absence of Cryptographic Anti-Replay Counter / Window | Gateway, Cloud | An attacker intercepting an authentic `SecureEnvelope` can replay it at the AEAD layer without decryption errors. | Protocol v1 deliberately omits cryptographic counters and sliding windows to keep contracts simple and robust (Appendix D.4 & D.7). | Define Protocol v2 incorporating a monotonic message counter inside the AAD and a sliding bitmask replay window in Cloud. |
 | **TD-12** | Python Garbage Collector Memory Zeroization | Gateway, Cloud | Python runtime cannot guarantee immediate physical memory clearing of discarded cryptographic key material. | Maintained libraries (`cryptography`) handle internal memory; pure Python wrappers rely on best-effort GC. | Implement native C/Rust extensions utilizing platform-level `mlock()` and `explicit_bzero()` for sensitive key buffers. |
 
----
-
 ### 7.2.1 Deep Architectural Analysis: TD-10 vs. TD-11
 The repository enforces a crucial architectural distinction between **TD-10** and **TD-11**:
 - **Business Idempotency (TD-10)** is an application-level constraint (`UNIQUE(device_id, sequence_number)`). It ensures that when an unacknowledged HTTP retry occurs, only a single measurement row is persisted in SQLite.
 - **Cryptographic Replay Protection (TD-11)** is entirely absent from Protocol v1. The `SecureEnvelope` contains no message counter, timestamp, or sequence number in its AAD. If an eavesdropper captures a valid envelope and replays it to `POST /api/v1/secure/measurements`, the Cloud AEAD layer decrypts it successfully without raising an authentication error. The duplicate is only rejected at the subsequent database insertion layer.
 Separating TD-10 and TD-11 ensures that the team does not falsely present application deduplication as cryptographic replay resistance.
 
----
-
 ## 7.3 Comprehensive Risk Register (R-1 through R-9)
 
 The project tracks nine active security and operational risks (**R-1 through R-9**), summarized in Table 7.2 below:
 
-##### Table 7.2: Comprehensive Risk Register (R-1 through R-9)
+**Table 7.2: Comprehensive Risk Register (R-1 through R-9)**
 
 | ID | Risk Event | Domain | Linked Debt | Likelihood | Impact | Implemented Safeguards & Controls | Residual Treatment & Production Prerequisites |
 |---|---|:---:|---|:---:|:---:|---|---|
 | **R-1** | Attacker substitutes Cloud ML-KEM public key or impersonates endpoint | Security | TD-6, TD-7 | Context-Dependent | **High** | Gateway validates protocol version ("1"), algorithm ("ML-KEM-768"), key ID, and Base64URL encoding rules. | Acceptable only in controlled isolated networks; require mTLS and PKI certificate validation in production. |
 | **R-2** | Attacker spoofs or tampers with Legacy $\rightarrow$ Gateway telemetry | Security | TD-1 | Context-Dependent | **High** | Gateway enforces strict JSON schema validation, numerical bounds (humidity $0..100$), and monotonic sequence tracking. | Treat legacy link as untrusted; isolate physical IoT networks via VLANs or deploy authenticated hardware tokens. |
 | **R-3** | Captured authenticated `SecureEnvelope` is replayed on the wire | Security | TD-11 | Context-Dependent | **Medium** | AES-256-GCM authenticates the envelope; Cloud database idempotency prevents duplicate row creation. | Replays cause minor CPU decryption load; implement Protocol v2 sliding replay window before public deployment. |
-| **R-4** | Downstream Cloud outage causes telemetry drop or loss | Operational | TD-2, TD-9 | Medium | **Medium** | Gateway retries are bounded; Gateway returns visible `502/504` errors to Legacy rather than false `202 Accepted`. | Measurements discarded during outages; requires durable store-and-forward queuing on Gateway for zero loss. |
+| **R-4** | Downstream Cloud outage causes telemetry drop or loss | Operational | TD-2, TD-9 | Medium | **Medium** | Gateway retries are bounded; Gateway returns visible `503` errors to Legacy rather than false `202 Accepted`. | Measurements discarded during outages; requires durable store-and-forward queuing on Gateway for zero loss. |
 | **R-5** | Cascading retry amplification during network degradation | Operational | TD-9 | Medium | **Medium** | Bounded attempts ($3 \times 3 = 9$ max); committed Gateway sequence state halts duplicate legacy attempts with `409`. | Retries consume network bandwidth; implement exponential backoff with jitter and circuit-breaking proxies. |
 | **R-6** | Gateway or Cloud restart causes state loss and handshake churn | Operational | TD-3, TD-4, TD-5 | Medium | **Medium** | Autonomous session re-establishment on `409 SESSION_INVALID` / `SESSION_EXPIRED`; zero manual operator intervention. | Handshake latency (~35 ms) incurred on first post-restart message; persist session keys or sequence logs in production. |
 | **R-7** | Future diagnostic logs or crash dumps expose cryptographic keys | Security | TD-12 | Low | **High** | Strict field whitelist in Logging Conventions Policy (Section 5.3.4); automated Secret-Safety Audit Suite verifies zero secret leakage. | Maintain automated secret scanning in CI; conduct peer code review for all diagnostic changes. |
 | **R-8** | SQLite database file corruption or lock contention impairs availability | Operational | TD-8 | Low | **Medium** | SQLite write timeouts configured; clean test databases isolated; safe error responses (`503`) returned on write lock. | Single point of failure; migrate to a clustered, managed PostgreSQL instance with automated failover. |
 | **R-9** | Operator misconfigures system in unencrypted `classical` mode | Security | TD-7 | Context-Dependent | **High** | Mode selection is explicit via `SECURITY_MODE`; `mlkem` mode strictly fails closed with zero plaintext fallback. | Restrict production deployment configurations; enforce environment policy audits and configuration locking. |
-
----
 
 ### 7.3.1 Risk Evaluation Heatmap Matrix
 The qualitative positioning of each identified risk across Likelihood and Impact dimensions is visualized below:
@@ -119,15 +103,13 @@ IMPACT │ R-7                  │ R-3, R-8             │               │
 - **Medium-Impact Operational Risks (R-4, R-5, R-6)**: Represent standard edge computing operational churn. Implemented error bounds prevent crashes and cascading failures, though temporary telemetry loss during extended outages is acknowledged.
 - **Controlled High-Impact Risk (R-7)**: Prevented through defensive engineering and automated CI secret-scanning tests.
 
----
-
 ## 7.4 Production Modernization Roadmap
 
 To transition the demonstrated edge-to-cloud post-quantum telemetry pipeline into an enterprise-scale, mission-critical production deployment, the engineering team has formulated a three-phase modernization roadmap:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 PHASE 1: CRYPTOGRAPHIC & TRANSPORT HARDENING                │
+│                 PHASE 1: CRYPTOGRAPHIC AND TRANSPORT HARDENING              │
 │ • Protocol v2: Add monotonic message counter & sliding replay window        │
 │ • Transport Security: Enforce mutual TLS (mTLS) with X.509 certificates     │
 │ • Identity Binding: Cryptographically authenticate Cloud endpoint identity  │
@@ -135,7 +117,7 @@ To transition the demonstrated edge-to-cloud post-quantum telemetry pipeline int
                                        │
                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│               PHASE 2: PERSISTENCE & QUEUE DECOUPLING                       │
+│               PHASE 2: PERSISTENCE AND QUEUE DECOUPLING                     │
 │ • Edge Queuing: Deploy durable local SQLite WAL store-and-forward spooling  │
 │ • Cloud Storage: Migrate from single-instance SQLite to clustered PostgreSQL│
 │ • State Persistence: Persist monotonic sequence watermarks across reboots   │
@@ -143,14 +125,14 @@ To transition the demonstrated edge-to-cloud post-quantum telemetry pipeline int
                                        │
                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│              PHASE 3: HARDWARE-BACKED CRYPTO & ZEROIZATION                  │
+│              PHASE 3: HARDWARE-BACKED CRYPTO AND ZEROIZATION                │
 │ • Secure Elements: Integrate TPM 2.0 / Apple Secure Enclave on Edge Gateway │
 │ • Cloud HSM: Manage ML-KEM long-term keys in AWS CloudHSM / HashiCorp Vault │
 │ • Native Zeroization: Compile crypto routines in Rust via PyO3 with `mlock` │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Phase 1: Cryptographic & Transport Hardening
+### 7.4.1 Phase 1: Cryptographic and Transport Hardening
 1. **Protocol v2 Specification**:
    - Extend the `SecureEnvelope` and Associated Data (AAD) to include an explicit 64-bit monotonic sequence counter (`message_counter`).
    - Implement a 64-message sliding bitmask replay window in the Cloud AEAD decapsulation service to reject replayed ciphertexts at the cryptographic boundary before database invocation.
@@ -158,7 +140,7 @@ To transition the demonstrated edge-to-cloud post-quantum telemetry pipeline int
    - Wrap all HTTP communication in TLS 1.3.
    - Configure mutual TLS (mTLS) between Gateway and Cloud, utilizing X.509 certificate validation to eliminate public-key substitution and endpoint impersonation (R-1).
 
-### Phase 2: Persistence & Queue Decoupling
+### 7.4.2 Phase 2: Persistence and Queue Decoupling
 1. **Durable Edge Spooling (Store-and-Forward)**:
    - Introduce an embedded, disk-backed queue on the Edge Gateway.
    - If downstream Cloud transmission fails, telemetry is spooled to encrypted local storage and transmitted sequentially once connectivity is restored, resolving telemetry loss (R-4) without violating memory constraints.
@@ -166,7 +148,7 @@ To transition the demonstrated edge-to-cloud post-quantum telemetry pipeline int
    - Replace single-file SQLite with a clustered, multi-node PostgreSQL instance running TimescaleDB.
    - Implement connection pooling, read replicas, and automated point-in-time recovery, resolving concurrency and persistence bottlenecks (TD-8, R-8).
 
-### Phase 3: Hardware-Backed Key Isolation & Secure Zeroization
+### 7.4.3 Phase 3: Hardware-Backed Key Isolation and Secure Zeroization
 1. **Hardware Security Module (HSM) Integration**:
    - Deploy Cloud ML-KEM key generation and decapsulation within a FIPS 140-3 Level 3 Hardware Security Module (or cloud KMS).
    - Ensure Cloud private decapsulation keys can never be extracted into host RAM or process dumps.

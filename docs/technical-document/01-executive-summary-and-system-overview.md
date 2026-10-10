@@ -1,10 +1,5 @@
 # Chapter 1 — Executive Summary and System Overview
 
-> **Document role.** This is the standalone source for Chapter 1 of the Part 1
-> Technical Documentation.  It is written to be compiled with the other
-> chapter files into one PDF.  Links identify repository evidence that should
-> be retained as cross-references in the final PDF.
-
 ## 1.1 Project purpose
 
 This project modernizes a small environmental-telemetry pipeline without

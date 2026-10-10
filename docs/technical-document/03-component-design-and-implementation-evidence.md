@@ -1,10 +1,5 @@
 # Chapter 3 — Component Design and Implementation Evidence
 
-> **Document role.** This standalone chapter presents the implemented
-> component structure and selected source evidence for the Part 1 Technical
-> Documentation.  The excerpts are deliberately focused; full critical source
-> listings are reserved for the appendices in the compiled PDF.
-
 ## 3.1 Implementation approach and ownership
 
 The implementation is divided into three deployable Python services.  The
@@ -42,8 +37,7 @@ simulation).  Its model-level validation uses the broader protocol domain:
 temperature from -40 to 85 °C, humidity from 0 to 100%, and a non-negative
 signed 64-bit sequence number.
 
-The following excerpt from
-[`legacy_system/src/legacy_system/sensor.py`](../../legacy_system/src/legacy_system/sensor.py)
+The following excerpt from `legacy_system/src/legacy_system/sensor.py`
 shows that normal sensor generation remains independent of delivery:
 
 ```python
@@ -87,10 +81,9 @@ while still making delivery failures observable.
 
 ## 3.3 Edge Gateway implementation
 
-### Legacy ingress and application pipeline
+### 3.3.1 Legacy ingress and application pipeline
 
-The Edge Gateway is a FastAPI application constructed in
-[`edge_gateway/src/edge_gateway/app.py`](../../edge_gateway/src/edge_gateway/app.py).
+The Edge Gateway is a FastAPI application constructed in `edge_gateway/src/edge_gateway/app.py`.
 It composes one configuration object, application and PQC metric registries,
 failure hooks, a `CloudDispatch`, and a `MeasurementProcessor`.  It maps
 exceptions at the HTTP boundary, preserving the frozen distinction between
@@ -127,7 +120,7 @@ values, records but accepts gaps, and rejects duplicates or lower values.  Its
 state is intentionally committed before downstream delivery and remains
 in-memory.
 
-### Classical and secure dispatch
+### 3.3.2 Classical and secure dispatch
 
 `CloudDispatch` is the Gateway's explicit mode selector.  With
 `SECURITY_MODE=classical`, the baseline client sends canonical JSON and
@@ -173,14 +166,13 @@ baseline endpoint.
 
 ## 3.4 Cloud Service implementation
 
-### Application lifecycle and API composition
+### 3.4.1 Application lifecycle and API composition
 
-[`cloud_service/src/cloud_service/app.py`](../../cloud_service/src/cloud_service/app.py)
-builds the Cloud FastAPI application.  Its lifespan initializes SQLite
-storage, and only in ML-KEM mode creates the process-local key and session
-services.  Shutdown reverses that lifecycle, closes sessions and key service,
-then closes the database.  This avoids carrying secure runtime state across a
-process restart.
+`cloud_service/src/cloud_service/app.py` builds the Cloud FastAPI application.
+Its lifespan initializes SQLite storage, and only in ML-KEM mode creates the
+process-local key and session services.  Shutdown reverses that lifecycle,
+closes sessions and key service, then closes the database.  This avoids
+carrying secure runtime state across a process restart.
 
 The application registers distinct routers for baseline ingestion, queries,
 public-key publication, session establishment, and secure ingestion.  It also
@@ -196,7 +188,7 @@ app.include_router(session_router)
 app.include_router(secure_router)
 ```
 
-### Secure ingestion: validate, authenticate, validate again, then store
+### 3.4.2 Secure ingestion: validate, authenticate, validate again, then store
 
 The secure route delegates its CPU/blocking pipeline to
 `cloud_service.gateway.secure._ingest`.  Its ordering is security-critical:
@@ -227,7 +219,7 @@ dropped acknowledgement after a committed write.  That scenario tests that an
 ordinary Gateway retry reuses its envelope and arrives at the idempotent
 storage path.
 
-### SQLite storage and idempotency
+### 3.4.3 SQLite storage and idempotency
 
 The Cloud repository isolates parameterized SQLite work from HTTP and crypto
 code.  `save_idempotent()` uses a targeted conflict clause on the frozen

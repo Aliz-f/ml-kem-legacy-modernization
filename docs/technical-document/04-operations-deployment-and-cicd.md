@@ -1,11 +1,5 @@
 # Chapter 4 — Operations, Deployment and CI/CD
 
-> **Document role.** This standalone chapter documents the operational
-> implementation used to build, run, observe, and validate the project.  It is
-> based on the committed Compose, runbook, operations, and CI artifacts; it
-> distinguishes the reproducible course test environment from a production
-> deployment claim.
-
 ## 4.1 Operational design goals
 
 The operational work makes the three-service telemetry path reproducible and
@@ -29,7 +23,7 @@ documentation.
 
 ## 4.2 Docker Compose topology and lifecycle
 
-[`docker-compose.yml`](../../docker-compose.yml) is the reproducible system
+`docker-compose.yml` (Appendix A.1) is the reproducible system
 topology.  It builds the three application images from their service
 Dockerfiles, connects them through Compose DNS, exposes only the Gateway and
 Cloud application ports on loopback, and persists accepted Cloud measurements
@@ -171,7 +165,7 @@ Counters end in `_total`, duration families end in `_duration_seconds`, and
 active-session values are gauges.  They are defined to answer an operational
 question, rather than merely to count implementation details.
 
-### Gateway metric inventory
+### 4.5.1 Gateway metric inventory
 
 | Metric | Type | Why it is defined |
 | --- | --- | --- |
@@ -194,7 +188,7 @@ question, rather than merely to count implementation details.
 | `gateway_pqc_fallback_total` | Counter/invariant | Must remain `0`: any non-zero value would expose an impermissible runtime plaintext downgrade in protocol v1. |
 | `gateway_injected_failures_total` | Counter | Distinguishes intentionally simulated test failures from an unexplained operational fault. |
 
-### Cloud metric inventory
+### 4.5.2 Cloud metric inventory
 
 | Metric | Type | Why it is defined |
 | --- | --- | --- |
@@ -231,9 +225,8 @@ restores the committed Compose/`.env` configuration.
 
 ## 4.6 Continuous integration and delivery gates
 
-The committed GitHub Actions workflow
-[`ai-history.yml`](../../.github/workflows/ai-history.yml) runs on pushes and
-pull requests.  It uses Python 3.12, installs the root workspace with
+The committed GitHub Actions workflow `.github/workflows/ai-history.yml` (Appendix B.1)
+runs on pushes and pull requests.  It uses Python 3.12, installs the root workspace with
 `uv sync --frozen`, and separates fast quality feedback from integration,
 secure end-to-end, container-build, and clean-environment evidence.  Each job
 uses a fresh Ubuntu runner; therefore no test depends on a prior job's local

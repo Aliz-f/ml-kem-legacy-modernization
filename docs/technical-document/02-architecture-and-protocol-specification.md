@@ -350,8 +350,8 @@ All application errors have the stable outer shape:
 Clients use the HTTP status and stable `error.code`, not free-text wording, to
 classify a response.  The secure endpoint contract is:
 
-| Condition | HTTP status | Code / result |
-| --- | ---: | --- |
+| Condition | HTTP Status Code | Response / Result |
+| --- | :---: | --- |
 | Invalid envelope JSON or Base64URL encoding | `400` | `SECURE_MESSAGE_REJECTED` |
 | Unsupported protocol version | `400` | `UNSUPPORTED_PROTOCOL_VERSION` |
 | Unknown session | `409` | `SESSION_INVALID` |

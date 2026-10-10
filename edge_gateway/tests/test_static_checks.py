@@ -14,6 +14,7 @@ CLI_OUTPUT = {
     "edge_gateway/docker/clean_container_crypto.py",
     "edge_gateway/tests/test_gateway_baseline_integration.py",
     "scripts/measure_baseline_e2e.py",
+    "scripts/build_technical_document.py",
     "scripts/measure_mode_comparison.py",
     "scripts/measure_modernized_e2e.py",
     "tools/report_evidence/run_evaluation.py",

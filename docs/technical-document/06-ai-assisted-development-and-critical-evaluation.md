@@ -100,7 +100,7 @@ For each study, the original prompt and technical context provided to the model 
   - *Prompt*: `"Integrate ML-KEM-768 post-quantum encryption into the Edge Gateway to secure outbound telemetry payloads sent to the Cloud Service. The gateway should take sensor measurement JSON and encrypt it using the Cloud's public key before transmitting over HTTP."`
   - *Context*: Initial Edge Gateway telemetry forwarding prototype; Cloud service ML-KEM public key endpoint `/api/v1/crypto/public-key`; project objective to modernize legacy IoT payload delivery with post-quantum cryptography.
 
-#### Initial LLM Proposal
+#### Initial LLM Proposal: Direct ML-KEM Payload Encryption
 When tasked with integrating ML-KEM to protect telemetry between the Edge Gateway and Cloud Service, the LLM generated code attempting to encrypt the serialized JSON measurement string directly using the Cloud's ML-KEM public key:
 ```python
 # LLM-Generated Flawed Concept (Direct ML-KEM Bulk Encryption)
@@ -129,7 +129,7 @@ Reviewers rejected the proposal and architected a proper **hybrid cryptosystem**
   - *Prompt*: `"Implement error handling and resilience in the Edge Gateway telemetry dispatcher. If the secure ML-KEM channel or session handshake fails, ensure high availability so that sensor measurements are not lost."`
   - *Context*: Dual-transport client definitions (secure envelope client and baseline unencrypted client); fail-closed policy requirements in project architecture.
 
-#### Initial LLM Proposal
+#### Initial LLM Proposal: Automatic Plaintext Fallback
 The LLM implemented error handling in the Gateway dispatch module to ensure "high availability." When an ML-KEM handshake failed or timed out, the LLM added fallback logic that automatically forwarded the unencrypted measurement to the classical baseline endpoint:
 ```python
 # LLM-Generated Flawed Logic (Silent Security Downgrade)
@@ -190,7 +190,7 @@ An automated regression test in the Handshake Failure and Fail-Closed Regression
   - *Prompt*: `"Implement bounded retry logic with exponential backoff for the Edge Gateway secure transport client. Handle transient network errors and HTTP timeout exceptions when sending telemetry envelopes to the Cloud Service."`
   - *Context*: Task 0098 instructions; frozen protocol specification for `POST /api/v1/measurements`; AES-256-GCM envelope structure with `request_id`.
 
-#### Initial LLM Proposal
+#### Initial LLM Proposal: Re-encryption on Transport Retry
 When implementing retries for ambiguous network timeouts (e.g. Gateway sends request, but HTTP socket times out before receiving Cloud response), the LLM wrote:
 ```python
 # LLM-Generated Flawed Retry (Re-encryption with Fresh Nonce)
@@ -224,7 +224,7 @@ Reviewers refactored the retry client to separate the two distinct recovery path
   - *Prompt*: `"Add comprehensive diagnostic logging to the Edge Gateway cryptographic handshake and session manager to assist operators in troubleshooting session establishment failures and key exchange errors."`
   - *Context*: Gateway cryptographic session lifecycle; Python standard logging configuration; requirement for structured debugging during multi-container integration.
 
-#### Initial LLM Proposal
+#### Initial LLM Proposal: Sensitive Diagnostic Logging
 To assist operators in debugging session establishment failures, the LLM included detailed cryptographic variable values in diagnostic log statements:
 ```python
 # LLM-Generated Insecure Logging

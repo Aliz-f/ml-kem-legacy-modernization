@@ -89,7 +89,7 @@ The testing suite rigorously enforces two fundamental architectural distinctions
    - **Ordinary Transport Retry (e.g. F18)**: When an HTTP network timeout or dropped TCP socket occurs, the Gateway retransmits the *exact same already-built `SecureEnvelope`*. The request ID, session ID, 12-byte nonce, ciphertext, and 4-field AAD remain byte-identical. Re-encrypting or generating a new nonce on an ordinary retry is strictly prohibited by Protocol v1 contracts.
    - **Session Recovery (F13 & F14)**: When the Cloud explicitly responds with `409 SESSION_INVALID` or `409 SESSION_EXPIRED`, the Gateway invalidates its local session cache, executes exactly *one* fresh ML-KEM-768 handshake to establish a replacement session key, rebuilds the `SecureEnvelope` with a newly generated nonce under the new session key, preserves the original logical `request_id`, and retries the delivery once.
 2. **Retry Amplification Bounding**:
-   - To prevent cascading retry storms, retry layers are bounded and tested in the Retry Amplification Regression Suite. With Legacy max retries set to 2 (3 total attempts) and Gateway-to-Cloud max retries set to 2 (3 total attempts), the absolute upper bound of downstream Cloud invocations for a single measurement is strictly $3 \times 3 = 9$ attempts.
+   - To prevent cascading retry storms, retry layers are bounded and tested in the Retry Amplification Regression Suite. With Legacy max retries set to 2 (3 total attempts) and Gateway-to-Cloud max retries set to 2 (3 total attempts), the absolute upper bound of downstream Cloud invocations for a single measurement is strictly 3 × 3 = 9 attempts.
    - Furthermore, once the Gateway commits sequence state for an accepted reading, any subsequent duplicate transmission from the Legacy client is immediately terminated with `409 Conflict`, halting further downstream amplification.
 
 ## 5.3 Deep-Dive Security and Failure Regressions
@@ -347,7 +347,7 @@ The following measurements reflect the actual runtime observations captured by t
 
 | Evaluation Metric | Classical Baseline Mode | Modernized ML-KEM-768 Mode | Delta / Architectural Impact |
 |---|:---:|:---:|---|
-| **Wire Payload Size (Gateway $\rightarrow$ Cloud)** | **221 bytes** | **536 bytes** | **+315 bytes (+142.5%)** due to Base64URL ciphertext, 12-byte nonce & envelope |
+| **Wire Payload Size (Gateway → Cloud)** | **221 bytes** | **536 bytes** | **+315 bytes (+142.5%)** due to Base64URL ciphertext, 12-byte nonce & envelope |
 | **Session Establishment Latency** | N/A (stateless) | **35.10 ms** (total handshake) | One-time overhead per 300-second session lifecycle |
 | ↳ *Cloud Public Key Fetch* | N/A | 16.19 ms | HTTP GET + JSON parsing of ML-KEM-768 public key |
 | ↳ *Gateway ML-KEM Encapsulation* | N/A | 0.17 ms | Lattice polynomial generation & ciphertext encapsulation |
@@ -374,7 +374,7 @@ A key design characteristic is the session management lifecycle (`SESSION_TTL_SE
 Rather than performing an expensive asymmetric ML-KEM key exchange for every individual sensor reading, the Gateway negotiates a 32-byte symmetric session key once and reuses it for 300 seconds.
 - The total ML-KEM session handshake requires **35.10 ms**, with pure lattice mathematics taking under **0.2 ms** (0.17 ms encapsulation, 0.15 ms decapsulation).
 - Over a standard 300-second window transmitting readings every 5 seconds (60 messages), the amortized post-quantum handshake cost is:
-  $$\text{Amortized Cost per Message} = \frac{35.10\text{ ms}}{60} \approx 0.58\text{ ms}$$
+  Amortized cost per message = 35.10 ms ÷ 60 ≈ 0.58 ms.
 - Once the session is established, per-message steady-state symmetric encryption and decryption adds less than **0.20 ms** of CPU overhead, yielding near-identical latency to unencrypted HTTP transmission.
 
 ### 5.4.4 Multi-Run Statistical Verification (Frozen Evidence Dataset)

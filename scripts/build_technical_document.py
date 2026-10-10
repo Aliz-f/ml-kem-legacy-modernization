@@ -29,7 +29,7 @@ EXISTING_TABLE_CAPTION = re.compile(r"^\*\*Table\s+\d+\.\d+:\s*(.*?)\*\*$")
 NUMBERED_LANGUAGES = {"python", "bash", "docker", "dockerfile"}
 APPENDIX_REFERENCE = re.compile(r"\bAppendix\s+([A-F](?:\.\d+)*)\b")
 RENDERED_TABLE = re.compile(
-    r'(<table>.*?)(</table>)\s*<div class="table-caption">(.*?)</div>', re.DOTALL
+    r'(<table>)(.*?)(</table>)\s*<div class="table-caption">(.*?)</div>', re.DOTALL
 )
 RENDERED_CODE = re.compile(
     r'(<div class="code-caption">.*?</div>)\s*(<pre.*?</pre>)', re.DOTALL
@@ -154,8 +154,8 @@ def preprocess(source: Path, chapter: int, targets: dict[str, str]) -> tuple[str
             alt, src = match.groups()
             out += [
                 '<figure class="figure">',
-                f'<figcaption>Figure {chapter}.{figures} — {html.escape(image_label(alt))}</figcaption>',
                 f'<img src="{html.escape(src, quote=True)}" alt="{html.escape(alt, quote=True)}">',
+                f'<figcaption>Figure {chapter}.{figures} — {html.escape(image_label(alt))}</figcaption>',
                 "</figure>", "",
             ]
             index += 1
@@ -178,21 +178,21 @@ def preprocess(source: Path, chapter: int, targets: dict[str, str]) -> tuple[str
     return "\n".join(out), contents
 
 
-def toc(entries: list[tuple[int, str, str]]) -> str:
+def toc(entries: list[tuple[int, str, str]], pages: dict[str, int] | None = None) -> str:
     return "\n".join(
-        f'<li class="toc-level-{min(level, 4)}"><a href="#{identifier}">{html.escape(title)}</a></li>'
+        f'<li class="toc-level-{min(level, 4)}"><a href="#{identifier}">{html.escape(title)}</a><span class="toc-page">{pages.get(identifier, "") if pages else ""}</span></li>'
         for level, title, identifier in entries
     )
 
 
-def build_html() -> tuple[str, tuple[int, int, int]]:
+def build_html(pages: dict[str, int] | None = None) -> tuple[str, tuple[int, int, int], list[tuple[int, str, str]]]:
     rendered_chapters: list[str] = []
     entries: list[tuple[int, str, str]] = []
     targets = appendix_targets()
     for number, source in enumerate(CHAPTERS, start=1):
         chapter, chapter_entries = preprocess(source, number, targets)
         rendered = markdown.markdown(chapter, extensions=["extra", "sane_lists"])
-        rendered = RENDERED_TABLE.sub(r'\1<caption class="table-caption">\3</caption>\2', rendered)
+        rendered = RENDERED_TABLE.sub(r'\1<caption class="table-caption">\4</caption>\2\3', rendered)
         rendered = RENDERED_CODE.sub(r'<div class="code-figure">\1\2</div>', rendered)
         if number == 8:
             appendix_links = [entry for entry in chapter_entries if entry[0] == 2 and entry[1].startswith("Appendix ")]
@@ -207,26 +207,26 @@ def build_html() -> tuple[str, tuple[int, int, int]]:
     document = TEMPLATE.format(
         title=html.escape(TITLE),
         members=html.escape(", ".join(MEMBERS)),
-        toc=toc(entries),
+        toc=toc(entries, pages),
         body=body,
     )
-    return document, (body.count('class="figure"'), body.count('class="table-caption"'), body.count('class="code-caption"'))
+    return document, (body.count('class="figure"'), body.count('class="table-caption"'), body.count('class="code-caption"')), entries
 
 
 TEMPLATE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>{title}</title><style>
-@page {{ size: A4; margin: 21mm 18mm 20mm; @bottom-center {{ content: counter(page); font: 9pt serif; }} }}
+@page {{ size: A4; margin: 21mm 18mm 20mm; @bottom-center {{ content: counter(page); font: 9pt serif; }} }} @page :first {{ @bottom-center {{ content: none; }} }}
 * {{ box-sizing: border-box; }}
 body {{ color: #17212b; font-family: Georgia, 'Times New Roman', serif; font-size: 10pt; line-height: 1.35; }}
 .title-page {{ background: linear-gradient(145deg, #f3f8fa, #ffffff 62%); border-bottom: 3mm solid #0b3954; border-top: 8mm solid #0b3954; display: flex; flex-direction: column; justify-content: center; min-height: 246mm; padding: 14mm; position: relative; text-align: center; page-break-after: always; }}
 .title-page h1 {{ color: #0b3954; font-size: 25pt; line-height: 1.25; margin: 0 auto 20mm; max-width: 155mm; }}
-.title-page h2 {{ color: #0b3954; font-size: 16pt; letter-spacing: 0.4pt; margin: 0 0 6mm; }} .title-page p {{ font-size: 11pt; margin: 2mm 0; }} .title-page .cover-details {{ background: #ffffff; border: 0.4pt solid #b7c8d2; border-radius: 2mm; box-shadow: 0 1mm 3mm #d5e0e5; margin: 0 auto; max-width: 145mm; padding: 7mm 10mm; }} .title-page .members {{ font-size: 8.5pt; line-height: 1.45; margin: 0 auto; max-width: 135mm; white-space: nowrap; }} .title-page a {{ color: #0b3954; }}
+.title-page h2 {{ color: #0b3954; font-size: 16pt; letter-spacing: 0.4pt; margin: 0 0 6mm; }} .title-page p {{ font-size: 11pt; margin: 2mm 0; }} .title-page .cover-details {{ background: #ffffff; border: 0.4pt solid #b7c8d2; border-radius: 2mm; box-shadow: 0 1mm 3mm #d5e0e5; margin: 0 auto; max-width: 145mm; padding: 7mm 10mm; }} .title-page .members {{ font-size: 9pt; line-height: 1.45; margin: 0 auto; max-width: 135mm; white-space: nowrap; }} .title-page a {{ color: #0b3954; }}
 .toc {{ page-break-after: always; }} .toc h1 {{ color: #0b3954; font-size: 21pt; }} .toc ul {{ list-style: none; margin: 0; padding: 0; }} .toc li {{ margin: 2.2mm 0; }} .toc a {{ color: #0b3954; text-decoration: none; }}
-.toc-level-1 {{ font-size: 12pt; font-weight: bold; margin-top: 4mm !important; }} .toc-level-2 {{ margin-left: 7mm !important; }} .toc-level-3 {{ margin-left: 14mm !important; font-size: 9.4pt; }} .toc-level-4 {{ margin-left: 21mm !important; font-size: 9pt; }}
+.toc-page {{ float: right; }} .toc-level-1 {{ font-size: 12pt; font-weight: bold; margin-top: 4mm !important; }} .toc-level-2 {{ margin-left: 7mm !important; }} .toc-level-3 {{ margin-left: 14mm !important; font-size: 9.4pt; }} .toc-level-4 {{ margin-left: 21mm !important; font-size: 9pt; }}
 .chapter {{ break-before: page; page-break-before: always; }} .chapter:first-of-type {{ break-before: auto; page-break-before: auto; }}
 h1, h2, h3, h4, h5, h6 {{ color: #0b3954; page-break-after: avoid; }} h1 {{ font-size: 20pt; border-bottom: 1px solid #89a9bc; padding-bottom: 2mm; }} h2 {{ font-size: 15pt; margin-top: 6mm; }} h3 {{ font-size: 12pt; margin-top: 4mm; }} h4 {{ font-size: 10.5pt; margin-top: 3mm; }}
-p, li {{ orphans: 3; widows: 3; }} figure, .code-figure {{ break-inside: avoid; page-break-inside: avoid; }} figure {{ margin: 4mm auto; max-width: 100%; text-align: center; }} figcaption, .code-caption {{ color: #0b3954; font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; margin-bottom: 2mm; text-align: center; }} figure img {{ display: block; margin: 0 auto; max-height: 178mm; max-width: 100%; object-fit: contain; }}
-table {{ border-collapse: collapse; font-family: Arial, sans-serif; font-size: 8pt; margin: 3mm auto 5mm; max-width: 100%; width: 100%; }} th, td {{ border: 0.3pt solid #8fa6b5; padding: 1.4mm; vertical-align: top; }} th {{ background: #dce9ef; color: #0b3954; }} .table-caption {{ caption-side: bottom; color: #0b3954; font-family: Arial, sans-serif; font-size: 9pt; font-style: italic; margin-top: 1.5mm; text-align: center; }}
+p, li {{ orphans: 3; widows: 3; }} figure, .code-figure {{ break-inside: avoid; page-break-inside: avoid; }} figure {{ margin: 4mm auto; max-width: 100%; text-align: center; }} figcaption, .code-caption {{ color: #0b3954; font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; text-align: center; }} figcaption {{ margin: 2mm 0 0; }} figure img {{ display: block; margin: 0 auto; max-height: 178mm; max-width: 100%; object-fit: contain; }}
+table {{ border-collapse: collapse; font-family: Arial, sans-serif; font-size: 7.8pt; margin: 1mm auto 2mm; max-width: 100%; width: 100%; }} th, td {{ border: 0.3pt solid #8fa6b5; padding: 1mm; vertical-align: top; }} th {{ background: #dce9ef; color: #0b3954; }} .table-caption {{ caption-side: top; color: #0b3954; font-family: Arial, sans-serif; font-size: 8.8pt; font-style: italic; margin: 0 0 0.6mm; text-align: center; }}
 pre {{ background: #f3f6f8; border: 0.4pt solid #b7c8d2; border-left: 3pt solid #2d6a8c; font-size: 7.4pt; line-height: 1; margin: 0; overflow-wrap: anywhere; padding: 2mm; white-space: pre-wrap; }} code {{ font-family: 'DejaVu Sans Mono', 'Liberation Mono', monospace; }} p code, li code, td code {{ background: #f0f3f5; padding: 0.2mm 0.6mm; }} .code-caption {{ margin: 4mm 0 1.5mm; }} .code-line {{ display: block; line-height: 1; }} .line-number {{ color: #607080; display: inline-block; margin-right: 2mm; text-align: right; user-select: none; width: 7mm; }} .appendix-links {{ background: #f3f6f8; border-left: 3pt solid #2d6a8c; margin: 5mm 0; padding: 3mm 5mm; }} .appendix-links ul {{ columns: 2; margin: 2mm 0 0; }} .appendix-links a {{ color: #0b3954; }} blockquote {{ border-left: 2pt solid #89a9bc; margin-left: 0; padding-left: 4mm; }}
 </style></head><body>
 <section class="title-page"><h1>{title}</h1><div class="cover-details"><h2>Group 20</h2><p><strong>Institution:</strong> University of Oulu</p><p><strong>Course:</strong> Software Development, Maintenance &amp; Operations</p><p><strong>Repository:</strong> <a href="https://github.com/Aliz-f/ml-kem-legacy-modernization">github.com/Aliz-f/ml-kem-legacy-modernization</a></p><h2>Members</h2><p class="members">{members}</p></div></section>
@@ -238,7 +238,7 @@ pre {{ background: #f3f6f8; border: 0.4pt solid #b7c8d2; border-left: 3pt solid 
 def main() -> int:
     if not CHAPTERS:
         raise SystemExit(f"No numbered Markdown chapters found in {DOCS}")
-    document, counts = build_html()
+    document, counts, entries = build_html()
     with tempfile.TemporaryDirectory(prefix="technical-document-") as temporary:
         # The HTML needs to sit next to the Markdown assets while Chromium
         # resolves their relative image paths.  Keep its generated filename
@@ -246,9 +246,22 @@ def main() -> int:
         source = DOCS / f".technical-document-render-{Path(temporary).name}.html"
         source.write_text(document, encoding="utf-8")
         try:
+            preliminary = DOCS / f".technical-document-preliminary-{Path(temporary).name}.pdf"
+            subprocess.run(["chromium", "--headless", "--no-sandbox", "--disable-gpu", f"--print-to-pdf={preliminary}", "--no-pdf-header-footer", source.as_uri()], check=True)
+            pages_text = subprocess.run(["pdftotext", "-layout", str(preliminary), "-"], check=True, capture_output=True, text=True).stdout.split("\f")
+            page_numbers = {}
+            for level, title, identifier in entries:
+                chapter_prefix = re.match(r"(Chapter \d+ —)", title) if level == 1 else None
+                needle = chapter_prefix.group(1) if chapter_prefix else title
+                matches = [index + 1 for index, page in enumerate(pages_text) if needle in page]
+                if matches:
+                    page_numbers[identifier] = matches[-1]
+            document, counts, _ = build_html(page_numbers)
+            source.write_text(document, encoding="utf-8")
             subprocess.run(["chromium", "--headless", "--no-sandbox", "--disable-gpu", f"--print-to-pdf={OUTPUT}", "--no-pdf-header-footer", source.as_uri()], check=True)
         finally:
             source.unlink(missing_ok=True)
+            preliminary.unlink(missing_ok=True)
     if not OUTPUT.is_file() or not OUTPUT.stat().st_size:
         raise SystemExit("Chromium did not produce a non-empty PDF")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}")

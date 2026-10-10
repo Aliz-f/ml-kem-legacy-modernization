@@ -229,16 +229,3 @@ result, critically assess it, and document residual technical debt and risk.
 | 6. AI-Assisted Development and Critical Evaluation | Prompt records, human decisions, fixes, and verification evidence. |
 | 7. Technical Debt and Risk Analysis | Accepted limitations, risks, controls, and residual treatment. |
 | 8. Appendices | Complete configurations, runbooks, and selected critical source listings. |
-
-## 1.9 Chapter 1 evidence sources
-
-- Project overview and operational entry points: [`README.md`](../../README.md).
-- Technical-documentation structure and asset map:
-  [`docs/TECHNICAL_DOCUMENTATION_PLAN.md`](../TECHNICAL_DOCUMENTATION_PLAN.md).
-- Authoritative cross-component behavior:
-  [`docs/architecture/04 - Shared Cross-Component Protocol Specification.md`](../architecture/04%20-%20Shared%20Cross-Component%20Protocol%20Specification.md).
-- Component boundaries: [`Legacy Device`](../architecture/01%20-%20Legacy%20Device.md),
-  [`Edge Gateway`](../architecture/02%20-%20Edge%20Gateway.md), and
-  [`Cloud Service`](../architecture/03%20-%20Cloud%20Service.md) designs.
-- Staged delivery and ownership: [`Implementation roadmap`](../architecture/05%20-%20Implementation%20roadmap.md).
-- Course requirements: `Group-Explanation 01.pdf` and `Group-Explanation 02.pdf`.

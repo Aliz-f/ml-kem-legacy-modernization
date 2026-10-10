@@ -270,22 +270,3 @@ These choices keep the codebase course-sized while retaining the boundaries
 needed to inspect AI-generated changes critically.  The full protocol constants
 and wire contracts are in Chapter 2; deployment, monitoring, and CI evidence
 is in Chapter 4; and verification evidence is in Chapter 5.
-
-## 3.6 Evidence sources and selected implementation files
-
-- Component design constraints: [`Legacy Device`](../architecture/01%20-%20Legacy%20Device.md),
-  [`Edge Gateway`](../architecture/02%20-%20Edge%20Gateway.md), and
-  [`Cloud Service`](../architecture/03%20-%20Cloud%20Service.md) architecture documents.
-- Frozen inter-service behavior:
-  [`Shared Cross-Component Protocol Specification`](../architecture/04%20-%20Shared%20Cross-Component%20Protocol%20Specification.md).
-- Legacy evidence: [`sensor.py`](../../legacy_system/src/legacy_system/sensor.py),
-  [`device.py`](../../legacy_system/src/legacy_system/device.py),
-  [`client.py`](../../legacy_system/src/legacy_system/client.py), and
-  [`failure.py`](../../legacy_system/src/legacy_system/failure.py).
-- Gateway evidence: [`app.py`](../../edge_gateway/src/edge_gateway/app.py),
-  [`measurements.py`](../../edge_gateway/src/edge_gateway/measurements.py),
-  [`sequence.py`](../../edge_gateway/src/edge_gateway/sequence.py), and the
-  [`crypto` package](../../edge_gateway/src/edge_gateway/crypto).
-- Cloud evidence: [`app.py`](../../cloud_service/src/cloud_service/app.py),
-  [`secure.py`](../../cloud_service/src/cloud_service/gateway/secure.py), and
-  [`repository.py`](../../cloud_service/src/cloud_service/storage/repository.py).

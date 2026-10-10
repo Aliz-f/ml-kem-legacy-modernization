@@ -502,14 +502,3 @@ this PQC boundary.  Likewise, Cloud key distribution is trusted only within the
 configured test environment, and business idempotency is not cryptographic
 anti-replay protection.  These limitations are surfaced as technical debt and
 risk, not concealed as production-grade guarantees.
-
-## 2.10 Evidence sources
-
-- Authoritative contract: [`docs/architecture/04 - Shared Cross-Component Protocol Specification.md`](../architecture/04%20-%20Shared%20Cross-Component%20Protocol%20Specification.md).
-- Maintained-library selection and ML-KEM caveats:
-  [`docs/architecture/ml-kem-library-decision.md`](../architecture/ml-kem-library-decision.md).
-- Component responsibilities: [`Legacy Device`](../architecture/01%20-%20Legacy%20Device.md),
-  [`Edge Gateway`](../architecture/02%20-%20Edge%20Gateway.md), and
-  [`Cloud Service`](../architecture/03%20-%20Cloud%20Service.md) designs.
-- Documentation structure: [`docs/TECHNICAL_DOCUMENTATION_PLAN.md`](../TECHNICAL_DOCUMENTATION_PLAN.md).
-- Overview and terminology: [Chapter 1](01-executive-summary-and-system-overview.md).

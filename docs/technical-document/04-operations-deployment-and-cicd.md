@@ -298,19 +298,3 @@ transport, ephemeral Cloud key/session state, in-memory Gateway sequence state,
 single-instance SQLite, simple bounded retry behavior, and no persistent
 Gateway queue.  These constraints are adequate for reproducible course
 demonstration and testing; Chapter 7 evaluates their associated debt and risks.
-
-## 4.8 Evidence sources
-
-- Deployment topology: [`docker-compose.yml`](../../docker-compose.yml) and
-  [`Compose test-environment runbook`](../deployment/compose-test-environment.md).
-- Operations procedure: [`docs/RUNBOOK.md`](../RUNBOOK.md).
-- Logging, metric, dashboard, and secret-safety evidence:
-  [`LOGGING_CONVENTIONS.md`](../operations/LOGGING_CONVENTIONS.md),
-  [`METRICS_CONVENTIONS.md`](../operations/METRICS_CONVENTIONS.md),
-  [`SECRET_LOGGING_REVIEW.md`](../operations/SECRET_LOGGING_REVIEW.md), and
-  [`MONITORING_DASHBOARD_DECISION.md`](../operations/MONITORING_DASHBOARD_DECISION.md).
-- CI definition: [`.github/workflows/ai-history.yml`](../../.github/workflows/ai-history.yml).
-- Frozen health, correlation, metric, retry, and failure contracts:
-  [`Shared Cross-Component Protocol Specification`](../architecture/04%20-%20Shared%20Cross-Component%20Protocol%20Specification.md).
-- Known constraints: [`technical-debt.md`](../technical-debt.md) and
-  [`risk-register.md`](../risk-register.md).

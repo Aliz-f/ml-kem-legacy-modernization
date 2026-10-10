@@ -18,14 +18,7 @@ importing a module does not bind a server port, establish a remote session, or
 write data.  This makes unit testing practical and isolates the boundary
 between application logic, transport, cryptography, and storage.
 
-```text
-legacy_system/                         edge_gateway/                    cloud_service/
-Sensor → DeviceController              FastAPI ingress                   FastAPI API routers
-          ↓                            ↓                                  ↓
-FailureInjector → GatewayClient        validation → normalize → dispatch  baseline OR crypto/session
-                                       ↓                                  ↓
-                                       classical client OR PQC transport    validate/decrypt → repository
-```
+![chapter 03 - Implementation approach and ownership.png](chapter%2003%20-%20Implementation%20approach%20and%20ownership.png)
 
 ## 3.2 Legacy Device implementation
 

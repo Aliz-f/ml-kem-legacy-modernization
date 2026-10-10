@@ -8,24 +8,7 @@ Engineering mature software systems requires maintaining a clear, rigorous disti
 - **Technical Debt**: Refers to intentional, documented architectural compromises and design gaps accepted during development to maintain a focused, verifiable architecture and avoid premature operational complexity. A technical debt is a known structural limitation that was accepted with explicit rationale rather than an accidental oversight.
 - **Active Operational & Security Risks**: Refers to potential adverse events and threat vectors that can emerge from those accepted technical debts or from the operating environment. A risk represents an event that could lead to data loss, unauthorized eavesdropping, tampering, or service disruption.
 
-```
-┌───────────────────────────────────────────────┐
-│              TECHNICAL DEBT                   │  Intentional design trade-offs
-│   (Known architectural compromise or gap)     │  e.g., In-memory session cache (TD-4)
-└───────────────────────┬───────────────────────┘
-                        │ enables
-                        ▼
-┌───────────────────────────────────────────────┐
-│                 ACTIVE RISK                   │  Potential threat event
-│    (Adverse operational or security event)    │  e.g., Session loss & handshake churn (R-6)
-└───────────────────────┬───────────────────────┘
-                        │ mitigated by
-                        ▼
-┌───────────────────────────────────────────────┐
-│       CONTROLS & RESIDUAL TREATMENT           │  Implemented safeguards &
-│ (Boundaries, checks, and production roadmap)  │  explicitly acknowledged residual exposure
-└───────────────────────────────────────────────┘
-```
+![chapter 07 - Distinction Between Technical Debt and Operational Risk.png](chapter%2007%20-%20Distinction%20Between%20Technical%20Debt%20and%20Operational%20Risk.png)
 
 ### 7.1.2 Qualitative Evaluation Framework
 Because the system operates in a simulated edge-to-cloud environment, likelihood and impact are evaluated qualitatively rather than inferred from synthetic production metrics:
@@ -86,18 +69,7 @@ The project tracks nine active security and operational risks (**R-1 through R-9
 ### 7.3.1 Risk Evaluation Heatmap Matrix
 The qualitative positioning of each identified risk across Likelihood and Impact dimensions is visualized below:
 
-```text
-       ┌─────────────────────────────────────────────────────────────┐
-       │                       RISK HEATMAP                          │
-  HIGH │                      │ R-4, R-5, R-6        │ R-1, R-2, R-9 │
-       │                      │                      │               │
-IMPACT │ R-7                  │ R-3, R-8             │               │
-       │                      │                      │               │
-   LOW │                      │                      │               │
-       └──────────────────────┴──────────────────────┴───────────────┘
-                LOW                  MEDIUM          CONTEXT-DEPENDENT
-                                  LIKELIHOOD
-```
+![chapter 07 - Risk Evaluation Heatmap Matrix.png](chapter%2007%20-%20Risk%20Evaluation%20Heatmap%20Matrix.png)
 
 - **High-Impact / Context-Dependent Risks (R-1, R-2, R-9)**: Represent foundational security boundaries. While completely safe in the isolated test network, exposing these interfaces to the public Internet without transport-layer authentication or device authentication would create severe vulnerabilities.
 - **Medium-Impact Operational Risks (R-4, R-5, R-6)**: Represent standard edge computing operational churn. Implemented error bounds prevent crashes and cascading failures, though temporary telemetry loss during extended outages is acknowledged.
@@ -107,30 +79,7 @@ IMPACT │ R-7                  │ R-3, R-8             │               │
 
 To transition the demonstrated edge-to-cloud post-quantum telemetry pipeline into an enterprise-scale, mission-critical production deployment, the engineering team has formulated a three-phase modernization roadmap:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                 PHASE 1: CRYPTOGRAPHIC AND TRANSPORT HARDENING              │
-│ • Protocol v2: Add monotonic message counter & sliding replay window        │
-│ • Transport Security: Enforce mutual TLS (mTLS) with X.509 certificates     │
-│ • Identity Binding: Cryptographically authenticate Cloud endpoint identity  │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│               PHASE 2: PERSISTENCE AND QUEUE DECOUPLING                     │
-│ • Edge Queuing: Deploy durable local SQLite WAL store-and-forward spooling  │
-│ • Cloud Storage: Migrate from single-instance SQLite to clustered PostgreSQL│
-│ • State Persistence: Persist monotonic sequence watermarks across reboots   │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│              PHASE 3: HARDWARE-BACKED CRYPTO AND ZEROIZATION                │
-│ • Secure Elements: Integrate TPM 2.0 / Apple Secure Enclave on Edge Gateway │
-│ • Cloud HSM: Manage ML-KEM long-term keys in AWS CloudHSM / HashiCorp Vault │
-│ • Native Zeroization: Compile crypto routines in Rust via PyO3 with `mlock` │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+![chapter 07 - Production Modernization Roadmap.png](chapter%2007%20-%20Production%20Modernization%20Roadmap.png)
 
 ### 7.4.1 Phase 1: Cryptographic and Transport Hardening
 1. **Protocol v2 Specification**:
@@ -155,4 +104,3 @@ To transition the demonstrated edge-to-cloud post-quantum telemetry pipeline int
 2. **Native Memory Zeroization via Rust**:
    - Replace Python-level session key management with a compiled Rust extension module (using PyO3).
    - Leverage `secrecy` and `zeroize` crates to enforce guaranteed memory zeroization (`explicit_bzero`) and page locking (`mlock`), preventing sensitive key buffers from being written to swap memory (resolving TD-12 and R-7).
-

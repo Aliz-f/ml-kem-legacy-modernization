@@ -5,9 +5,7 @@
 The operational work makes the three-service telemetry path reproducible and
 inspectable:
 
-```text
-Legacy Device  →  Edge Gateway  →  Cloud Service  →  SQLite volume
-```
+![chapter 04 - Operational design goals.png](chapter%2004%20-%20Operational%20design%20goals.png)
 
 The core goals are deterministic local deployment, explicit security-mode
 selection, liveness/readiness visibility, safe correlation, bounded metrics,
@@ -29,25 +27,7 @@ Dockerfiles, connects them through Compose DNS, exposes only the Gateway and
 Cloud application ports on loopback, and persists accepted Cloud measurements
 in the named `cloud-data` volume.
 
-```text
-┌────────────────┐      http://edge-gateway:8000       ┌────────────────┐
-│ legacy-device  │ ─────────────────────────────────►  │  edge-gateway  │
-│ no inbound port│                                     │  loopback:8000 │
-└────────────────┘                                     └───────┬────────┘
-                                                               │
-                                    http://cloud-service:9000  │
-                                                               ▼
-                                                         ┌────────────────┐
-                                                         │ cloud-service  │
-                                                         │ loopback:9000  │
-                                                         └───────┬────────┘
-                                                                 │
-                                                          cloud-data volume
-
-                           ┌──────────────────────────────────────────────┐
-                           │ dashboard (local, loopback:8080, optional UI)│
-                           └──────────────────────────────────────────────┘
-```
+![chapter 04 - Docker Compose topology and lifecycle.png](chapter%2004%20-%20Docker%20Compose%20topology%20and%20lifecycle.png)
 
 The dashboard is a local operational aid, not a data-path component.  It can
 display service/metric status and apply restricted temporary overrides for a
@@ -232,12 +212,7 @@ secure end-to-end, container-build, and clean-environment evidence.  Each job
 uses a fresh Ubuntu runner; therefore no test depends on a prior job's local
 virtual environment, containers, database, or cached service process.
 
-```text
-quality ────────────────┐
-unit-tests ─────────────┼──► secure-e2e ──┐
-integration-tests ──────┘                 ├──► clean-environment
-quality ───────────────────► docker-build ─┘
-```
+![chapter 04 - Continuous integration and delivery gates.png](chapter%2004%20-%20Continuous%20integration%20and%20delivery%20gates.png)
 
 | CI job | Commands and coverage | Why the gate exists |
 | --- | --- | --- |

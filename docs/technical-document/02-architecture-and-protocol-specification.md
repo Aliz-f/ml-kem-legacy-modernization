@@ -3,11 +3,7 @@
 ## 2.1 Protocol scope and design rules
 
 The system uses two distinct protocol boundaries, which must never be confused:
-
-```text
-Legacy Device  -- HTTP + JSON -->  Edge Gateway
-Edge Gateway   -- baseline JSON OR ML-KEM session + AES-GCM -->  Cloud Service
-```
+![chapter 02 - Protocol scope and design rules.png](chapter%2002%20-%20Protocol%20scope%20and%20design%20rules.png)
 
 The Legacy Device sends a simple, fixed JSON representation.  The Gateway is
 the translation and modernization boundary: it validates legacy input,
@@ -130,44 +126,7 @@ baseline cases.  Fault injection is disabled in ordinary operation and can be
 made deterministic for a test with a service-scoped `FAILURE_MODE`,
 `FAILURE_RATE=1.0`, and optional `FAILURE_SEED`.
 
-```mermaid
-sequenceDiagram
-    participant Device
-    participant Gateway
-    participant Cloud
-    participant DB
-
-    alt Normal baseline delivery
-        Device->>Gateway: POST measurement
-        Gateway->>Gateway: Validate and normalize
-        Gateway->>Cloud: POST baseline measurement with request ID
-        Cloud->>DB: Idempotent save
-        DB-->>Cloud: Stored record
-        Cloud-->>Gateway: 202 Accepted
-        Gateway-->>Device: 202 Accepted
-    else Injected Legacy validation fault
-        Device->>Device: Inject malformed or invalid payload
-        Device->>Gateway: POST measurement
-        Gateway-->>Device: 400 or 422
-    else Injected Gateway processing error
-        Device->>Gateway: POST valid measurement
-        Gateway->>Gateway: Inject processing error
-        Gateway-->>Device: Visible safe failure
-    else Injected Gateway to Cloud timeout
-        Device->>Gateway: POST valid measurement
-        Gateway->>Cloud: POST baseline measurement with request ID
-        Cloud->>Cloud: Inject processing delay or dropped request
-        Gateway->>Gateway: Apply bounded transport retry
-        Gateway-->>Device: Visible failure after exhaustion
-    else Injected Cloud storage or service fault
-        Device->>Gateway: POST valid measurement
-        Gateway->>Cloud: POST baseline measurement with request ID
-        Cloud->>Cloud: Inject storage failure or service unavailable
-        Cloud-->>Gateway: 503
-        Gateway->>Gateway: Bounded retry
-        Gateway-->>Device: 202 only after later Cloud acceptance
-    end
-```
+![chapter 02 - Baseline Mode sequence with controlled fault injection.png](chapter%2002%20-%20Baseline%20Mode%20sequence%20with%20controlled%20fault%20injection.png)
 
 ### 2.3.2 Modernized ML-KEM Mode sequence with controlled fault injection
 
@@ -177,60 +136,7 @@ branches illustrate the frozen distinction between an ordinary transport retry
 (reuse the exact envelope) and session recovery (create one replacement
 session, rebuild under its new key, and preserve the logical request ID).
 
-```mermaid
-sequenceDiagram
-    participant Device
-    participant Gateway
-    participant Cloud
-    participant DB
-
-    alt Normal ML-KEM delivery
-        Device->>Gateway: POST measurement
-        Gateway->>Cloud: GET public key
-        Cloud-->>Gateway: Public key and key ID
-        Gateway->>Cloud: POST session ciphertext
-        Cloud-->>Gateway: Session ID and expiry
-        Gateway->>Cloud: POST encrypted envelope
-        Cloud->>DB: Authenticate decrypt validate and save
-        DB-->>Cloud: Stored record
-        Cloud-->>Gateway: 202 Accepted
-        Gateway-->>Device: 202 Accepted
-    else Injected public key or session fault
-        Device->>Gateway: POST measurement
-        Gateway->>Gateway: Inject handshake failure
-        Gateway->>Cloud: GET public key or POST session ciphertext
-        Cloud-->>Gateway: Failure response
-        Gateway-->>Device: Visible secure failure
-    else Injected ciphertext corruption
-        Device->>Gateway: POST measurement
-        Gateway->>Gateway: Build and corrupt encrypted envelope
-        Gateway->>Cloud: POST corrupted envelope
-        Cloud-->>Gateway: 400 secure message rejected
-        Gateway-->>Device: Visible failure with no storage
-    else Injected expired or invalid session
-        Device->>Gateway: POST measurement
-        Gateway->>Cloud: POST encrypted envelope
-        Cloud-->>Gateway: 409 session invalid or expired
-        Gateway->>Gateway: Discard local session
-        Gateway->>Cloud: GET current public key
-        Cloud-->>Gateway: Public key and key ID
-        Gateway->>Cloud: POST one replacement session
-        Cloud-->>Gateway: Replacement session ID and expiry
-        Gateway->>Gateway: Rebuild envelope with new key and same request ID
-        Gateway->>Cloud: Retry rebuilt envelope once
-        Cloud-->>Gateway: 202 Accepted or classified failure
-        Gateway-->>Device: 202 only after Cloud acceptance
-    else Injected dropped response after persistence
-        Device->>Gateway: POST measurement
-        Gateway->>Cloud: POST encrypted envelope
-        Cloud->>DB: Idempotent save
-        DB-->>Cloud: Stored record
-        Gateway->>Cloud: Resend identical envelope after timeout
-        Cloud->>DB: Idempotent lookup
-        Cloud-->>Gateway: 202 already accepted
-        Gateway-->>Device: 202 Accepted
-    end
-```
+![chapter 02 - Modernized ML-KEM Mode sequence with controlled fault injection.png](chapter%2002%20-%20Modernized%20ML-KEM%20Mode%20sequence%20with%20controlled%20fault%20injection.png)
 
 ## 2.4 Cryptographic suite and key-establishment contract
 

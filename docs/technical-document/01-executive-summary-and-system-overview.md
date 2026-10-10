@@ -29,32 +29,7 @@ add unrelated platform services such as a message broker, distributed database,
 Kubernetes, user accounts, or device-fleet management.
 
 ## 1.2 System at a glance
-
-```text
-┌─────────────────────┐       HTTP + JSON         ┌─────────────────────┐
-│    Legacy Device    │ ───────────────────────►  │    Edge Gateway     │
-│                     │                           │                     │
-│ • sensor simulation │                           │ • validation        │
-│ • UTC timestamp     │                           │ • normalization     │
-│ • sequence number   │                           │ • sequence tracking │
-│ • legacy HTTP client│                           │ • mode selection    │
-└─────────────────────┘                           │ • secure transport  │
-                                                  └──────────┬──────────┘
-                                                             │
-                           Classical: canonical JSON         │
-                           Modernized: ML-KEM-768, HKDF,     │
-                           AES-256-GCM SecureEnvelope        │
-                                                             ▼
-                                                  ┌─────────────────────┐
-                                                  │    Cloud Service    │
-                                                  │                     │
-                                                  │ • key/session side  │
-                                                  │ • decrypt/validate  │
-                                                  │ • idempotency       │
-                                                  │ • SQLite storage    │
-                                                  │ • query/operations  │
-                                                  └─────────────────────┘
-```
+![chapter 01 - System at a glance.png](chapter%2001%20-%20System%20at%20a%20glance.png)
 
 The architecture has two intentionally different communication boundaries:
 

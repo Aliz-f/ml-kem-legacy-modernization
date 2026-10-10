@@ -7,21 +7,7 @@ The modernization of a legacy telemetry pipeline to incorporate Post-Quantum Cry
 
 The test suite is structured as a multi-tier testing pyramid designed to catch defects at the lowest feasible level of abstraction while validating end-to-end operational behaviors in clean, containerized environments:
 
-```
-                      ┌─────────────────────────────────┐
-                      │    Containerized Compose E2E    │  Full Docker Compose
-                      │    (Lifecycle & Recovery)       │  Multi-container tests
-                      ├─────────────────────────────────┤
-                      │   Cross-Component Integration   │  Local HTTP loopback,
-                      │    (Stateful & Fault-Injected)  │  In-process FastAPI clients
-                      ├─────────────────────────────────┤
-                      │     Protocol Contract Tests     │  Wire schemas, AAD sort order,
-                      │    (Frozen Invariants & Wire)   │  HTTP status codes (400, 422, 409)
-                      ├─────────────────────────────────┤
-                      │       Unit & Crypto Tests       │  Fast isolation tests: ML-KEM,
-                      │    (Component Determinism)      │  HKDF, AES-GCM, sequence machine
-                      └─────────────────────────────────┘
-```
+![chapter 05 - Multi-Layered Testing Architecture.png](chapter%2005%20-%20Multi-Layered%20Testing%20Architecture.png)
 
 1. **Unit and Cryptographic Primitive Tests**:
    - Focuses on isolated components: the legacy sensor generator and configuration parser, in-memory sequence tracking state machines (Appendix D.5), ML-KEM encapsulation and decapsulation routines (Appendix D.1 and D.6), and HKDF-SHA-256 session key derivation (Appendix D.2).
@@ -113,14 +99,7 @@ In Modernized Mode (`SECURITY_MODE=mlkem`), message confidentiality and authenti
 
 The AEAD Tamper Regression Suite and Ciphertext Corruption Verification Suite verify that any unauthorized modification in transit is definitively rejected before payload parsing or database insertion.
 
-```
-       Attacker Action                         Cloud AEAD Decryptor                          Persistence
-┌──────────────────────────────┐              ┌────────────────────────┐              ┌───────────────────────┐
-│ 1-bit flip in ciphertext OR  │ ───────────► │ Verifies AES-256-GCM   │ ───────────► │ Rejection: HTTP 400   │
-│ modified field in 4-part AAD │              │ authentication tag     │              │ Zero rows in SQLite   │
-│ (gateway_id, session_id, ...)│              │ TAG MISMATCH EXCEPTION │              │ Metric incremented    │
-└──────────────────────────────┘              └────────────────────────┘              └───────────────────────┘
-```
+![chapter 05 - Cryptographic Tamper Resistance and AEAD Verification.png](chapter%2005%20-%20Cryptographic%20Tamper%20Resistance%20and%20AEAD%20Verification.png)
 
 #### Verification Code Trace: Bit-Flipped Ciphertext (Ciphertext Tamper Regression Suite)
 In the Ciphertext Corruption Verification Suite (`tests/integration/test_corrupt_ciphertext_demo.py`), a valid measurement is sealed into a `SecureEnvelope`, and exactly one byte of the Base64URL-decoded ciphertext is inverted by the failure injector:
@@ -457,4 +436,3 @@ The comprehensive verification suite provides empirical and regression evidence 
 1. **Contract Rigor**: All 1,728 automated tests pass, confirming 100% adherence to frozen wire protocols and status codes.
 2. **Post-Quantum Security**: Tampered ciphertexts and invalid AAD are rejected with `400 Bad Request` before persistence, and handshake failures fail closed with zero plaintext leakage.
 3. **Operational Feasibility**: ML-KEM-768 session establishment imposes only ~35 ms of initial latency, which is negligible when amortized over the 300-second session TTL, maintaining steady-state message latency under 10 ms.
-

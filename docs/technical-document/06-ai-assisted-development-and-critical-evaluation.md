@@ -14,43 +14,7 @@ To ensure rigorous software integrity and cryptographic safety, all development 
 ### 6.1.2 The Four-Phase Task Execution Lifecycle
 To prevent autonomous model drift, hallucinations, and unauthorized protocol changes, all development strictly followed a deterministic four-phase lifecycle:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                 PHASE A: PLANNING & TASK SCOPING (Human-Led)                │
-│ • Consult system specifications & inspect cross-component dependency graph  │
-│ • Identify target modules, tests, and frozen wire contracts                 │
-│ • Formulate precise, bounded task prompt                                    │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                 PHASE B: AUTONOMOUS GENERATION (Agent-Led)                  │
-│ • Initialize task via `uv run ai-history start`                             │
-│ • LLM generates code within component boundary                              │
-│ • Automated quality checks: `ruff check`, `pytest`, dependency graph check  │
-│ • Stage results via `uv run ai-history output`                              │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│            PHASE C: CRITICAL HUMAN REVIEW (Strictly Read-Only)               │
-│ • Agent execution suspended; engineers inspect diffs line-by-line           │
-│ • Evaluate correctness, security, maintainability, and protocol purity      │
-│ • Human reviewer issues decision: `Accepted`, `Modified`, or `Rejected`     │
-└───────────────────┬─────────────────────────────────────┬───────────────────┘
-                    │                                     │
-           Decision: "Modified"                   Decision: "Accepted"
-                    │                                     │
-                    ▼                                     ▼
-┌──────────────────────────────────────┐  ┌───────────────────────────────────┐
-│     PHASE D: REVISION & RETEST       │  │     FINAL HUMAN VERIFICATION      │
-│ • Record specific "Problems Found"   │  │ • Explicit human verification:    │
-│   and "Requested Modifications"      │  │   `uv run ai-history verify`      │
-│ • Agent revises code and re-runs     │  │ • Task marked COMPLETE;           │
-│   verification suite                 │  │   Merged into mainline branch     │
-│ • Return to Phase C for re-review    │  └───────────────────────────────────┘
-└──────────────────────────────────────┘
-```
+![chapter 06 - The Four-Phase Task Execution Lifecycle.png](chapter%2006%20-%20The%20Four-Phase%20Task%20Execution%20Lifecycle.png)
 
 - **Phase A (Planning & Task Scoping)**: The engineer inspects architectural specifications and queries the shared dependency knowledge graph to discover cross-component dependencies. A constrained task prompt is formulated specifying prerequisites, target modules, and acceptance criteria.
 - **Phase B (Autonomous Generation)**: The agent creates or modifies files strictly within the specified component boundary, runs static analysis (`ruff check`) and unit tests, and records outputs.
@@ -68,25 +32,25 @@ To automate and enforce compliance with this workflow, the project developed a c
 
 ## 6.2 Quantitative AI Inventory and Project-Wide Metrics
 
-Across system development, the repository accumulated a complete record of **220 AI tasks** (Tasks `0001` through `0220`). The final sequence of tasks (`0211` through `0220`) encompassed empirical performance data collection and freezing (`0211`–`0213`), technical documentation authoring for Chapters 1–4 (`0214`–`0217`), test allowlist configuration (`0218`), protocol sequence diagrams (`0219`), and technical documentation authoring and structural alignment for Chapters 5–8 (`0220`). A representative catalog of prompts spanning the full implementation lifecycle is provided in Appendix F.
+Across system development, the repository accumulated a complete record of **221 AI tasks** (Tasks `0001` through `0221`). The final sequence of tasks (`0211` through `0221`) encompassed empirical performance data collection and freezing (`0211`–`0213`), technical documentation authoring for Chapters 1–4 (`0214`–`0217`), test allowlist configuration (`0218`), protocol sequence diagrams (`0219`), technical documentation authoring and structural alignment for Chapters 5–8 (`0220`), and replacement of the documentation's Mermaid and ASCII-art diagrams with 13 matching PNG assets (`0221`). A representative catalog of prompts spanning the full implementation lifecycle is provided in Appendix F.
 
 ### 6.2.1 Multi-Agent Model Distribution
 Rather than relying on a single vendor or model family, multiple state-of-the-art LLMs were engaged across different functional areas:
 
 | AI Agent / Model | Primary Usage Area | Tasks Completed | Percentage |
 |---|---|:---:|:---:|
-| **OpenAI Codex** | Core component scaffolding, initial data models, evidence collection, and Chapters 1–4 documentation | 159 | 72.3% |
-| **xAI Grok Build** | Architecture consistency audits, documentation freeze, and review tooling | 31 | 14.1% |
-| **Google Antigravity (Gemini)** | Cross-component protocol integration, dashboard, and Chapters 5–8 documentation alignment | 16 | 7.3% |
+| **OpenAI Codex** | Core component scaffolding, initial data models, evidence collection, and technical-documentation updates | 160 | 72.4% |
+| **xAI Grok Build** | Architecture consistency audits, documentation freeze, and review tooling | 31 | 14.0% |
+| **Google Antigravity (Gemini)** | Cross-component protocol integration, dashboard, and Chapters 5–8 documentation alignment | 16 | 7.2% |
 | **GitHub Copilot** | Inline utility functions and test fixture expansion | 9 | 4.1% |
 | **Anthropic Claude Code (Opus / Sonnet)** | High-assurance cryptographic protocol reviews and contract validation | 4 | 1.8% |
 | **Other / Tooling Hooks** | Automated bootstrap hooks | 1 | 0.5% |
-| **Total Tasks** | | **220** | **100.0%** |
+| **Total Tasks** | | **221** | **100.0%** |
 
 ### 6.2.2 Human Intervention and Review Outcomes
 A critical metric of human oversight is the frequency with which generated code was challenged and modified:
-- **Zero Blind Approvals**: Across all 220 tasks, human reviewers inspected every implementation before merging.
-- **Iterative Modification Rate**: **27 tasks (12.3%)** were explicitly issued a decision of **`Modified`** during initial review rounds, requiring between 1 and 4 iterative cycles of human critique, corrective guidance, and re-verification before reaching acceptance.
+- **Zero Blind Approvals**: Across all 221 tasks, human reviewers inspected every implementation before merging.
+- **Iterative Modification Rate**: **27 tasks (12.2%)** were explicitly issued a decision of **`Modified`** during initial review rounds, requiring between 1 and 4 iterative cycles of human critique, corrective guidance, and re-verification before reaching acceptance.
 - **Implementation Tasks vs. Pre-Implementation Proposals**: In the `ai-history` catalog, exactly **0 tasks were marked `Rejected`**. This is because `ai-history` tracks active implementation tasks initialized in Phase B after architectural scoping. When an LLM suggested an unviable architectural direction or flawed concept during Phase A planning (such as direct ML-KEM payload encryption, automatic plaintext fallback, or introducing Kubernetes/Kafka), human engineers critiqued and **rejected the proposal before any implementation task was started**. Because no code task was initialized via `uv run ai-history start`, these rejected proposals do not appear as tasks in `.state.json` or the history logs. Instead, they are formally recorded in component decision records (such as `edge_gateway/docs/ai-decisions.md`) and the Project-Wide Architectural Decision Register (Table 6.3). Conversely, once an implementation task was initialized in `ai-history`, flawed outputs were never abandoned; they received a decision of `Modified` and underwent iterative revision loops until fully corrected and `Accepted`.
 
 #### Breakdown of Multi-Round Iterative Tasks:
@@ -302,7 +266,7 @@ This task represents the most extensively scrutinized AI interaction in the proj
 
 ## 6.5 Critical Evaluation of LLM Capabilities and Engineering Lessons
 
-The systematic auditing of 220 AI tasks provided deep empirical insights into the real-world strengths and failure modes of Large Language Models in systems programming and cybersecurity:
+The systematic auditing of 221 AI tasks provided deep empirical insights into the real-world strengths and failure modes of Large Language Models in systems programming and cybersecurity:
 
 ### 6.5.1 Where LLMs Demonstrated High Capability
 1. **Rapid Scaffolding & Boilerplate**: Generating Python dataclasses, Pydantic validation schemas, standard FastAPI route definitions, and configuration parsers with high syntactic accuracy.

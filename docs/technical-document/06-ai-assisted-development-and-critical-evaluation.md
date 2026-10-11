@@ -32,25 +32,33 @@ To automate and enforce compliance with this workflow, the project developed a c
 
 ## 6.2 Quantitative AI Inventory and Project-Wide Metrics
 
-Across system development, the repository accumulated a complete record of **226 AI tasks** (Tasks `0001` through `0226`). The final sequence of tasks (`0211` through `0226`) encompassed empirical performance data collection and freezing (`0211`–`0213`), technical documentation authoring for Chapters 1–4 (`0214`–`0217`), test allowlist configuration (`0218`), protocol sequence diagrams (`0219`), technical documentation authoring and structural alignment for Chapters 5–8 (`0220`), diagram-asset replacement (`0221`), Chapter 6 history reconciliation (`0222`), consolidated-PDF generation (`0223`), table-pagination refinements (`0224`), a static-check allowlist correction (`0225`), and rendering/content cleanup (`0226`). A representative catalog of prompts spanning the full implementation lifecycle is provided in Appendix F.
+Across system development, the repository accumulated a complete record of **227 AI tasks** (Tasks `0001` through `0227`), executed across two primary development phases:
+
+- **Phase 1: Core System Architecture & Protocol Modernization (Tasks `0001` through `0210`)**  
+  The foundational implementation of the entire three-tier system architecture, encompassing Legacy Device sensor emulation, Edge Gateway ingress and sequence enforcement, Cloud Service persistence and idempotency, ML-KEM-768/AES-256-GCM cryptographic pipelines, session lifecycles, failure-injection testing, Docker Compose orchestration, Prometheus metrics, and the 1,728-test verification suite.
+
+- **Phase 2: Empirical Benchmarking & Documentation Consolidation (Tasks `0211` through `0227`)**  
+  Empirical benchmark execution and data freezing across 30 cold sessions and 90 transmissions, technical documentation authoring and architectural alignment across all chapters, sequence diagram assets, and consolidated publication layout.
+
+A representative catalog of prompts spanning the full implementation lifecycle is provided in Appendix F.
 
 ### 6.2.1 Multi-Agent Model Distribution
 Rather than relying on a single vendor or model family, multiple state-of-the-art LLMs were engaged across different functional areas:
 
 | AI Agent / Model | Primary Usage Area | Tasks Completed | Percentage |
 |---|---|:---:|:---:|
-| **OpenAI Codex** | Core component scaffolding, initial data models, evidence collection, and technical-documentation updates | 165 | 73.0% |
+| **OpenAI Codex** | Core component scaffolding, initial data models, evidence collection, and technical-documentation updates | 165 | 72.7% |
 | **xAI Grok Build** | Architecture consistency audits, documentation freeze, and review tooling | 31 | 13.7% |
-| **Google Antigravity (Gemini)** | Cross-component protocol integration, dashboard, and Chapters 5–8 documentation alignment | 16 | 7.1% |
+| **Google Antigravity (Gemini)** | Cross-component protocol integration, dashboard, and Chapters 5–8 documentation alignment | 17 | 7.5% |
 | **GitHub Copilot** | Inline utility functions and test fixture expansion | 9 | 4.0% |
 | **Anthropic Claude Code (Opus / Sonnet)** | High-assurance cryptographic protocol reviews and contract validation | 4 | 1.8% |
 | **Other / Tooling Hooks** | Automated bootstrap hooks | 1 | 0.4% |
-| **Total Tasks** | | **226** | **100.0%** |
+| **Total Tasks** | | **227** | **100.0%** |
 
 ### 6.2.2 Human Intervention and Review Outcomes
 A critical metric of human oversight is the frequency with which generated code was challenged and modified:
-- **Zero Blind Approvals**: Across all 226 tasks, human reviewers inspected every implementation before merging.
-- **Iterative Modification Rate**: **30 tasks (13.3%)** were explicitly issued a decision of **`Modified`** during at least one review round, requiring between 1 and 4 iterative cycles of human critique, corrective guidance, and re-verification before reaching acceptance.
+- **Zero Blind Approvals**: Across all 227 tasks, human reviewers inspected every implementation before merging.
+- **Iterative Modification Rate**: **31 tasks (13.7%)** were explicitly issued a decision of **`Modified`** during at least one review round, requiring between 1 and 4 iterative cycles of human critique, corrective guidance, and re-verification before reaching acceptance.
 - **Implementation Tasks vs. Pre-Implementation Proposals**: In the `ai-history` catalog, exactly **0 tasks were marked `Rejected`**. This is because `ai-history` tracks active implementation tasks initialized in Phase B after architectural scoping. When an LLM suggested an unviable architectural direction or flawed concept during Phase A planning (such as direct ML-KEM payload encryption, automatic plaintext fallback, or introducing Kubernetes/Kafka), human engineers critiqued and **rejected the proposal before any implementation task was started**. Because no code task was initialized via `uv run ai-history start`, these rejected proposals do not appear as tasks in `.state.json` or the history logs. Instead, they are formally recorded in component decision records (such as `edge_gateway/docs/ai-decisions.md`) and the Project-Wide Architectural Decision Register (Table 6.3). Conversely, once an implementation task was initialized in `ai-history`, flawed outputs were never abandoned; they received a decision of `Modified` and underwent iterative revision loops until fully corrected and `Accepted`.
 
 #### Breakdown of Multi-Round Iterative Tasks:
@@ -266,7 +274,7 @@ This task represents the most extensively scrutinized AI interaction in the proj
 
 ## 6.5 Critical Evaluation of LLM Capabilities and Engineering Lessons
 
-The systematic auditing of 226 AI tasks provided deep empirical insights into the real-world strengths and failure modes of Large Language Models in systems programming and cybersecurity:
+The systematic auditing of 227 AI tasks provided deep empirical insights into the real-world strengths and failure modes of Large Language Models in systems programming and cybersecurity:
 
 ### 6.5.1 Where LLMs Demonstrated High Capability
 1. **Rapid Scaffolding & Boilerplate**: Generating Python dataclasses, Pydantic validation schemas, standard FastAPI route definitions, and configuration parsers with high syntactic accuracy.
